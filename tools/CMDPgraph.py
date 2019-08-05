@@ -460,12 +460,12 @@ class CMDP:
     def calculate_Bellman(self,T, cap, cmax):
         r = self.rOperator(T)
         for _ in range(2 * len(self.states)):
-            r = self.Bellman(r, cap, cmax)
+            r = self.Bellman(r, cap, cmax, T)
         return r
 
 
 
-    def Bellman(self,r, cap, cmax):
+    def Bellman(self,r, cap, cmax, T):
         r_copy = copy.copy(r)
         for state in self.states:
             tempmin = math.inf
@@ -474,7 +474,8 @@ class CMDP:
                 min_r = min([r[state[0]] for state in act[0].adj])
                 max_1 = max(max_safe,min_r)
                 tempmin = min(tempmin, act[1] + max_1)
-            r_copy[state] = self.bounding(tempmin, cap)
+            if not self.GetNode(state.label) in T:
+                r_copy[state] = self.bounding(tempmin, cap)
         return r_copy
 
     def minInitConsForSafe(self):
