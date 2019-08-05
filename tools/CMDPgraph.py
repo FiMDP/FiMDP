@@ -1,5 +1,33 @@
 import math
 import copy
+import json
+
+def graph_from_json(file_path):
+    with open(file_path,'r') as f:
+        graph_file = json.load(f)
+
+    graph = CMDP()
+
+    for node in graph_file["nodes"]:
+        graph.addNode(node["label"],isAction=node["action"],isReload=node["reload"])
+
+    for edge in graph_file["edges"]:
+        graph.GetNode(edge["tail"]).insert(graph.GetNode(edge["head"]),consumed=edge["consumption"], probability=edge["probability"])
+
+    graph.finalizeCMDP()
+
+    return graph, graph_file["cmax"]
+
+def get_T_from_json(file_path, graph):
+    with open(file_path,'r') as f:
+        graph_file = json.load(f)
+
+    T = []
+    for node in graph_file["T"]:
+        T.append(graph.GetNode(node["label"]))
+
+    return T
+
 
 class CMDP:
 
@@ -7,6 +35,7 @@ class CMDP:
         self.nodes = set()
         self.numNodes = 0
         self.numbertrack = 0
+
 
     def addNode(self,label,isAction = False, isReload = False):
         check = True
