@@ -19,7 +19,7 @@ mygraph.GetNode('zero_act').insert(mygraph.GetNode('one'),probability=1)
 
 mygraph.finalizeCMDP()
 
-bell = mygraph.safePosReachDebug(5,6,mygraph.GetNode('one'),1)
+bell = mygraph.safePosReachDebug(5,6,[mygraph.GetNode('one')],1)
 print(bell[mygraph.GetNode('zero')])
 
 
@@ -30,12 +30,12 @@ cm = CMDPgraph.CMDP()
 
 
 ##Example Graph:
-###Will improve with json file
+###Improve with json file?
 cm.addNode('blue',isReload=True)
 cm.addNode('blueaction1',isAction=True)
 cm.addNode('red',isReload=False)
 
-#Make a MEC for testing
+#Make an MEC for testing
 cm.addNode('redaction2',isAction=True)
 cm.GetNode('red').insert(cm.GetNode('redaction2'),consumed=1)
 cm.addNode('zero',isReload=True)
@@ -73,6 +73,6 @@ cm.GetNode('cyan').insert(cm.GetNode('cyanaction1'),consumed=1)
 
 cm.finalizeCMDP()
 
-check3 = cm.safePosReachDebug(20, 20, cm.GetNode('one'), 3)
+check3 = cm.safePosReachDebug(20, 20, [cm.GetNode('one')], 3)
 
 print(check3[cm.GetNode('red')])
