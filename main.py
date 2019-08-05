@@ -1,5 +1,4 @@
 from tools import CMDPgraph, GridWorld
-import time
 
 #Generate a gridworld (Still need branching edges)
 cmax_ = 3
@@ -7,20 +6,15 @@ graph = GridWorld.generate_GridWorld((10,10), cmax_,0.5)
 
 
 #Example 2-state graph
-mygraph = CMDPgraph.CMDP()
-mygraph.addNode('one')
-mygraph.addNode('zero',isReload=True)
-mygraph.addNode('one_act',isAction=True)
-mygraph.addNode('zero_act',isAction=True)
-mygraph.GetNode('one').insert(mygraph.GetNode('one_act'),consumed=1)
-mygraph.GetNode('zero').insert(mygraph.GetNode('zero_act'),consumed=1)
-mygraph.GetNode('one_act').insert(mygraph.GetNode('zero'),probability=1)
-mygraph.GetNode('zero_act').insert(mygraph.GetNode('one'),probability=1)
+g, cmax = CMDPgraph.graph_from_json('example.json')
 
-mygraph.finalizeCMDP()
 
-bell = mygraph.safePosReachDebug(5,6,[mygraph.GetNode('one')],1)
-print(bell[mygraph.GetNode('zero')])
+T = CMDPgraph.get_T_from_json('example.json', g)
+
+d = 5
+cap = 6
+bell = g.safePosReachDebug(d, cap, T, cmax)
+print(bell[T[0]])
 
 
 

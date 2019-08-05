@@ -1,0 +1,57 @@
+{
+  "id": "My Example",
+  "cmax": 4,
+  "nodes": [
+    {
+      "label": "node1",
+      "reload": 2,
+      "action": false
+    },
+    {
+      "label": "node1_act",
+      "reload": 0,
+      "action": true
+    },
+    {
+      "label": "node2",
+      "reload": 0,
+      "action": false
+    },
+    {
+      "label": "node2_act",
+      "reload": 0,
+      "action": true
+    }
+  ],
+  "edges": [
+    {
+      "tail": "node1",
+      "head": "node1_act",
+      "probability": 1,
+      "consumption": 3
+    },
+    {
+      "tail": "node1_act",
+      "head": "node2",
+      "probability": 1,
+      "consumption": 0
+    },
+    {
+      "tail": "node2",
+      "head": "node2_act",
+      "probability": 1,
+      "consumption": 4
+    },
+    {
+      "tail": "node2_act",
+      "head": "node1",
+      "probability": 1,
+      "consumption": 0
+    }
+  ],
+  "T": [
+    {
+      "label": "node2"
+    }
+  ]
+}
