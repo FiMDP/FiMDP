@@ -4,22 +4,22 @@
   "nodes": [
     {
       "label": "node1",
-      "reload": 2,
+      "reload": true,
       "action": false
     },
     {
       "label": "node1_act",
-      "reload": 0,
+      "reload": false,
       "action": true
     },
     {
       "label": "node2",
-      "reload": 0,
+      "reload": false,
       "action": false
     },
     {
       "label": "node2_act",
-      "reload": 0,
+      "reload": false,
       "action": true
     }
   ],

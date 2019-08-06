@@ -11,8 +11,8 @@ g, cmax = CMDPgraph.graph_from_json('example.json')
 
 T = CMDPgraph.get_T_from_json('example.json', g)
 
-d = 5
-cap = 6
+d = 7
+cap = 7
 bell = g.safePosReachDebug(d, cap, T, cmax)
 print(bell[T[0]])
 
@@ -24,7 +24,6 @@ cm = CMDPgraph.CMDP()
 
 
 ##Example Graph:
-###Improve with json file?
 cm.addNode('blue',isReload=True)
 cm.addNode('blueaction1',isAction=True)
 cm.addNode('red',isReload=False)
