@@ -22,6 +22,9 @@ def get_T_from_json(file_path, graph):
     with open(file_path,'r') as f:
         graph_file = json.load(f)
 
+    if not "T" in graph_file:
+        raise KeyError('No T in ' + file_path)
+
     T = []
     for node in graph_file["T"]:
         T.append(graph.GetNode(node["label"]))
@@ -43,10 +46,16 @@ class CMDP:
             if node.label == label:
                 check = False
         if check:
-            node = CMDP.Node(label,self.numbertrack,self.numNodes,isAction,isReload)
-            self.nodes.add(node)
-            self.numbertrack += 1
-            self.numNodes += 1
+            if isAction:
+                node = CMDP.Node(label,None,self.numNodes,isAction,isReload)
+                self.nodes.add(node)
+                self.numNodes += 1
+            else:
+                node = CMDP.Node(label, self.numbertrack, self.numNodes, isAction, isReload)
+                self.nodes.add(node)
+                self.numNodes += 1
+                self.numbertrack += 1
+                self.numNodes += 1
         return node
 
     def removeNodes(self,NodeSet):
@@ -140,7 +149,7 @@ class CMDP:
         RnotCap = set()
         while True:
             for s in Rtemp:
-                if mininit[s] > cap:
+                if mininit[s.number] > cap:
                     RnotCap.add(s)
             if len(RnotCap) == 0:
                 break
@@ -149,12 +158,12 @@ class CMDP:
                 Rtemp.remove(s)
             RnotCap = set()
             mininit = tempMDCP.minInitConsForSafe()
-        safeDict = {}
+        safeDict = [False]*len(self.states)
         for s in tempMDCP.states:
-            if mininit[s] <= d:
-                safeDict[self.GetNode(s.label)] = True
+            if mininit[s.number] <= d:
+                safeDict[s.number] = True
             else:
-                safeDict[self.GetNode(s.label)] = False
+                safeDict[s.number] = False
 
         return safeDict
 
@@ -412,106 +421,126 @@ class CMDP:
             return math.inf
 
     def rOperator(self,T):
-        r = {}
+        r = [math.inf]*len(self.states)
         for s in self.states:
             if not hasattr(T, 'adj'):
                 for i in T:
                     if s.label == i.label:
-                        r[s] = 0
+                        r[s.number] = 0
                     else:
-                        r[s] = math.inf
+                        r[s.number] = math.inf
             else:
                 if s.label == T.label:
-                    r[s] = 0
+                    r[s.number] = 0
                 else:
-                    r[s] = math.inf
+                    r[s.number] = math.inf
 
         return r
 
 
 
-    def maxSafeSucc(self,a,cap,cmax):
+    def maxSafeSucc(self,a,cap,cmax, safe_cap):
         if len(a.adj) > 1:
             # temp = max(a.adj,key=(lambda x:self.safeMinimizer(cap,cmax,x[0])))
             templist = [x for x in a.adj]
             tempmax = 0
             for vert in templist:
-                temp = self.safeMinimizer(cap,cmax,vert[0])
+                temp = safe_cap[vert[0].number]
                 if temp > tempmax:
                     tempmax = temp
         else:
             for temp in a.adj:
-                tempmax = self.safeMinimizer(cap,cmax,temp[0])
-                break
+                return safe_cap[temp[0].number]
 
         return tempmax
 
 
-    def safeMinimizer(self,cap,cmax,s):
+    def safeMinimizer(self,cap):
         #Find minimum d that satisfies self.isSafe(i,cap,self.GetNode(s.label)) given cap
-        dmax = cmax*len(self.states)
-        tempmin = dmax
-        curr_d = math.ceil(dmax/2)
-        frac = math.ceil(curr_d/2)
-        check = False
-        for _ in range(dmax):
-            if not curr_d < 0:
-                safeCheck = self.isSafe(curr_d, cap)
-                if safeCheck[s]:
-                    tempmin = min(tempmin,curr_d)
-                    curr_d -= frac
-                else:
-                    curr_d += frac
-            else:
-                curr_d += frac
-            if frac == 1:
-                check = True
-            frac = math.ceil(frac/2)
-            if check:
-                safeCheck = self.isSafe(curr_d, cap)
-                if safeCheck[s]:
-                    tempmin = min(tempmin,curr_d)
-                return tempmin
+        # tempmin = dmax
+        # curr_d = math.ceil(dmax/2)
+        # frac = math.ceil(curr_d/2)
+        # check = False
+
+        safe_minimums = [math.inf]*len(self.states)
+
+        for curr_d in range(cap):
+            print('Safe Minimize Progress: {} out of {}'.format(curr_d,cap))
+            safeCheck = self.isSafe(curr_d, cap)
+            for node in self.states:
+                if safeCheck[node.number]:
+                    safe_minimums[node.number] = curr_d
+
+        return safe_minimums
+
+        # if not self.isSafe(dmax,cap)[s]:
+        #     print('{} is at max'.format(s.label))
+        #     return dmax
+        # for _ in range(dmax):
+        #     print(curr_d)
+        #     if not curr_d < 0:
+        #         safeCheck = self.isSafe(curr_d, cap)
+        #         if safeCheck[s]:
+        #             tempmin = min(tempmin,curr_d)
+        #             curr_d -= frac
+        #         else:
+        #             curr_d += frac
+        #     else:
+        #         curr_d += frac
+        #     if frac == 1:
+        #         check = True
+        #     frac = math.ceil(frac/2)
+        #     if check:
+        #         safeCheck = self.isSafe(curr_d, cap)
+        #         if safeCheck[s]:
+        #             tempmin = min(tempmin,curr_d)
+        #         return tempmin
 
     def safePosReachDebug(self,d,cap,T,cmax):
         ##Is there a strategy that starts at sinit and hits states T and is safe(d,cap)?
-        n = 2 * len(self.states)
-        iter_count = n
-        bell = self.calculate_Bellman(T, cap, cmax)
 
-        for entry in bell:
-            if bell[entry] <=d:
-                bell[entry] = True
-            else:
-                bell[entry] = False
+
+        safe_cap = self.safeMinimizer(cap)
+
+        bell = self.calculate_Bellman(T, cap, cmax, safe_cap)
+
+        # for i, entry in enumerate(bell):
+        #     if entry <=d:
+        #         bell[i] = True
+        #     else:
+        #         bell[i] = False
         return bell
 
-    def calculate_Bellman(self,T, cap, cmax):
+    def calculate_Bellman(self,T, cap, cmax, safe_cap):
         r = self.rOperator(T)
-        for _ in range(2 * len(self.states)):
-            r = self.Bellman(r, cap, cmax, T)
+        for iter in range(2 * len(self.states)):
+            print('{} out of {}'.format(iter, 2 * len(self.states)))
+            r, check = self.Bellman(r, cap, cmax, T, safe_cap)
+            if check:
+                break
         return r
 
 
 
-    def Bellman(self,r, cap, cmax, T):
+    def Bellman(self,r, cap, cmax, T, safe_cap):
         r_copy = copy.copy(r)
+        check = False
         for state in self.states:
             tempmin = math.inf
             for act in state.adj:
-                max_safe = self.maxSafeSucc(act[0], cap, cmax)
-                min_r = min([r[state[0]] for state in act[0].adj])
+                max_safe = self.maxSafeSucc(act[0], cap, cmax, safe_cap)
+                min_r = min([r[state[0].number] for state in act[0].adj])
                 max_1 = max(max_safe,min_r)
                 tempmin = min(tempmin, act[1] + max_1)
             if not self.GetNode(state.label) in T:
-                r_copy[state] = self.bounding(tempmin, cap)
-        return r_copy
+                r_copy[state.number] = self.bounding(tempmin, cap)
+            if not r_copy[state.number] == r[state.number]:
+                check = True
+        return r_copy, check
 
     def minInitConsForSafe(self):
-        self.mininit = {}
+        self.mininit = [math.inf]*len(self.states)
         m = len(self.states)
-        for node in self.states:
-            self.mininit[node] = node.Fv
         for _ in range(m):
             for node in self.states:
                 tempmin = math.inf
@@ -521,10 +550,10 @@ class CMDP:
                         if i[0].reload:
                             max_1 = max(max_1, 0)
                         else:
-                            max_1 = max(max_1, self.mininit[i[0]])
+                            max_1 = max(max_1, self.mininit[i[0].number])
 
                     tempmin = min(tempmin, a[1] + max_1)
-                self.mininit[node] = tempmin
+                self.mininit[node.number] = tempmin
         return self.mininit
 
     def minInitConsDebug(self):
