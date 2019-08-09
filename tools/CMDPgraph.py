@@ -496,7 +496,7 @@ class CMDP:
         #             tempmin = min(tempmin,curr_d)
         #         return tempmin
 
-    def safePosReachDebug(self,d,cap,T,cmax):
+    def safePosReachDebug(self,cap,T,cmax):
         ##Is there a strategy that starts at sinit and hits states T and is safe(d,cap)?
 
 
