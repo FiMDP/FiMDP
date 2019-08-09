@@ -30,7 +30,7 @@ T = CMDPgraph.get_T_from_json(file_path, g)
 
 d = 15
 cap = 25
-bell = g.safePosReachDebug(d, cap, T, cmax)
+bell = g.safePosReachDebug(cap, T, cmax)
 
 w = csv.writer(open("output{}.csv".format(datetime.datetime.today()), "w"))
 for state in g.states:
