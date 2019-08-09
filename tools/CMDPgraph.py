@@ -514,7 +514,7 @@ class CMDP:
     def calculate_Bellman(self,T, cap, cmax, safe_cap):
         r = self.rOperator(T)
         for iter in range(2 * len(self.states)):
-            print('{} out of {}'.format(iter, 2 * len(self.states)))
+            # print('{} out of {}'.format(iter, 2 * len(self.states)))
             r, check = self.Bellman(r, cap, cmax, T, safe_cap)
             if check:
                 break
@@ -525,6 +525,7 @@ class CMDP:
     def Bellman(self,r, cap, cmax, T, safe_cap):
         r_copy = copy.copy(r)
         check = False
+        check_sum = 0
         for state in self.states:
             tempmin = math.inf
             for act in state.adj:
@@ -536,6 +537,9 @@ class CMDP:
                 r_copy[state.number] = self.bounding(tempmin, cap)
             if not r_copy[state.number] == r[state.number]:
                 check = True
+            else:
+                check_sum += 1
+        print('{} out of {} converged'.format(check_sum,len(self.states)))
         return r_copy, check
 
     def minInitConsForSafe(self):
