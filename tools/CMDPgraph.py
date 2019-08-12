@@ -424,9 +424,13 @@ class CMDP:
         r = [math.inf]*len(self.states)
         for s in self.states:
             if not hasattr(T, 'adj'):
+                check = False
                 for i in T:
+                    if check:
+                        continue
                     if s.label == i.label:
                         r[s.number] = 0
+                        check = True
                     else:
                         r[s.number] = math.inf
             else:
@@ -439,17 +443,21 @@ class CMDP:
 
 
 
-    def maxSafeSucc(self,a,cap,cmax, safe_cap):
-        if len(a.adj) > 1:
+    def maxSafeSucc(self,a,s, safe_cap):
+        if len(a.adj) > 2:
             # temp = max(a.adj,key=(lambda x:self.safeMinimizer(cap,cmax,x[0])))
             templist = [x for x in a.adj]
             tempmax = 0
             for vert in templist:
+                if vert.label == s.label:
+                    continue
                 temp = safe_cap[vert[0].number]
                 if temp > tempmax:
                     tempmax = temp
         else:
             for temp in a.adj:
+                if temp[0].label == s.label:
+                    continue
                 return safe_cap[temp[0].number]
 
         return tempmax
@@ -469,7 +477,7 @@ class CMDP:
             safeCheck = self.isSafe(curr_d, cap)
             for node in self.states:
                 if safeCheck[node.number]:
-                    safe_minimums[node.number] = curr_d
+                    safe_minimums[node.number] = min(curr_d, safe_minimums[node.number])
 
         return safe_minimums
 
@@ -522,21 +530,31 @@ class CMDP:
 
 
 
+
     def Bellman(self,r, cap, cmax, T, safe_cap):
         r_copy = copy.copy(r)
-        check = False
+        check = True
         check_sum = 0
         for state in self.states:
             tempmin = math.inf
             for act in state.adj:
-                max_safe = self.maxSafeSucc(act[0], cap, cmax, safe_cap)
-                min_r = min([r[state[0].number] for state in act[0].adj])
-                max_1 = max(max_safe,min_r)
-                tempmin = min(tempmin, act[1] + max_1)
+                tempmin2 = math.inf
+                if len(act[0].adj) == 1:
+                    for s in act[0].adj:
+                        tempmin2 = r[s[0].number]
+                else:
+                    for s in act[0].adj:
+                        for s2 in act[0].adj:
+                            if s == s2:
+                                continue
+                            tempmin2 = min(tempmin2,max(r[s[0].number],self.maxSafeSucc(act[0],s2[0],cap)))
+                tempmin = min(tempmin,tempmin2 + act[1])
+
+
             if not self.GetNode(state.label) in T:
                 r_copy[state.number] = self.bounding(tempmin, cap)
             if not r_copy[state.number] == r[state.number]:
-                check = True
+                check = False
             else:
                 check_sum += 1
         print('{} out of {} converged'.format(check_sum,len(self.states)))
