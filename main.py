@@ -3,20 +3,20 @@ import math
 import csv
 import datetime
 
-# #Generate a gridworld (Still need branching edges)
-# cmax_ = 3
-# graph = GridWorld.generate_GridWorld((3,3), cmax_,0.5)
-#
-# print('Number of nodes: {}'.format(graph.numNodes))
-#
-# bell = graph.safePosReachDebug(5, 5, [graph.GetNode('(0,0)')], cmax_)
-#
-# check_node = '(2,2)'
-#
-# if bell[graph.GetNode(check_node)]:
-#     print(check_node + ' works')
-# else:
-#     print(check_node + ' does not work')
+#Generate a gridworld (Still need branching edges)
+cmax_ = 3
+graph, cmax = CMDPgraph.graph_from_json('example.json')
+
+T = CMDPgraph.get_T_from_json('example.json',graph)
+print('Number of nodes: {}'.format(graph.numNodes))
+
+bell = graph.safePosReachDebug( 20, T, cmax_)
+
+print(graph.GetNode('node1').number)
+
+check_node = '(2,2)'
+
+print(bell)
 print(datetime.datetime.today())
 
 #Example 2-state graph
