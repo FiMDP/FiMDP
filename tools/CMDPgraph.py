@@ -449,7 +449,7 @@ class CMDP:
             templist = [x for x in a.adj]
             tempmax = 0
             for vert in templist:
-                if vert.label == s.label:
+                if vert[0].label == s.label:
                     continue
                 temp = safe_cap[vert[0].number]
                 if temp > tempmax:
@@ -547,7 +547,7 @@ class CMDP:
                         for s2 in act[0].adj:
                             if s == s2:
                                 continue
-                            tempmin2 = min(tempmin2,max(r[s[0].number],self.maxSafeSucc(act[0],s2[0],cap)))
+                            tempmin2 = min(tempmin2,max(r[s[0].number],self.maxSafeSucc(act[0],s2[0],safe_cap)))
                 tempmin = min(tempmin,tempmin2 + act[1])
 
 
