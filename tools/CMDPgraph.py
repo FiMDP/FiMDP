@@ -561,6 +561,7 @@ class CMDP:
         return r_copy, check
 
     def minInitConsForSafe(self):
+        #Use this one
         self.mininit = [math.inf]*len(self.states)
         m = len(self.states)
         for _ in range(m):
@@ -578,21 +579,54 @@ class CMDP:
                 self.mininit[node.number] = tempmin
         return self.mininit
 
-    def minInitConsDebug(self):
-        self.mininit = {}
-        m = len(self.states)
-        for node in self.states:
-            self.mininit[node] = node.Fv
-        for _ in range(m):
-            for node in self.states:
-                if node.reload:
-                    self.mininit[node] = 0
-                else:
-                    tempmin = math.inf
-                    for a in node.adj:
-                        tempmin = min(tempmin, a[1] + max([self.mininit[i[0]] for i in a[0].adj]))
-                    self.mininit[node] = tempmin
-        return self.mininit
+    # def minInitConsDebug(self):
+    #     self.mininit = {}
+    #     m = len(self.states)
+    #     for node in self.states:
+    #         self.mininit[node] = node.Fv
+    #     for _ in range(m):
+    #         for node in self.states:
+    #             if node.reload:
+    #                 self.mininit[node] = 0
+    #             else:
+    #                 tempmin = math.inf
+    #                 for a in node.adj:
+    #                     tempmin = min(tempmin, a[1] + max([self.mininit[i[0]] for i in a[0].adj]))
+    #                 self.mininit[node] = tempmin
+    #     return self.mininit
+
+    def Buchi(self, cap, T, cmax):
+        ## Not finished
+        bell = self.safePosReachDebug(cap,T,cmax)
+        check = False
+        for bell_num in bell:
+            if bell_num > cap:
+                check = True
+        while check:
+            check = False
+            safeStates = self.states
+            unsafeStates = []
+            for state in self.states:
+                if bell[state.number] > cap:
+                    safeStates.remove(state)
+                    unsafeStates.append(state)
+            for state in self.states:
+                removeSet = []
+                for act in state.adj:
+                    for a in act[0].adj:
+                        if not a[0] in safeStates:
+                            removeSet.append(a)
+                    for a in removeSet:
+                        act[0].adj.remove(a)
+            for state in unsafeStates:
+                self.states.remove(state)
+            bell = self.safePosReachDebug(cap,T,cmax)
+            for bell_num in bell:
+                if bell_num > cap:
+                    check = True
+        return bell
+
+
 
 
 
