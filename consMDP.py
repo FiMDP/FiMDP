@@ -1,3 +1,5 @@
+from dot import consMDP2dot, dot_to_svg
+
 def is_distribution(d):
     probs = d.values()
     return sum(probs) == 1
@@ -17,6 +19,8 @@ class ConsMDP:
     """
 
     def __init__(self):
+        self.name = None
+
         self.succ = []
         self.actions = [0]
         
@@ -83,6 +87,13 @@ class ConsMDP:
         """Return iterator of actions available for state `s`."""
         it = Succ_iter(self.actions, self.succ[s])
         return it
+
+    def _repr_dot_(self):
+        dwriter = consMDP2dot(self)
+        return dwriter.get_dot()
+
+    def _repr_svg_(self):
+        return dot_to_svg(self._repr_dot_())
         
         
 class ActionData:
