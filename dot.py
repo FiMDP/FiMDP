@@ -32,7 +32,8 @@ class consMDP2dot:
         self.str += "}\n"
         
     def print_state_name(self, s):
-        self.str += f"  {s}\n"
+        name = s if self.mdp.state_labels[s] is None else self.mdp.state_labels[s]
+        self.str += f"  {name}\n"
     
     def process_state(self, s):
         self.print_state_name(s)
