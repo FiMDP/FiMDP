@@ -101,9 +101,29 @@ class ConsMDP:
         self.actions.append(adata)
         return aid
     
+    def remove_action(self, aid):
+        """Remove action based on its id."""
+        # TODO add checks
+        if aid <= 0 or aid >= len(self.actions):
+            raise ValueError(f"The supplied aid {aid} is not a valid action id.")
+        if self.actions[aid].next_succ == aid:
+            raise ValueError(f"Action aid ({aid}) was already deleted.")
+
+        src = self.actions[aid].src
+        it = self.out_iteraser(src)
+        next(it)
+        while it.curr != aid:
+            next(it)
+        it.erase()
+
     def actions_for_state(self, s):
         """Return iterator of actions available for state `s`."""
         it = Succ_iter(self.actions, self.succ[s])
+        return it
+
+    def out_iteraser(self, s):
+        """Return iterator of actions available for state `s`."""
+        it = Succ_iteraser(self, s)
         return it
 
     def _repr_dot_(self):
@@ -156,23 +176,23 @@ class Succ_iter:
     def __init__(self, l, i):
         # TODO check for types
         self.l = l
-        self.i = i
+        self.next = i
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.i == 0:
+        if self.next == 0:
             raise StopIteration()
-        if self.i >= len(self.l):
-            raise IndexError("{} ".format(self.l)+f"{self.i}")
+        if self.next >= len(self.l):
+            raise IndexError("{} ".format(self.l)+f"{self.next}")
         else:
-            item = self.l[self.i]
-            self.i = item.next_succ
+            item = self.l[self.next]
+            self.next = item.next_succ
             return item
         
     def is_empty(self):
-        return self.i == 0
+        return self.next == 0
     
     def get_last(self):
         a = None
@@ -186,3 +206,31 @@ class Succ_iter:
             a = self.__next__()
             c += 1
         return c
+
+class Succ_iteraser(Succ_iter):
+    """Iterate over outgoing edges of `s` and allow erasing edges.
+
+    Expects an consMDP `mdp` and state index `s`. The function erase
+    erases the current action and moves to the next one for `s`.
+    """
+
+    def __init__(self, mdp, s):
+        super(Succ_iteraser,self).__init__(mdp.actions, mdp.succ[s])
+        self.curr = None
+        self.prev = None
+        self.s    = s
+        self.succ = mdp.succ
+
+    def __next__(self):
+        self.prev = self.curr
+        self.curr = self.next
+        return super(Succ_iteraser,self).__next__()
+
+    def erase(self):
+        if self.curr is None:
+            raise ValueError("Can't erase before moved to 1st edge. Call self.__next__() first")
+        self.l[self.curr].next_succ = self.curr
+        if self.prev is None:
+            self.succ[self.s] = self.next
+        else:
+            self.l[self.prev].next_succ = self.next
