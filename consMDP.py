@@ -45,6 +45,24 @@ class ConsMDP:
         self.states_num+=1
         return sid
     
+    def new_states(self, count, labels = None):
+        """Create multiple (`count`) states.
+
+        The list lables must have length `count` if supplied. These will be
+        the labels for the states.
+
+        Return the list of states ids.
+        """
+        if labels is not None:
+            if count != len(labels):
+                raise ValueError("Length of labels must be equal to count.")
+
+        start = self.states_num
+        for i in range(count):
+            l = None if labels is None else labels[i]
+            self.new_state(l)
+        return range(start, start+count)
+
     def add_action(self, src, distribution, label, consumption = 0):
         """Add action to consMDP.
         
