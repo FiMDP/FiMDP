@@ -25,12 +25,11 @@ class ConsMDP:
         self.actions = [0]
         
         self.state_labels = []
-        self.reload_states = set()
-        self.target_states = set()
+        self.reloads = []
         
         self.states_num = 0
         
-    def new_state(self, label=None):
+    def new_state(self, reload=False, label=None):
         # check for existing label
         if label is not None:
             for i,l in enumerate(self.state_labels):
@@ -41,11 +40,13 @@ class ConsMDP:
         sid = self.states_num
         
         self.succ.append(0)
+        self.reloads.append(reload)
         self.state_labels.append(label)
         self.states_num+=1
         return sid
     
     def new_states(self, count, labels = None):
+        #TODO add reload list
         """Create multiple (`count`) states.
 
         The list lables must have length `count` if supplied. These will be
@@ -62,6 +63,27 @@ class ConsMDP:
             l = None if labels is None else labels[i]
             self.new_state(l)
         return range(start, start+count)
+
+    def set_reload(self, sid, reload=True):
+        #TODO extend to lists of states
+        """Set reload status of state `sid`.
+
+        Set to True by default."""
+        self.reloads[sid] = reload
+
+    def unset_reload(self, sid):
+        """Set the state `sid` *not* to be a reload state.
+
+        Equivalent to
+        ``
+        set(sid, False)
+        ``
+        """
+        self.reloads[sid] = False
+
+    def is_reload(self, sid):
+        """Return the reload status of state `sid`."""
+        return self.reloads[sid]
 
     def add_action(self, src, distribution, label, consumption = 0):
         """Add action to consMDP.

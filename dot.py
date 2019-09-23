@@ -1,4 +1,5 @@
 import subprocess
+#TODO build a list and join it in the end into string
 
 class consMDP2dot:
     """Convert consMDP to dot"""
@@ -31,12 +32,19 @@ class consMDP2dot:
     def finish(self):
         self.str += "}\n"
         
-    def print_state_name(self, s):
+    def get_state_name(self, s):
         name = s if self.mdp.state_labels[s] is None else self.mdp.state_labels[s]
-        self.str += f"  {name}\n"
+        return name
     
     def process_state(self, s):
-        self.print_state_name(s)
+        self.str += f"  {s} ["
+        # Print name
+        self.str += f'label="{self.get_state_name(s)}"'
+
+        # Reload states are double circled
+        if self.mdp.is_reload(s):
+            self.str += ", peripheries=2"
+        self.str += "]\n"
     
     def process_action(self, a):
         act_id = f"\"{a.src}_{a.label}\""
