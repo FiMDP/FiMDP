@@ -15,7 +15,7 @@ class consMDP2dot:
         self.start()
         
         m = self.mdp
-        for s in range(m.states_num):
+        for s in range(m.num_states):
             self.process_state(s)
             for a in m.actions_for_state(s):
                 self.process_action(a)
