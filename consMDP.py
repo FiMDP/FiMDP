@@ -27,7 +27,7 @@ class ConsMDP:
         self.state_labels = []
         self.reloads = []
         
-        self.states_num = 0
+        self.num_states = 0
         
     def new_state(self, reload=False, label=None):
         # check for existing label
@@ -37,12 +37,12 @@ class ConsMDP:
                     raise ValueError("State with label \"{}\" already exists (id={})".
                                     format(label, i))
         
-        sid = self.states_num
+        sid = self.num_states
         
         self.succ.append(0)
         self.reloads.append(reload)
         self.state_labels.append(label)
-        self.states_num+=1
+        self.num_states+=1
         return sid
     
     def new_states(self, count, labels = None):
@@ -58,7 +58,7 @@ class ConsMDP:
             if count != len(labels):
                 raise ValueError("Length of labels must be equal to count.")
 
-        start = self.states_num
+        start = self.num_states
         for i in range(count):
             l = None if labels is None else labels[i]
             self.new_state(l)
@@ -94,12 +94,12 @@ class ConsMDP:
           * `ValueError` if src-label->... exists already. 
         """
         # Check that src exists
-        if src >= self.states_num:
+        if src >= self.num_states:
             raise ValueError(f"State {src} given as src does not exists.")
         
         # Check that all destinations exist
         for k in distribution.keys():
-            if k >= self.states_num:
+            if k >= self.num_states:
                 raise ValueError(f"State {k} does not exists.")
                 
         # check for determinism on action labels
