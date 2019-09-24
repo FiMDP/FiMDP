@@ -1,4 +1,6 @@
 from dot import consMDP2dot, dot_to_svg
+from IPython.display import SVG
+import safety
 
 def is_distribution(d):
     probs = d.values()
@@ -28,6 +30,7 @@ class ConsMDP:
         self.reloads = []
         
         self.num_states = 0
+        self.minInitCons = None
         
     def new_state(self, reload=False, label=None):
         # check for existing label
@@ -148,9 +151,20 @@ class ConsMDP:
         it = Succ_iteraser(self, s)
         return it
 
-    def _repr_dot_(self):
-        dwriter = consMDP2dot(self)
+    def compute_minInitCons(self, recompute=False):
+        MI = safety.minInitCons(self)
+        self.minInitCons = MI
+        MI.get_values(recompute)
+
+    def get_dot(self, options=""):
+        dwriter = consMDP2dot(self, options)
         return dwriter.get_dot()
+
+    def show(self, options=""):
+        return SVG(dot_to_svg(self.get_dot(options)))
+        
+    def _repr_dot_(self):
+        return self.get_dot()
 
     def _repr_svg_(self):
         return dot_to_svg(self._repr_dot_())

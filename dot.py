@@ -1,16 +1,32 @@
 import subprocess
+import sys
 #TODO build a list and join it in the end into string
+
+tab_MI_style      = ' border="0" cellborder="0" cellspacing="0"'
+tab_MI_cell_style = ' bgcolor="white"'
+tab_MI_cell_font  = ' color="orange" point-size="10"'
+
+default_options = "m"
 
 class consMDP2dot:
     """Convert consMDP to dot"""
     
-    def __init__(self, mdp, options = None):
+    def __init__(self, mdp, options=""):
         self.mdp = mdp
         self.str = ""
-        self.options = options
+        self.options = default_options + options
         
         self.act_color = "blue"
         
+        self.opt_mi = False
+
+        if "M" in self.options:
+            mdp.compute_minInitCons()
+            self.opt_mi = True
+        if "m" in self.options:
+            mi = mdp.minInitCons
+            self.opt_mi = mi is not None and mi.G_ready
+
     def get_dot(self):
         self.start()
         
@@ -38,8 +54,19 @@ class consMDP2dot:
     
     def process_state(self, s):
         self.str += f"  {s} ["
-        # Print name
-        self.str += f'label="{self.get_state_name(s)}"'
+
+        # name
+        state_str = self.get_state_name(s)
+
+        # minInitCons
+        if self.opt_mi:
+            mi = self.mdp.minInitCons
+            state_str = f"<table{tab_MI_style}>" + \
+            f"<tr><td>{state_str}</td>" + \
+            f"<td{tab_MI_cell_style}><font{tab_MI_cell_font}>" + \
+            f"{mi.G[s]}</font></td></tr>" +\
+            "</table>"
+        self.str += f'label=<{state_str}>'
 
         # Reload states are double circled
         if self.mdp.is_reload(s):
