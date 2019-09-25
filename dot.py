@@ -25,7 +25,7 @@ class consMDP2dot:
             self.opt_mi = True
         if "m" in self.options:
             mi = mdp.minInitCons
-            self.opt_mi = mi is not None and mi.G_ready
+            self.opt_mi = mi is not None
 
     def get_dot(self):
         self.start()
@@ -64,7 +64,7 @@ class consMDP2dot:
             state_str = f"<table{tab_MI_style}>" + \
             f"<tr><td>{state_str}</td>" + \
             f"<td{tab_MI_cell_style}><font{tab_MI_cell_font}>" + \
-            f"{mi.G[s]}</font></td></tr>" +\
+            f"{mi.values[s]}</font></td></tr>" +\
             "</table>"
         self.str += f'label=<{state_str}>'
 

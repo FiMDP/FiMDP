@@ -14,7 +14,10 @@ class ConsMDP:
      - `actions`
     States are represented by integers and `succ[i]` stores the index to
     the list `actions` where the data for `i` start. Thus `actions[succ[i]]`
-    hold the first action of `i`. 
+    hold the first action of `i`.
+
+    Functions that change the structure of the consMDP should always call
+    self.structure_change().
 
     States can be labeled using the list `labels`. Reload states are stored
     in the set `reload_states`
@@ -25,14 +28,20 @@ class ConsMDP:
 
         self.succ = []
         self.actions = [0]
-        
+
         self.state_labels = []
         self.reloads = []
-        
+
         self.num_states = 0
         self.minInitCons = None
-        
+
+    def structure_change(self):
+        self.minInitCons = None
+
     def new_state(self, reload=False, label=None):
+
+        self.structure_change()
+
         # check for existing label
         if label is not None:
             for i,l in enumerate(self.state_labels):
@@ -61,6 +70,7 @@ class ConsMDP:
             if count != len(labels):
                 raise ValueError("Length of labels must be equal to count.")
 
+        self.structure_change()
         start = self.num_states
         for i in range(count):
             l = None if labels is None else labels[i]
@@ -72,6 +82,7 @@ class ConsMDP:
         """Set reload status of state `sid`.
 
         Set to True by default."""
+        self.structure_change()
         self.reloads[sid] = reload
 
     def unset_reload(self, sid):
@@ -82,6 +93,7 @@ class ConsMDP:
         set(sid, False)
         ``
         """
+        self.structure_change()
         self.reloads[sid] = False
 
     def is_reload(self, sid):
@@ -112,7 +124,9 @@ class ConsMDP:
                 raise ValueError(
                     "State {} already has an action with label {}".format(src, label))
         aid = len(self.actions)
-        
+
+        self.structure_change()
+
         # Update the lists accordingly:
         #  * `next_succ` of last action for src if any, or
         #  * `succ[src]`  if it's first action for src
@@ -133,6 +147,8 @@ class ConsMDP:
             raise ValueError(f"The supplied aid {aid} is not a valid action id.")
         if self.actions[aid].next_succ == aid:
             raise ValueError(f"Action aid ({aid}) was already deleted.")
+
+        self.structure_change()
 
         src = self.actions[aid].src
         it = self.out_iteraser(src)
@@ -265,6 +281,9 @@ class Succ_iteraser(Succ_iter):
     def erase(self):
         if self.curr is None:
             raise ValueError("Can't erase before moved to 1st edge. Call self.__next__() first")
+
+        self.mdp.structure_change()
+
         self.l[self.curr].next_succ = self.curr
         if self.prev is None:
             self.succ[self.s] = self.next

@@ -41,3 +41,22 @@ expected = [0, 3, 2, 0, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
+
+
+## Example of incorrectness of the least fixpoint algorithm bounded by $|S|$ steps
+
+m = consMDP.ConsMDP()
+m.new_state(True)
+m.new_states(2)
+m.add_action(0, {0:1}, "", 0)
+m.add_action(1, {0:1}, "a", 1000)
+m.add_action(1, {2:1}, "b", 1)
+m.add_action(2, {1:1}, "b", 1)
+MI = minInitCons(m)
+
+result = MI.get_values()
+expected = [0,1000,1001]
+
+assert result == expected, ("minInitCons.get_values() returns" +
+    " wrong values:\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
