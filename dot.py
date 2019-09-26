@@ -1,5 +1,7 @@
 import subprocess
 import sys
+
+from math import inf
 #TODO build a list and join it in the end into string
 
 tab_MI_style      = ' border="0" cellborder="0" cellspacing="0"'
@@ -61,10 +63,12 @@ class consMDP2dot:
         # minInitCons
         if self.opt_mi:
             mi = self.mdp.minInitCons
+            val = mi.values[s]
+            val = "∞" if val == inf else val
             state_str = f"<table{tab_MI_style}>" + \
             f"<tr><td>{state_str}</td>" + \
             f"<td{tab_MI_cell_style}><font{tab_MI_cell_font}>" + \
-            f"{mi.values[s]}</font></td></tr>" +\
+            f"{val}</font></td></tr>" +\
             "</table>"
         self.str += f'label=<{state_str}>'
 
