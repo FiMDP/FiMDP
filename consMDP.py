@@ -30,6 +30,7 @@ class ConsMDP:
         self.actions = [0]
 
         self.state_labels = []
+        self.label_dict = dict()
         self.reloads = []
 
         self.num_states = 0
@@ -38,22 +39,28 @@ class ConsMDP:
     def structure_change(self):
         self.minInitCons = None
 
+    def state_with_label(self, label):
+        '''Return id of state with label `label` or `None` if not exists.'''
+        return self.label_dict.get(label)
+
     def new_state(self, reload=False, label=None):
 
         self.structure_change()
 
         # check for existing label
         if label is not None:
-            for i,l in enumerate(self.state_labels):
-                if l == label:
-                    raise ValueError("State with label \"{}\" already exists (id={})".
-                                    format(label, i))
+            s = self.state_with_label(label)
+            if s is not None:
+                raise ValueError("State with label \"{}\" already exists (id={})".
+                                    format(label, s))
         
         sid = self.num_states
         
         self.succ.append(0)
         self.reloads.append(reload)
         self.state_labels.append(label)
+        if label is not None:
+            self.label_dict[label] = sid
         self.num_states+=1
         return sid
     
@@ -102,7 +109,7 @@ class ConsMDP:
 
     def add_action(self, src, distribution, label, consumption = 0):
         """Add action to consMDP.
-        
+
         Returns: index of the new action in the `actions` list.
         Raises: 
           * `ValueError` if attempt to use non-existent state
@@ -111,19 +118,21 @@ class ConsMDP:
         # Check that src exists
         if src >= self.num_states:
             raise ValueError(f"State {src} given as src does not exists.")
-        
+
         # Check that all destinations exist
         for k in distribution.keys():
             if k >= self.num_states:
                 raise ValueError(f"State {k} does not exists.")
-                
+
         # check for determinism on action labels
         # raise ValueError if nondeterminsm would occur
         for a in self.actions_for_state(src):
             if a.label == label:
                 raise ValueError(
                     "State {} already has an action with label {}".format(src, label))
+
         aid = len(self.actions)
+        adata = ActionData(src, consumption, distribution, label, 0)
 
         self.structure_change()
 
@@ -135,11 +144,10 @@ class ConsMDP:
             self.succ[src] = aid
         else:
             a.next_succ = aid
-        
-        adata = ActionData(src, consumption, distribution, label, 0)
+
         self.actions.append(adata)
         return aid
-    
+
     def remove_action(self, aid):
         """Remove action based on its id."""
         # TODO add checks
