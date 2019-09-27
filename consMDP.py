@@ -14,13 +14,22 @@ class ConsMDP:
      - `actions`
     States are represented by integers and `succ[i]` stores the index to
     the list `actions` where the data for `i` start. Thus `actions[succ[i]]`
-    hold the first action of `i`.
+    hold the first action of `i`. To iterate over actions of a state `s`
+    use `actions_for_states(s)`. If you wish to remove actions, use
+    `out_iterases(s)` instead.
 
+    States can be labeled using the list `labels`. Reload states are stored
+    in the set `reload_states`.
+
+    Important
+    =========
     Functions that change the structure of the consMDP should always call
     self.structure_change().
 
-    States can be labeled using the list `labels`. Reload states are stored
-    in the set `reload_states`
+    Define your probabilities in distributions in some exact representation
+    like `decimal.Decimal(probability_string)` and always avoid floating-point
+    data types. Due to their imprecission some checks could fail or trigger
+    false positives (e.g. `0.06+0.82+0.12 != 1`!).
     """
 
     def __init__(self):
@@ -179,6 +188,7 @@ class ConsMDP:
         MI = safety.minInitCons(self)
         self.minInitCons = MI
         MI.get_values(recompute)
+        return MI.values
 
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)
@@ -200,8 +210,9 @@ class ActionData:
     def __init__(self, src, cons, distr, label, next_succ):
         if not is_distribution(distr):
             raise AttributeError("Supplied dict is not a distribution." +
-                                 " The probabilities are: {}".format
-                                 (list (distr.values()) ) )
+                                 " The probabilities are: {}, sum: {}".format
+                                 (list (distr.values()),
+                                  sum(distr.values())) )
         self.src = src
         self.cons = cons
         self.distr = distr
