@@ -1,6 +1,7 @@
 from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
 import safety
+import math
 
 def is_distribution(d):
     probs = d.values()
@@ -184,10 +185,10 @@ class ConsMDP:
         it = Succ_iteraser(self, s)
         return it
 
-    def compute_minInitCons(self, recompute=False):
-        MI = safety.minInitCons(self)
+    def compute_minInitCons(self, capacity=math.inf):
+        MI = safety.minInitCons(self, capacity)
         self.minInitCons = MI
-        MI.get_values(recompute)
+        MI.get_values()
         return MI.values
 
     def get_dot(self, options=""):

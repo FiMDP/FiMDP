@@ -13,10 +13,11 @@ class minInitCons:
     MI.get_values()
     """
 
-    def __init__(self, mdp):
+    def __init__(self, mdp, cap = inf):
         self.mdp     = mdp
         self.states  = mdp.num_states
         self.values  = None
+        self.cap     = cap
 
     def action_value(self, a):
         non_reload_succs = [self.values[succ] for succ in a.distr.keys()
@@ -25,7 +26,7 @@ class minInitCons:
         return a_v + a.cons
 
     def fixpoint(self):
-        """Computes the functional F.
+        """Computes the functional F for given capacity.
 
         The functionals compute for each state `s` the maximum
         energy needed to reach a reload state from `s`.
@@ -47,7 +48,7 @@ class minInitCons:
                 candidate_v = min([self.action_value(a) for a in actions])
 
                 # F is monotonicly decreasing, # check for decrease only
-                if candidate_v < current_v:
+                if candidate_v < current_v and candidate_v <= self.cap:
                     values[s] = candidate_v
                     iterate = True
 
