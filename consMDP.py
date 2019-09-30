@@ -197,6 +197,11 @@ class ConsMDP:
             MI = self.minInitCons
         return MI.get_values()
 
+    def get_safeReloads(self, capacity=None, recompute=False):
+        self.get_minInitCons(capacity, recompute)
+        MI = self.minInitCons
+        return MI.get_safe_values()
+
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)
         return dwriter.get_dot()

@@ -8,7 +8,10 @@ tab_MI_style      = ' border="0" cellborder="0" cellspacing="0"'
 tab_MI_cell_style = ' bgcolor="white"'
 tab_MI_cell_font  = ' color="orange" point-size="10"'
 
-default_options = "m"
+tab_SR_cell_style = ' bgcolor="white"'
+tab_SR_cell_font  = ' color="red" point-size="10"'
+
+default_options = "ms"
 
 class consMDP2dot:
     """Convert consMDP to dot"""
@@ -17,11 +20,12 @@ class consMDP2dot:
         self.mdp = mdp
         self.str = ""
         self.options = default_options + options
-        
+
         self.act_color = "blue"
-        
+
         self.opt_mi = False
-        
+        self.opt_sr = False
+
         MI = mdp.minInitCons
 
         if "m" in self.options:
@@ -29,6 +33,12 @@ class consMDP2dot:
         if "M" in self.options:
             mdp.get_minInitCons()
             self.opt_mi = True
+
+        if "s" in self.options:
+            self.opt_sr = MI is not None and MI.safe_values is not None
+        if "S" in self.options:
+            mdp.get_minInitCons()
+            self.opt_sr = True
 
     def get_dot(self):
         self.start()
@@ -56,21 +66,32 @@ class consMDP2dot:
         return name
     
     def process_state(self, s):
-        self.str += f"  {s} ["
+        self.str += f"\n  {s} ["
 
         # name
         state_str = self.get_state_name(s)
 
         # minInitCons
-        if self.opt_mi:
+        if self.opt_mi or self.opt_sr:
             mi = self.mdp.minInitCons
+            state_str = f"<table{tab_MI_style}>" + \
+                        f"<tr><td>{state_str}</td>"
+
+        if self.opt_mi:
             val = mi.values[s]
             val = "∞" if val == inf else val
-            state_str = f"<table{tab_MI_style}>" + \
-            f"<tr><td>{state_str}</td>" + \
-            f"<td{tab_MI_cell_style}><font{tab_MI_cell_font}>" + \
-            f"{val}</font></td></tr>" +\
-            "</table>"
+            state_str += f"<td{tab_MI_cell_style}>" + \
+                f"<font{tab_MI_cell_font}>{val}</font></td>"
+
+        if self.opt_sr:
+            val = mi.safe_values[s]
+            val = "∞" if val == inf else val
+            state_str += f"<td{tab_SR_cell_style}>" + \
+                f"<font{tab_SR_cell_font}>{val}</font></td>"
+
+        if self.opt_mi or self.opt_sr:
+            state_str += "</tr></table>"
+
         self.str += f'label=<{state_str}>'
 
         # Reload states are double circled

@@ -63,6 +63,18 @@ assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
+## Test safe reloads:
+# Change the consumption on the action of st. 3
+# This makes state 3 an useless reload
+a = next(m.actions_for_state(3))
+a.cons = 9
+
+result = m.get_safeReloads(8)
+expected = [0, inf, inf, inf, inf, inf, inf, inf, 1, 0, inf, inf, inf]
+
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
 
 ## Example of incorrectness of the least fixpoint algorithm bounded by $|S|$ steps
 
