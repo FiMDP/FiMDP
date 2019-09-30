@@ -45,7 +45,7 @@ assert result == expected, ("minInitCons.get_values() returns" +
 ## Test minInitCons with capacity
 MI.cap=14
 result = MI.get_values(recompute=True)
-result2 = m.compute_minInitCons(14)
+result2 = m.get_minInitCons(14)
 expected = [0, 3, 2, 0, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 
 assert result == result2, ("result and result2 should be the same\n" +
@@ -56,7 +56,7 @@ assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
-result = m.compute_minInitCons(capacity=13)
+result = m.get_minInitCons(capacity=13)
 expected = [0, 3, 2, 0, 3, 9, inf, 1, 1, 0, inf, inf, 1]
 
 assert result == expected, ("minInitCons.get_values() returns" +

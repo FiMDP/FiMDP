@@ -185,11 +185,17 @@ class ConsMDP:
         it = Succ_iteraser(self, s)
         return it
 
-    def compute_minInitCons(self, capacity=math.inf):
-        MI = safety.minInitCons(self, capacity)
-        self.minInitCons = MI
-        MI.get_values()
-        return MI.values
+    def get_minInitCons(self, capacity=None, recompute=False):
+        MI = self.minInitCons
+        if MI is None:
+            recompute = True
+        if capacity is not None:
+            recompute = recompute or capacity != MI.cap
+        if recompute:
+            capacity = math.inf if capacity is None else capacity
+            self.minInitCons = safety.minInitCons(self, capacity)
+            MI = self.minInitCons
+        return MI.get_values()
 
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)

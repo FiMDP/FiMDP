@@ -21,13 +21,14 @@ class consMDP2dot:
         self.act_color = "blue"
         
         self.opt_mi = False
+        
+        MI = mdp.minInitCons
 
-        if "M" in self.options:
-            mdp.compute_minInitCons()
-            self.opt_mi = True
         if "m" in self.options:
-            mi = mdp.minInitCons
-            self.opt_mi = mi is not None
+            self.opt_mi = MI is not None and MI.values is not None
+        if "M" in self.options:
+            mdp.get_minInitCons()
+            self.opt_mi = True
 
     def get_dot(self):
         self.start()
