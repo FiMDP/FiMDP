@@ -93,3 +93,24 @@ expected = [0,1000,1001]
 assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
+
+## Example of the incorrectness of bounding SafeReloads by |S| iterations
+
+m = consMDP.ConsMDP()
+m.new_state(True)
+m.new_states(2)
+m.new_state(True)
+m.add_action(0, {0:1}, "", 1)
+m.add_action(1, {0:1}, "a", 1000)
+m.add_action(1, {2:1}, "b", 1)
+m.add_action(2, {1:1}, "b", 1)
+m.add_action(3, {3:1}, "r", 1010)
+m.add_action(1, {3:1}, "r", 1)
+m.add_action(2, {3:1}, "r", 1)
+
+result = m.get_safeReloads(1005)
+expected = [1, 1000, 1001, inf]
+
+assert result == expected, ("minInitCons.get_safe_values() returns" +
+    " wrong values:\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")

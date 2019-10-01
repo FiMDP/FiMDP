@@ -15,11 +15,12 @@ class minInitCons:
     """
 
     def __init__(self, mdp, cap = inf):
-        self.mdp         = mdp
-        self.states      = mdp.num_states
-        self.values      = None
-        self.safe_values = None
-        self.cap         = cap
+        self.mdp          = mdp
+        self.states       = mdp.num_states
+        self.values       = None
+        self.safe_values  = None
+        self.cap          = cap
+
 
         self.is_reload  = lambda x: self.mdp.is_reload(x)
 
@@ -93,7 +94,7 @@ class minInitCons:
         c = self.states
         while iterate and c > 0:
             iterate = False
-            #c -= 1
+            c -= 1
 
             for s in range(self.states):
                 current_v = values[s]
