@@ -37,7 +37,7 @@ class consMDP2dot:
         if "s" in self.options:
             self.opt_sr = MI is not None and MI.safe_values is not None
         if "S" in self.options:
-            mdp.get_minInitCons()
+            mdp.get_safeReloads()
             self.opt_sr = True
 
     def get_dot(self):
