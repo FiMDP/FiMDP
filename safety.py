@@ -42,12 +42,10 @@ class minInitCons:
         self.values = values
         action_value = lambda a: self.action_value(a, values)
 
-        # iterate until a fixpoint is reached or for at most |S| steps
+        # iterate until a fixpoint is reached (at most |S| iterations)
         iterate = True
-        c = self.states      
-        while iterate and c > 0:
+        while iterate:
             iterate = False
-            c -= 1
 
             for s in range(self.states):
                 current_v = values[s]
@@ -90,10 +88,8 @@ class minInitCons:
 
         # iterate until a fixpoint is reached or for at most |S| steps
         iterate = True
-        c = self.states
-        while iterate and c > 0:
+        while iterate:
             iterate = False
-            #c -= 1
 
             for s in range(self.states):
                 current_v = values[s]
