@@ -74,16 +74,12 @@ class minInitCons:
                                "only after minInitCons aka fixpoint " +
                                "was called")
 
-        if self.cap == inf:
-            print("safe_reloads_fixpoint has no meaning without capacity",
-                 file = sys.stderr)
-            return
-
         # Initialization
         values = list(self.values)
         self.safe_values = values
         zero_c = lambda succ: (self.mdp.is_reload(succ) and \
-                              values[succ] <= self.cap)
+                              values[succ] <= self.cap and \
+                              values[succ] != inf)
         action_value = lambda a: self.action_value(a, values, zero_c)
 
         # iterate until a fixpoint is reached or for at most |S| steps
@@ -93,7 +89,7 @@ class minInitCons:
 
             for s in range(self.states):
                 current_v = values[s]
-                if current_v > self.cap:
+                if current_v > self.cap or current_v == inf:
                     continue
                 actions = self.mdp.actions_for_state(s)
                 # candidate_v is now the minimum over action values
