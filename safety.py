@@ -121,4 +121,7 @@ class minInitCons:
         if self.safe_values is None or recompute:
             self.get_values()
             self.safe_reloads_fixpoint()
+            for s in range(self.states):
+                if self.mdp.is_reload(s) and self.safe_values[s] < self.cap:
+                    self.safe_values[s] = 0
         return self.safe_values
