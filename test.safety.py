@@ -64,6 +64,12 @@ assert result == expected, ("minInitCons.get_values() returns" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 ## Test safe reloads:
+result = m.get_safeReloads(14)
+expected = [0, 3, 2, 0, 0, 9, 14, 1, 1, 0, inf, inf, 1]
+
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
 # Change the consumption on the action of st. 3
 # This makes state 3 an useless reload
 a = next(m.actions_for_state(3))
@@ -109,7 +115,7 @@ m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
 result = m.get_safeReloads(1005)
-expected = [1, 1000, 1001, inf]
+expected = [0, 1000, 1001, inf]
 
 assert result == expected, ("minInitCons.get_safe_values() returns" +
     " wrong values:\n" +
