@@ -31,18 +31,18 @@ class minInitCons:
         a_v = 0 if len(non_reload_succs) == 0 else max(non_reload_succs)
         return a_v + a.cons
 
-    def fixpoint(self):
-        """Computes the functional F for given capacity.
+    def largest_fixpoint(self):
+        """Compute the maximal energy needed to reach reload.
 
-        The functionals compute for each state `s` the maximum
-        energy needed to reach a reload state from `s`.
+        Largest fixpoint that is reached within at most |S| iterations.
+        If self.cap is set than treat values > self.cap as ∞.
         """
         # initialization
         values = [inf for s in range(self.states)]
         self.values = values
         action_value = lambda a: self.action_value(a, values)
 
-        # iterate until a fixpoint is reached (at most |S| iterations)
+        # iterate until a fixpoint is reached
         iterate = True
         while iterate:
             iterate = False
@@ -50,15 +50,13 @@ class minInitCons:
             for s in range(self.states):
                 current_v = values[s]
                 actions = self.mdp.actions_for_state(s)
-                # candidate_v is now the minimum over action values
+                # candidate_v is the minimum over action values
                 candidate_v = min([action_value(a) for a in actions])
 
-                # F is monotonicly decreasing, # check for decrease only
+                # check for decrease in value
                 if candidate_v < current_v and candidate_v <= self.cap:
                     values[s] = candidate_v
                     iterate = True
-
-        self.values = values
 
     def safe_reloads_fixpoint(self):
         """Iterate on minInitCons and disable reloads with MI > cap
@@ -66,8 +64,6 @@ class minInitCons:
         Basicaly a least fixpoint that starts with minInitCons. If some
         reload has MI > cap, it is converted to ∞, and we no longer treat
         it as a reload state.
-
-        Currently, we perform at most |S| iterations.
         """
         if self.values is None:
             raise RuntimeError("safe_reloads_fixpoint can be called " +
@@ -75,8 +71,8 @@ class minInitCons:
                                "was called")
 
         # Initialization
-        values = list(self.values)
-        self.safe_values = values
+        self.safe_values = list(self.values)
+        values = self.safe_values
         zero_c = lambda succ: (self.mdp.is_reload(succ) and \
                               values[succ] <= self.cap and \
                               values[succ] != inf)
@@ -109,7 +105,7 @@ class minInitCons:
         Recomputes the values if requested by `recompute`.
         """
         if self.values is None or recompute:
-            self.fixpoint()
+            self.largest_fixpoint()
         return self.values
 
     def get_safe_values(self, recompute=False):
