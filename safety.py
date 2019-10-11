@@ -1,6 +1,63 @@
 from math import inf
 import sys
 
+def largest_fixpoint(mdp, values, action_value,
+                     value_adj=lambda s, v: v,
+                     skip_state=lambda x: False):
+    """Largest fixpoint on list of values indexed by states.
+
+    The value of a state `s` is a minimum over `action_value(a)`
+    among all posible actions `a` of `s`. Values should be
+    properly initialized (to ∞ or some other value) before calling.
+
+    Parameters
+    ==========
+     * mdp      : `consMDP`
+     * values   : `list of ints` values for the fixpoint
+
+     * action_value : function that computes a value of an action
+                      based on current values in `values`. Takes
+                      2 paramers:
+        - action    : `ActionData` action of MDP to evaluate
+        - values    : `list of ints` current values
+
+     * functions that alter the computation:
+       - value_adj : `state × v -> v'` (default `labmda x, v: v`)
+                      Change the value `v` for `s` to `v'` in each
+                      iteration (based on the candidate value).
+                      For example use for `v > capacity -> ∞`
+                      Allows to handle various types of states
+                      in a different way.
+
+       - skip_state : `state -> Bool` (default `lambda x: False`)
+                      If True, stave will be skipped and its value
+                      not changed.
+    """
+    states = len(values)
+    act_value = lambda a: action_value(a, values)
+
+    # iterate until a fixpoint is reached
+    iterate = True
+    while iterate:
+        iterate = False
+
+        for s in range(states):
+            if skip_state(s):
+                continue
+            current_v = values[s]
+            actions = mdp.actions_for_state(s)
+            # candidate_v is the minimum over action values
+            candidate_v = min([act_value(a) for a in actions])
+
+            # apply value_adj (capacity, reloads, ...)
+            candidate_v = value_adj(s, candidate_v)
+
+            # check for decrease in value
+            if candidate_v < current_v:
+                values[s] = candidate_v
+                iterate = True
+
+
 class minInitCons:
     """Compute function minInitCons for given consMDP `m`.
 
@@ -15,48 +72,31 @@ class minInitCons:
     """
 
     def __init__(self, mdp, cap = inf):
+        # cap has to be defined
+        if cap is None:
+            cap = inf
+
         self.mdp         = mdp
         self.states      = mdp.num_states
+        self.cap         = cap
         self.values      = None
         self.safe_values = None
-        self.cap         = cap
 
         self.is_reload  = lambda x: self.mdp.is_reload(x)
 
     def action_value(self, a, values, zero_cond = None):
+        """
+        - action    : `ActionData` action of MDP to evaluate
+        - values    : `list of ints` current values
+        - zero_cond : `list of Bool` if `True` for `s`, the
+                       value of `s` will be trated as 0
+        """
         if zero_cond is None:
             zero_cond = self.is_reload
         non_reload_succs = [values[succ] for succ in a.distr.keys()
                    if not zero_cond(succ)]
         a_v = 0 if len(non_reload_succs) == 0 else max(non_reload_succs)
         return a_v + a.cons
-
-    def largest_fixpoint(self):
-        """Compute the maximal energy needed to reach reload.
-
-        Largest fixpoint that is reached within at most |S| iterations.
-        If self.cap is set than treat values > self.cap as ∞.
-        """
-        # initialization
-        values = [inf for s in range(self.states)]
-        self.values = values
-        action_value = lambda a: self.action_value(a, values)
-
-        # iterate until a fixpoint is reached
-        iterate = True
-        while iterate:
-            iterate = False
-
-            for s in range(self.states):
-                current_v = values[s]
-                actions = self.mdp.actions_for_state(s)
-                # candidate_v is the minimum over action values
-                candidate_v = min([action_value(a) for a in actions])
-
-                # check for decrease in value
-                if candidate_v < current_v and candidate_v <= self.cap:
-                    values[s] = candidate_v
-                    iterate = True
 
     def safe_reloads_fixpoint(self):
         """Iterate on minInitCons and disable reloads with MI > cap
@@ -77,21 +117,24 @@ class minInitCons:
                               values[succ] <= self.cap and \
                               values[succ] != inf)
         action_value = lambda a: self.action_value(a, values, zero_c)
+        cap = self.cap
 
-        # iterate until a fixpoint is reached or for at most |S| steps
+        # iterate until a fixpoint is reached
         iterate = True
         while iterate:
             iterate = False
 
             for s in range(self.states):
                 current_v = values[s]
-                if current_v > self.cap or current_v == inf:
+                if current_v == inf:
                     continue
+
                 actions = self.mdp.actions_for_state(s)
+
                 # candidate_v is now the minimum over action values
                 candidate_v = min([action_value(a) for
                                    a in actions])
-                candidate_v = inf if candidate_v > self.cap else candidate_v
+                candidate_v = inf if candidate_v > cap else candidate_v
 
                 # least fixpoint increases only
                 if candidate_v > current_v:
@@ -99,13 +142,23 @@ class minInitCons:
                     iterate = True
 
     def get_values(self, recompute=False):
-        """Return (and compute) minInitCons list for self.m.
+        """Return (and compute) minInitCons list for self.mdp.
 
-        When called for the first time, it computes the values.
-        Recomputes the values if requested by `recompute`.
+        MinInitCons(s) is the maximal energy needed to reach reload.
+        Computed by largest fixpoint that is reached within at most
+        |S| iterations.
+
+        If self.cap is set than treat values > self.cap as ∞.
+
+        When called for the first time, compute the values.
+        Recompute the values if requested by `recompute`.
         """
         if self.values is None or recompute:
-            self.largest_fixpoint()
+            self.values = [inf] * self.states
+            cap = lambda s, v: inf if v > self.cap else v
+            largest_fixpoint(self.mdp, self.values,
+                             self.action_value,
+                             value_adj=cap)
         return self.values
 
     def get_safe_values(self, recompute=False):
