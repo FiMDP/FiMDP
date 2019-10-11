@@ -28,8 +28,8 @@ class PositiveReachability(minInitCons):
         needed to reach T from the target states further.
         """
         self.get_safe_values()
-        print(self.safe_values)
 
+        # Reloads with value < ∞ should be 0
         def reload_capper(s, v):
             # +1 handles cases when self.cap is ∞
             if v >= self.cap+1:
