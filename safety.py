@@ -1,5 +1,6 @@
 from math import inf
 import sys
+debug = False
 
 def largest_fixpoint(mdp, values, action_value,
                      value_adj=lambda s, v: v,
@@ -38,7 +39,10 @@ def largest_fixpoint(mdp, values, action_value,
 
     # iterate until a fixpoint is reached
     iterate = True
+    c = 0
     while iterate:
+        if debug: print(f"it {c}\t:{values}")
+        c += 1
         iterate = False
 
         for s in range(states):
