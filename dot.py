@@ -1,5 +1,6 @@
 import subprocess
 import sys
+dotpr = 'dot'
 
 from math import inf
 #TODO build a list and join it in the end into string
@@ -120,7 +121,7 @@ def dot_to_svg(dot_str):
     Send some text to dot for conversion to SVG.
     """
     try:
-        dot_pr = subprocess.Popen(['dot', '-Tsvg'],
+        dot_pr = subprocess.Popen([dotpr, '-Tsvg'],
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
