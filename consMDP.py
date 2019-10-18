@@ -217,6 +217,7 @@ class ConsMDP:
         if recompute:
             reach = reachability.Reachability(self, targets, capacity)
             self.reachability = reach
+            self.minInitCons = reach
         return reach.get_positiveReachability()
 
     def get_dot(self, options=""):
