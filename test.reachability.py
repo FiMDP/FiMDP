@@ -1,5 +1,4 @@
 from consMDP import ConsMDP
-from reachability import PositiveReachability
 from math import inf
 
 def consMDP_double_flower(cap=32,path=3):
@@ -34,17 +33,13 @@ def consMDP_double_flower(cap=32,path=3):
 cap = 32 # We have cap/2 reload states, cap/4 in each flower
 path = 6
 m = consMDP_double_flower(cap, path)
-pr = PositiveReachability(m, set([2]), cap+2)
 
-result = pr.get_positive_reachability()
+result = m.get_positiveReachability(set([2]), cap+2)
 expected = [3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3]
 
 assert result == expected, ("get_positive_reachability() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
-
-pr = PositiveReachability(m, set([2]), cap)
-
-result = pr.get_positive_reachability()
+result = m.get_positiveReachability(set([2]), cap)
 expected = [31, 30, 0, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31]

@@ -1,6 +1,6 @@
 from safety import minInitCons, largest_fixpoint
 from math import inf
-class PositiveReachability(minInitCons):
+class Reachability(minInitCons):
     """Compute energy needed to safely reach target set T with
     probability > 0.
     
@@ -16,17 +16,26 @@ class PositiveReachability(minInitCons):
     """
 
     def __init__(self, mdp, targets, cap = inf):
-        super(PositiveReachability, self).__init__(mdp, cap)
+        super(Reachability, self).__init__(mdp, cap)
 
         self.targets = targets
         self.pos_reach_values = None
 
-    def get_positive_reachability(self):
-        """A Bellman-style equation largest fixpoint solver.
+    def get_positiveReachability(self, recompute=False):
+        """Return (and compute) minimal levels for positive
+        reachability of `self.targets` and `self.capacity`.
+
+        When called for the first time, it computes the values.
+        Recomputes the values if requested by `recompute`.
+
+        A Bellman-style equation largest fixpoint solver.
 
         We start with ∞ for every state and propagate the safe energy
         needed to reach T from the target states further.
         """
+        if not recompute and self.pos_reach_values is not None:
+            return self.pos_reach_values
+
         self.get_safe_values()
 
         # Reloads with value < ∞ should be 0

@@ -1,6 +1,6 @@
 from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-import safety
+import safety, reachability
 import math
 
 def is_distribution(d):
@@ -45,9 +45,11 @@ class ConsMDP:
 
         self.num_states = 0
         self.minInitCons = None
+        self.reachability = None
 
     def structure_change(self):
         self.minInitCons = None
+        self.reachability = None
 
     def state_with_label(self, label):
         '''Return id of state with label `label` or `None` if not exists.'''
@@ -201,6 +203,21 @@ class ConsMDP:
         self.get_minInitCons(capacity, recompute)
         MI = self.minInitCons
         return MI.get_safe_values()
+
+    def get_positiveReachability(self, targets,
+                                 capacity=math.inf, recompute=False):
+        '''Return (and store) the energy levels needed to reach T (`targets`)
+        from each state.
+
+        `targets` : set of ints
+        '''
+        reach = self.reachability
+        if reach is None or reach.cap != capacity:
+            recompute = True
+        if recompute:
+            reach = reachability.Reachability(self, targets, capacity)
+            self.reachability = reach
+        return reach.get_positiveReachability()
 
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)
