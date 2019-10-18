@@ -99,7 +99,7 @@ class consMDP2dot:
         if self.mdp.is_reload(s):
             self.str += ", peripheries=2"
         self.str += "]\n"
-    
+
     def process_action(self, a):
         act_id = f"\"{a.src}_{a.label}\""
         
