@@ -187,30 +187,38 @@ class ConsMDP:
         it = Succ_iteraser(self, s)
         return it
 
-    def get_minInitCons(self, capacity=None, recompute=False):
+    def get_minInitCons(self, capacity=math.inf, recompute=False):
+        """Return (and store) the energy levels needed to reach some
+        target within > 0 steps.
+        
+        If capacity is exceeded for state `s`, the value for `s` is ∞.
+        """
         MI = self.minInitCons
-        if MI is None:
+        if MI is None or capacity != MI.cap:
             recompute = True
-        if capacity is not None:
-            recompute = recompute or capacity != MI.cap
         if recompute:
-            capacity = math.inf if capacity is None else capacity
             self.minInitCons = safety.minInitCons(self, capacity)
             MI = self.minInitCons
         return MI.get_values()
 
-    def get_safeReloads(self, capacity=None, recompute=False):
+    def get_safeReloads(self, capacity=math.inf, recompute=False):
+        """Return (and store) the energy levels needed to survive
+        with given capacity.
+        
+        If cannot survival from `s` cannot be guaranteed with given
+        capacity, the value for `s` is ∞.
+        """
         self.get_minInitCons(capacity, recompute)
         MI = self.minInitCons
         return MI.get_safe_values()
 
     def get_positiveReachability(self, targets,
                                  capacity=math.inf, recompute=False):
-        '''Return (and store) the energy levels needed to reach T (`targets`)
+        """Return (and store) the energy levels needed to reach T (`targets`)
         from each state.
 
         `targets` : set of ints
-        '''
+        """
         reach = self.reachability
         if reach is None or reach.cap != capacity:
             recompute = True

@@ -114,12 +114,13 @@ class minInitCons:
                                "only after minInitCons aka fixpoint " +
                                "was called")
 
-        # Initialization
+        ### Initialization
         self.safe_values = list(self.values)
         values = self.safe_values
+        # reloads with value < cap are treated as having value 0.
+        # The +1 trick handels cases when cap=∞
         zero_c = lambda succ: (self.mdp.is_reload(succ) and \
-                              values[succ] <= self.cap and \
-                              values[succ] != inf)
+                              values[succ] < self.cap+1)
         action_value = lambda a: self.action_value(a, values, zero_c)
         cap = self.cap
 
