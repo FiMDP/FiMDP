@@ -1,18 +1,27 @@
 import subprocess
 import sys
 dotpr = 'dot'
+debug = False
 
 from math import inf
 #TODO build a list and join it in the end into string
 
-tab_MI_style      = ' border="0" cellborder="0" cellspacing="0"'
-tab_MI_cell_style = ' bgcolor="white"'
-tab_MI_cell_font  = ' color="orange" point-size="10"'
+tab_MI_style         = ' border="0" cellborder="0" cellspacing="0" cellpadding="0"'
+if debug:
+    tab_MI_style         = ' border="1" cellborder="1" cellspacing="0" cellpadding="0"'
 
-tab_SR_cell_style = ' bgcolor="white"'
-tab_SR_cell_font  = ' color="red" point-size="10"'
+tab_state_cell_style = ' rowspan="2"'
 
-default_options = "ms"
+tab_MI_cell_style    = ' bgcolor="white"'
+tab_MI_cell_font     = ' color="orange" point-size="10"'
+
+tab_SR_cell_style    = ' bgcolor="white"'
+tab_SR_cell_font     = ' color="red" point-size="10"'
+
+tab_PR_cell_style    = ' bgcolor="white"'
+tab_PR_cell_font     = ' color="deepskyblue" point-size="10"'
+
+default_options = "msr"
 
 class consMDP2dot:
     """Convert consMDP to dot"""
@@ -24,10 +33,13 @@ class consMDP2dot:
 
         self.act_color = "blue"
 
-        self.opt_mi = False
-        self.opt_sr = False
+        self.opt_mi = False # MinInitCons
+        self.opt_sr = False # Safe levels
+        self.opt_pr = False # Positive reachability
 
         MI = mdp.minInitCons
+        self.reach = mdp.reachability
+        reach = self.reach
 
         if "m" in self.options:
             self.opt_mi = MI is not None and MI.values is not None
@@ -40,6 +52,9 @@ class consMDP2dot:
         if "S" in self.options:
             mdp.get_safeReloads()
             self.opt_sr = True
+
+        if "r" in self.options:
+            self.opt_pr = reach is not None and reach.pos_reach_values is not None
 
     def get_dot(self):
         self.start()
@@ -73,25 +88,35 @@ class consMDP2dot:
         state_str = self.get_state_name(s)
 
         # minInitCons
-        if self.opt_mi or self.opt_sr:
+        if self.opt_mi or self.opt_sr or self.opt_pr:
             mi = self.mdp.minInitCons
             state_str = f"<table{tab_MI_style}>" + \
-                        f"<tr><td>{state_str}</td>"
+                        f"<tr><td{tab_state_cell_style}>{state_str}</td>"
 
         if self.opt_mi:
             val = mi.values[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_MI_cell_style}>" + \
-                f"<font{tab_MI_cell_font}>{val}</font></td>"
+                f"<font{tab_MI_cell_font}> {val}</font></td>"
 
         if self.opt_sr:
             val = mi.safe_values[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_SR_cell_style}>" + \
-                f"<font{tab_SR_cell_font}>{val}</font></td>"
+                f"<font{tab_SR_cell_font}> {val}</font></td>"
 
-        if self.opt_mi or self.opt_sr:
-            state_str += "</tr></table>"
+        if self.opt_mi or self.opt_sr or self.opt_pr:
+            state_str += f"</tr><tr>"
+
+            if self.opt_pr:
+                val = self.reach.pos_reach_values[s]
+                val = "∞" if val == inf else val
+                state_str += f"<td{tab_PR_cell_style}>" + \
+                    f"<font{tab_PR_cell_font}> {val}</font>"
+            else:
+                state_str += "<td>"
+
+            state_str += "</td></tr></table>"
 
         self.str += f'label=<{state_str}>'
 

@@ -36,7 +36,7 @@ class Reachability(minInitCons):
         if not recompute and self.pos_reach_values is not None:
             return self.pos_reach_values
 
-        self.get_safe_values()
+        self.get_safe_values(recompute)
 
         # Reloads with value < ∞ should be 0
         def reload_capper(s, v):
@@ -51,6 +51,7 @@ class Reachability(minInitCons):
         #  * safe_value for target states
         #  * inf otherwise
         self.pos_reach_values = [inf] * self.states
+
         for t in self.targets:
             self.pos_reach_values[t] = self.safe_values[t]
 

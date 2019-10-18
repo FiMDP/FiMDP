@@ -1,6 +1,7 @@
 from math import inf
 import sys
 debug = False
+debug_vis = False
 
 def largest_fixpoint(mdp, values, action_value,
                      value_adj=lambda s, v: v,
@@ -42,6 +43,7 @@ def largest_fixpoint(mdp, values, action_value,
     c = 0
     while iterate:
         if debug: print(f"it {c}\t:{values}")
+        if debug_vis: display(f"Iteration {c}:", mdp.show("Mr"))
         c += 1
         iterate = False
 
@@ -173,7 +175,7 @@ class minInitCons:
         Recomputes the values if requested by `recompute`.
         """
         if self.safe_values is None or recompute:
-            self.get_values()
+            self.get_values(recompute)
             self.safe_reloads_fixpoint()
             for s in range(self.states):
                 if self.mdp.is_reload(s) and self.safe_values[s] < self.cap:
