@@ -10,7 +10,7 @@ for sid in [0,3,4,9,11]:
 m.add_action(1, {0:.5, 2: .25, 12: .25}, "a", 1)
 m.add_action(2, {4:1}, "a", 2)
 m.add_action(12, {3:1}, "a", 1)
-m.add_action(3, {3:.5, 4: .5}, "a", 0)
+m.add_action(3, {3:.5, 4: .5}, "a", 1)
 m.add_action(4, {1:1}, "a", 0)
 m.add_action(7, {3:1}, "a", 1)
 m.add_action(7, {6:1}, "b", 1)
@@ -26,7 +26,7 @@ m.add_action(11, {11:1}, "a", 1)
 MI = minInitCons(m)
 
 result   = MI.get_values()
-expected = [0, 3, 2, 0, 3, 9, 14, 1, 1, 0, 5, 1, 1]
+expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, 5, 1, 1]
 
 assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
@@ -36,7 +36,7 @@ assert result == expected, ("minInitCons.get_values() returns" +
 m.unset_reload(11)
 
 result = MI.get_values(recompute=True)
-expected = [0, 3, 2, 0, 3, 9, 14, 1, 1, 0, inf, inf, 1]
+expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 
 assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
@@ -46,7 +46,7 @@ assert result == expected, ("minInitCons.get_values() returns" +
 MI.cap=14
 result = MI.get_values(recompute=True)
 result2 = m.get_minInitCons(14)
-expected = [0, 3, 2, 0, 3, 9, 14, 1, 1, 0, inf, inf, 1]
+expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 
 assert result == result2, ("result and result2 should be the same\n" +
     f"  result  : {result}\n" +
@@ -57,7 +57,7 @@ assert result == expected, ("minInitCons.get_values() returns" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 result = m.get_minInitCons(capacity=13)
-expected = [0, 3, 2, 0, 3, 9, inf, 1, 1, 0, inf, inf, 1]
+expected = [0, 3, 2, 1, 3, 9, inf, 1, 1, 0, inf, inf, 1]
 
 assert result == expected, ("minInitCons.get_values() returns" +
     " wrong values:\n" +
