@@ -93,7 +93,7 @@ m.add_action(3, {3:1}, "r", 1010)
 m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
-result = m.get_safe_reloads()
+result = m.get_safeReloads()
 expected = [0, 1000, inf, inf]
 
 assert result == expected, ("Safe reloads are wrong.\n" +
