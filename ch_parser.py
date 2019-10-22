@@ -59,5 +59,3 @@ def parse(filename):
     target = get_target_set(js, mdp)
     
     return (mdp, target)
-
-parse('NYCstreetnetwork.json')
