@@ -109,10 +109,10 @@ class minInitCons:
         based on minInitCons computation with removal of reload states
         that have minInitCons() = ∞ in the previous itertions.
 
+        The first computation computes, in fact, minInitCons (redundantly)
+
         The worst-case complexity is |R| * minInitCons = |R|*|S|^2
         """
-        self.safe_values = self.get_values()
-
         # removed stores reloads that had been removed from the MDP
         removed = set()
 
