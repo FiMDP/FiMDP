@@ -6,20 +6,24 @@ debug = False
 from math import inf
 #TODO build a list and join it in the end into string
 
-tab_MI_style         = ' border="0" cellborder="0" cellspacing="0" cellpadding="0"'
+tab_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
+                       ' cellpadding="1" align="center" valign="middle"' +\
+                       ' style="rounded" bgcolor="#ffffff50"'
 if debug:
     tab_MI_style         = ' border="1" cellborder="1" cellspacing="0" cellpadding="0"'
 
 tab_state_cell_style = ' rowspan="2"'
 
-tab_MI_cell_style    = ' bgcolor="white"'
+tab_MI_cell_style    = ' align="center" valign="middle"'
 tab_MI_cell_font     = ' color="orange" point-size="10"'
 
-tab_SR_cell_style    = ' bgcolor="white"'
+tab_SR_cell_style    = tab_MI_cell_style
 tab_SR_cell_font     = ' color="red" point-size="10"'
 
-tab_PR_cell_style    = ' bgcolor="white"'
+tab_PR_cell_style    = tab_MI_cell_style
 tab_PR_cell_font     = ' color="deepskyblue" point-size="10"'
+
+targets_style        = ', style="filled", fillcolor="#0000ff20"'
 
 default_options = "msr"
 
@@ -97,7 +101,7 @@ class consMDP2dot:
             val = mi.values[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_MI_cell_style}>" + \
-                f"<font{tab_MI_cell_font}> {val}</font></td>"
+                f"<font{tab_MI_cell_font}>{val}</font></td>"
 
         if self.opt_sr:
             val = mi.safe_values[s]
@@ -120,9 +124,11 @@ class consMDP2dot:
 
         self.str += f'label=<{state_str}>'
 
-        # Reload states are double circled
+        # Reload states are double circled and target states filled
         if self.mdp.is_reload(s):
             self.str += ", peripheries=2"
+        if self.opt_pr and s in self.reach.targets:
+            self.str += targets_style
         self.str += "]\n"
 
     def process_action(self, a):
