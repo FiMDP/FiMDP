@@ -80,6 +80,9 @@ class Reachability(minInitCons):
         a fixpoint is reached, we remove the reload states that
         have the value equal to ∞ and proceed with another
         computation.
+
+        The first iteration (the first fixpoint achieved) is equal
+        to positive reachability.
         """
         if not recompute and self.alsure_values is not None:
             return self.alsure_values
