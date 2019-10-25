@@ -23,9 +23,16 @@ tab_SR_cell_font     = ' color="red" point-size="10"'
 tab_PR_cell_style    = tab_MI_cell_style
 tab_PR_cell_font     = ' color="deepskyblue" point-size="10"'
 
+tab_AR_cell_style    = tab_MI_cell_style
+tab_AR_cell_font     = ' color="dodgerblue4" point-size="10"'
+
+# Reachability-safe
+tab_RS_cell_style    = tab_MI_cell_style
+tab_RS_cell_font     = ' color="blue4" point-size="10"'
+
 targets_style        = ', style="filled", fillcolor="#0000ff20"'
 
-default_options = "msr"
+default_options = "msrR"
 
 class consMDP2dot:
     """Convert consMDP to dot"""
@@ -40,6 +47,7 @@ class consMDP2dot:
         self.opt_mi = False # MinInitCons
         self.opt_sr = False # Safe levels
         self.opt_pr = False # Positive reachability
+        self.opt_ar = False # Almost-sure reachability
 
         MI = mdp.minInitCons
         self.reach = mdp.reachability
@@ -59,6 +67,8 @@ class consMDP2dot:
 
         if "r" in self.options:
             self.opt_pr = reach is not None and reach.pos_reach_values is not None
+        if "R" in self.options:
+            self.opt_ar = reach is not None and reach.alsure_values is not None
 
     def get_dot(self):
         self.start()
@@ -107,20 +117,36 @@ class consMDP2dot:
             val = mi.safe_values[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_SR_cell_style}>" + \
-                f"<font{tab_SR_cell_font}> {val}</font></td>"
+                f"<font{tab_SR_cell_font}>{val}</font></td>"
 
         if self.opt_mi or self.opt_sr or self.opt_pr:
             state_str += f"</tr><tr>"
 
+            empty_row = True
+            # positive reachability
             if self.opt_pr:
+                empty_row = False
                 val = self.reach.pos_reach_values[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_PR_cell_style}>" + \
-                    f"<font{tab_PR_cell_font}> {val}</font>"
-            else:
-                state_str += "<td>"
+                    f"<font{tab_PR_cell_font}>{val}</font></td>"
 
-            state_str += "</td></tr></table>"
+            # almost-sure reachability
+            if self.opt_ar:
+                empty_row = False
+                val = self.reach.alsure_values[s]
+                val = "∞" if val == inf else val
+                state_str += f"<td{tab_AR_cell_style}>" + \
+                    f"<font{tab_AR_cell_font}>{val}</font></td>"
+                val = self.reach.reach_safe_val[s]
+                val = "∞" if val == inf else val
+                state_str += f"<td{tab_RS_cell_style}>" + \
+                    f"<font{tab_RS_cell_font}>{val}</font></td>"
+
+            if empty_row:
+                state_str += "<td></td>"
+
+            state_str += "</tr></table>"
 
         self.str += f'label=<{state_str}>'
 

@@ -104,7 +104,8 @@ class minInitCons:
         a_v = 0 if len(non_reload_succs) == 0 else max(non_reload_succs)
         return a_v + a.cons
 
-    def sufficient_levels(self):
+    def sufficient_levels(self, removed=set(), values=None,
+                          init_val=lambda s: inf):
         """Compute the safe_values using the largest-fixpoint method
         based on minInitCons computation with removal of reload states
         that have minInitCons() = ∞ in the previous itertions.
@@ -112,14 +113,25 @@ class minInitCons:
         The first computation computes, in fact, minInitCons (redundantly)
 
         The worst-case complexity is |R| * minInitCons = |R|*|S|^2
+
+        `removed` : set of reloads - start with the reloads already removed
+                    ∅ by default
+        `values`  : list used for computation
+                    self.safe_values as default
+        `init_val`: state -> value - defines the values at the start of each
+                    iteration
         """
-        # removed stores reloads that had been removed from the MDP
-        removed = set()
+        if values is None:
+            values = self.safe_values
 
         done = False
         while not done:
             # Compute fixpoint without removed reloads
-            self.safe_values = [inf] * self.states
+
+            # Reset the computation, by default set all values to ∞.
+            # `init_val: s -> v
+            for s in range(self.states):
+                values[s] = init_val(s)
 
             # Mitigate reload removal
             zero_cond = lambda x: self.is_reload(x) and x not in removed
@@ -130,7 +142,7 @@ class minInitCons:
             # Over capacity values -> ∞
             cap = lambda s, v: inf if v > self.cap else v
 
-            largest_fixpoint(self.mdp, self.safe_values,
+            largest_fixpoint(self.mdp, values,
                              rem_action_value,
                              cap, skip_cond)
 
@@ -141,6 +153,11 @@ class minInitCons:
                     if s not in removed:
                         removed.add(s)
                         done = False
+
+        # Set reload values to 0
+        for s in range(self.states):
+                if self.mdp.is_reload(s) and values[s] < self.cap:
+                    values[s] = 0
 
     def safe_reloads_fixpoint(self):
         """Iterate on minInitCons and disable reloads with MI > cap
