@@ -238,6 +238,28 @@ class ConsMDP:
             self.minInitCons = reach
         return reach.get_positiveReachability()
 
+    def get_almostSureReachability(self, targets,
+                                   capacity=None, recompute=False):
+        """Return (and store) the energy levels needed to reach T (`targets`)
+        from each state.
+
+        `targets` : set of ints
+
+        By default use last capacity or ∞.
+        """
+        reach = self.reachability
+        if capacity is None:
+            capacity = math.inf if reach is None else reach.cap
+        if reach is None or reach.cap != capacity:
+            recompute = True
+        if recompute:
+            reach = reachability.Reachability(self, targets, capacity)
+            self.reachability = reach
+            self.minInitCons = reach
+            reach.get_positiveReachability()
+            self.get_safeReloads()
+        return reach.get_almostSureReachability()
+
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)
         return dwriter.get_dot()
