@@ -1,6 +1,6 @@
 from consMDP import ConsMDP
 from math import inf
-from reachability_examples import basic, little_alsure
+from reachability_examples import basic, little_alsure, little_alsure2
 
 def consMDP_double_flower(cap=32,path=3):
     m = ConsMDP()
@@ -114,6 +114,18 @@ assert result == expected, ("get_almostSureReachability() returns" +
 # For 20 the reload 7 get's disabled
 result = m.get_almostSureReachability(targets, 20)
 expected = [inf, inf, 2, inf, 3, 2, inf, inf, inf]
+
+assert result == expected, ("get_almostSureReachability() returns" +
+    " wrong values:\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
+###########################
+# almost sure has to be 5 in the newly added state 4.
+
+m, targets = little_alsure2()
+
+result = m.get_almostSureReachability(targets, 10)
+expected = [4, 1, 2, inf, 5]
 
 assert result == expected, ("get_almostSureReachability() returns" +
     " wrong values:\n" +

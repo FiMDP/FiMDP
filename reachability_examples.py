@@ -43,7 +43,6 @@ def basic():
     return m, targets
 
 def little_alsure():
-    dot.dotpr = "neato"
     dot.dotpr = "dot"
     m = consMDP.ConsMDP()
     m.new_states(4)
@@ -57,3 +56,9 @@ def little_alsure():
 
     targets=set([1,2])
     return m, targets
+
+def little_alsure2():
+    m, T = little_alsure()
+    m.new_state()
+    m.add_action(4, {0:.5, 2:.5}, "", 1)
+    return m, T
