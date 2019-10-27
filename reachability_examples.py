@@ -62,3 +62,35 @@ def little_alsure2():
     m.new_state()
     m.add_action(4, {0:.5, 2:.5}, "", 1)
     return m, T
+
+def ultimate():
+    dot.dotpr="neato"
+    m = consMDP.ConsMDP()
+    m.new_states(11)
+    for r in [2,4,9]:
+        m.set_reload(r)
+    T = {7, 8, 10}
+
+    m.add_action(0,{1:.5,2:.5}, "a", 1)
+    m.add_action(0,{3:.5,4:.5}, "t", 3)
+    m.add_action(1,{2:1},"",1)
+    m.add_action(2,{1:1},"",1)
+
+    m.add_action(3,{2:.5, 7:.5},"p",1)
+    m.add_action(3,{5:1},"r",2)
+    m.add_action(3,{6:1},"a",3)
+
+    m.add_action(4,{5:1},"",1)
+    m.add_action(5,{4:1},"r",1)
+    m.add_action(5,{3:1},"t",1)
+
+    m.add_action(6,{7:.5, 10:.5}, "a", 3)
+    m.add_action(6,{3:.5, 8:.5}, "B", 6)
+
+    m.add_action(7,{9:1}, "", 1)
+    m.add_action(9,{9:1}, "", 1)
+    m.add_action(10,{9:1}, "", 1)
+
+    m.add_action(8,{5:1}, "r", 3)
+
+    return m, T
