@@ -89,7 +89,6 @@ class consMDP2dot:
             self.opt_bu = b is not None and b.buchi_values is not None
             if self.opt_bu:
                 self.label_row_span = 3
-            print(self.label_row_span)
 
     def get_dot(self):
         self.start()
