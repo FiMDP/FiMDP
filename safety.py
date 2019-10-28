@@ -104,7 +104,7 @@ class minInitCons:
         a_v = 0 if len(non_reload_succs) == 0 else max(non_reload_succs)
         return a_v + a.cons
 
-    def sufficient_levels(self, removed=set(), values=None,
+    def sufficient_levels(self, removed=None, values=None,
                           init_val=lambda s: inf):
         """Compute the safe_values using the largest-fixpoint method
         based on minInitCons computation with removal of reload states
@@ -123,6 +123,9 @@ class minInitCons:
         """
         if values is None:
             values = self.safe_values
+
+        if removed is None:
+            removed = set()
 
         done = False
         while not done:
@@ -144,12 +147,13 @@ class minInitCons:
 
             largest_fixpoint(self.mdp, values,
                              rem_action_value,
-                             cap, skip_cond)
+                             value_adj=cap,
+                             skip_state=skip_cond)
 
             done = True
             # Iterate over reloads and remove unusable ones (∞)
             for s in range(self.states):
-                if self.is_reload(s) and self.safe_values[s] == inf:
+                if self.is_reload(s) and values[s] == inf:
                     if s not in removed:
                         removed.add(s)
                         done = False
@@ -233,6 +237,7 @@ class minInitCons:
         """
         if self.safe_values is None or recompute:
             self.get_values(recompute)
+            self.safe_values = [inf] * self.states
             #self.safe_reloads_fixpoint()
             debug_safe_reloads_function(self)
             for s in range(self.states):
