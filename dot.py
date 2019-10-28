@@ -53,7 +53,8 @@ class consMDP2dot:
         self.str = ""
         self.options = default_options + options
 
-        self.act_color = "blue"
+        self.act_color = "black"
+        self.prob_color = "gray52"
         self.label_row_span = 2
 
         self.opt_mi = False # MinInitCons
@@ -206,7 +207,7 @@ class consMDP2dot:
         
         # action-node -> dest
         for dst, p in a.distr.items():
-            self.str += f"      {act_id} -> {dst}[label={p}]"
+            self.str += f"      {act_id} -> {dst}[label={p}, color={self.prob_color}, fontcolor={self.prob_color}]"
         
 
 def dot_to_svg(dot_str):
