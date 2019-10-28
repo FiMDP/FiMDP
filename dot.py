@@ -12,7 +12,7 @@ tab_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
 if debug:
     tab_MI_style         = ' border="1" cellborder="1" cellspacing="0" cellpadding="0"'
 
-tab_state_cell_style = ' rowspan="2"'
+tab_state_cell_style = ' rowspan="{}"'
 
 tab_MI_cell_style    = ' align="center" valign="middle"'
 tab_MI_cell_font     = ' color="orange" point-size="10"'
@@ -20,9 +20,11 @@ tab_MI_cell_font     = ' color="orange" point-size="10"'
 tab_SR_cell_style    = tab_MI_cell_style
 tab_SR_cell_font     = ' color="red" point-size="10"'
 
+# Positive reachability
 tab_PR_cell_style    = tab_MI_cell_style
 tab_PR_cell_font     = ' color="deepskyblue" point-size="10"'
 
+# Almost sure reachability
 tab_AR_cell_style    = tab_MI_cell_style
 tab_AR_cell_font     = ' color="dodgerblue4" point-size="10"'
 
@@ -30,9 +32,18 @@ tab_AR_cell_font     = ' color="dodgerblue4" point-size="10"'
 tab_RS_cell_style    = tab_MI_cell_style
 tab_RS_cell_font     = ' color="blue4" point-size="10"'
 
-targets_style        = ', style="filled", fillcolor="#0000ff20"'
+# Büchi
+tab_BU_cell_style    = tab_MI_cell_style
+tab_BU_cell_font     = ' color="forestgreen" point-size="10"'
 
-default_options = "msrR"
+# Büchi-safe
+tab_BS_cell_style    = tab_MI_cell_style
+tab_BS_cell_font     = ' color="darkgreen" point-size="10"'
+
+targets_style        = ', style="filled", fillcolor="#0000ff20"'
+targets_Buchi_style  = ', style="filled", fillcolor="#00ff0020"'
+
+default_options = "msrRb"
 
 class consMDP2dot:
     """Convert consMDP to dot"""
@@ -43,15 +54,19 @@ class consMDP2dot:
         self.options = default_options + options
 
         self.act_color = "blue"
+        self.label_row_span = 2
 
         self.opt_mi = False # MinInitCons
         self.opt_sr = False # Safe levels
         self.opt_pr = False # Positive reachability
         self.opt_ar = False # Almost-sure reachability
+        self.opt_bu = False # Büchi
 
         MI = mdp.minInitCons
         self.reach = mdp.reachability
+        self.buchi = mdp.buchi
         reach = self.reach
+        b = self.buchi
 
         if "m" in self.options:
             self.opt_mi = MI is not None and MI.values is not None
@@ -69,6 +84,12 @@ class consMDP2dot:
             self.opt_pr = reach is not None and reach.pos_reach_values is not None
         if "R" in self.options:
             self.opt_ar = reach is not None and reach.alsure_values is not None
+
+        if "b" in self.options:
+            self.opt_bu = b is not None and b.buchi_values is not None
+            if self.opt_bu:
+                self.label_row_span = 3
+            print(self.label_row_span)
 
     def get_dot(self):
         self.start()
@@ -102,10 +123,10 @@ class consMDP2dot:
         state_str = self.get_state_name(s)
 
         # minInitCons
-        if self.opt_mi or self.opt_sr or self.opt_pr:
+        if self.opt_mi or self.opt_sr or self.opt_pr or self.opt_bu:
             mi = self.mdp.minInitCons
             state_str = f"<table{tab_MI_style}>" + \
-                        f"<tr><td{tab_state_cell_style}>{state_str}</td>"
+                        f"<tr><td{tab_state_cell_style.format(self.label_row_span)}>{state_str}</td>"
 
         if self.opt_mi:
             val = mi.values[s]
@@ -146,6 +167,22 @@ class consMDP2dot:
             if empty_row:
                 state_str += "<td></td>"
 
+            # buchi
+            if self.opt_bu:
+                state_str += f"</tr><tr>"
+                empty_row = False
+                val = self.buchi.buchi_values[s]
+                val = "∞" if val == inf else val
+                state_str += f"<td{tab_BU_cell_style}>" + \
+                    f"<font{tab_BU_cell_font}>{val}</font></td>"
+                val = self.buchi.buchi_safe[s]
+                val = "∞" if val == inf else val
+                state_str += f"<td{tab_BS_cell_style}>" + \
+                    f"<font{tab_BS_cell_font}>{val}</font></td>"
+
+            if empty_row:
+                state_str += "<td></td>"
+
             state_str += "</tr></table>"
 
         self.str += f'label=<{state_str}>'
@@ -153,7 +190,7 @@ class consMDP2dot:
         # Reload states are double circled and target states filled
         if self.mdp.is_reload(s):
             self.str += ", peripheries=2"
-        if self.opt_pr and s in self.reach.targets:
+        if (self.opt_pr or self.opt_ar or self.opt_bu) and s in self.reach.targets:
             self.str += targets_style
         self.str += "]\n"
 

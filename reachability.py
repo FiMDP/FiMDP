@@ -16,7 +16,7 @@ class Reachability(minInitCons):
     """
 
     def __init__(self, mdp, targets, cap = inf):
-        super(Reachability, self).__init__(mdp, cap)
+        minInitCons.__init__(self, mdp, cap)
 
         self.targets = targets
         self.pos_reach_values = None

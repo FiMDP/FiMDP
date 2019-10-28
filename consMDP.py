@@ -1,6 +1,6 @@
 from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-import safety, reachability
+import safety, reachability, buchi
 import math
 
 def is_distribution(d):
@@ -46,6 +46,7 @@ class ConsMDP:
         self.num_states = 0
         self.minInitCons = None
         self.reachability = None
+        self.buchi = None
 
     def structure_change(self):
         self.minInitCons = None
@@ -259,6 +260,28 @@ class ConsMDP:
             reach.get_positiveReachability()
             self.get_safeReloads()
         return reach.get_almostSureReachability()
+
+    def get_Buchi(self, targets, capacity=None, recompute=False):
+        """Return (and store) the energy levels needed to reach T (`targets`)
+        infinitely often from each state.
+
+        `targets` : set of ints
+
+        By default use last capacity or ∞.
+        """
+        b = self.buchi
+        if capacity is None:
+            capacity = math.inf if b is None else b.cap
+        if b is None or b.cap != capacity:
+            recompute = True
+        if recompute:
+            b = buchi.Buchi(self, targets, capacity)
+            self.reachability = b
+            self.minInitCons = b
+            self.buchi = b
+            b.get_Buchi()
+            self.get_safeReloads()
+        return b.get_Buchi()
 
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)
