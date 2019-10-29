@@ -75,11 +75,25 @@ class Reachability(minInitCons):
 
         A Bellman-style equation largest fixpoint solver.
 
-        We start with ∞ for every state and propagate the safe energy
-        needed to reach T from the target states further. After
-        a fixpoint is reached, we remove the reload states that
-        have the value equal to ∞ and proceed with another
-        computation.
+        On the high level, it goes as:
+          1. Compute Safe = Safe_M (achieved by get_safe_values())
+          2. Repeat the following until fixpoint:
+            2.1. Compute PosReach_M with modified Safe_M computation
+            2.2. NonReach = {r is reload and PosReach_M[r] = ∞}
+            2.3. M = M \ NonReach
+
+        The PosReach_M is computed as:
+          2.1.1. Compute modified Safe_M & store it in reach_safe_val
+            - Safe_M[t] = Safe[t] for targets
+            - Use fixpoint propagation to complete Safe_M
+          2.1.3. PosReach_M[t] = Safe[t] for targets
+          2.1.3. fixpoint that navigates to T (using Safe_M)
+
+        This guarantees that after reaching T we have enough energy to
+        survive. Until then we can always keep in states (and energy
+        levels) with positive reachability of T. After T was reached,
+        we can use the reloads not good enough for positive reachability
+        again (Safe_M[t] = Safe[t]).
 
         The first iteration (the first fixpoint achieved) is equal
         to positive reachability.
@@ -92,42 +106,37 @@ class Reachability(minInitCons):
 
         done = False
         while not done:
-            # Compute fixpoint without removed reloads
+            ### 2.1.1.
+            # safe_after_T initializes each iteration of the fixpoint with:
+            #  * self.safe_values[t] for targets (reach done, just survive)
+            #  * ∞ for the rest
+            safe_after_T = lambda s: self.safe_values[s] if s in self.targets else inf
+            self.sufficient_levels(removed, self.reach_safe_val, safe_after_T)
 
-            # Initialize alsure_values:
+            ### 2.1.2. Initialize PosReach_M:
             #  * safe_value for target states
             #  * inf otherwise
             self.alsure_values = [inf] * self.states
             for t in self.targets:
-                self.alsure_values[t] = self.safe_values[t]
+                self.alsure_values[t] = self.get_safe_values()[t]
 
-            # Recompute the "safe for reachability" values with removed reloads.
-            # Store them in `reach_safe_val`.
-            # The meaning is:
-            #  1. survive without removed reloads, or
-            #  2. reach a target state (from which I can use removed reloads again)
-            #
-            # Uses sufficient_levels computation initialized with removed and
-            # start each iteration with:
-            #  * self.safe_values[t] for targets (reach done, just survive) [2.]
-            #  * ∞ for the rest                                             [1.]
-            suff_l_init = lambda s: self.safe_values[s] if s in self.targets else inf
-            self.sufficient_levels(removed, self.reach_safe_val, suff_l_init)
-
-            # Mitigate reload removal
-            rem_survival_val = lambda s: inf if s in removed else self.reach_safe_val[s]
+            ### 2.1.3 Compute PosReach on sub-MDP
+            # Mitigate reload removal (use Safe_M for survival)
+            rem_survival_val = lambda s: self.reach_safe_val[s]
             rem_action_value = lambda a, v: self.action_value_T(a, v, rem_survival_val)
 
-            # Removed reloads are skipped
-            is_removed = lambda x: x in removed # Improve performance only
-            is_target  = lambda x: x in self.targets # Improve performance only
-            # Over capacity values -> ∞
+            # Avoid unnecesarry computations
+            is_removed = lambda x: x in removed # always ∞
+            is_target  = lambda x: x in self.targets # always Safe
+            skip_cond  = lambda x: is_removed(x) or is_target(x)
 
+            ## Finish the fixpoint
             largest_fixpoint(self.mdp, self.alsure_values,
                              rem_action_value,
                              value_adj=self.reload_capper,
-                             skip_state=is_removed or is_target)
+                             skip_state=skip_cond)
 
+            ### 2.2. & 2.3. Detect bad reloads and remove them
             done = True
             # Iterate over reloads and remove unusable ones (∞)
             for s in range(self.states):
