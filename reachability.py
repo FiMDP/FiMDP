@@ -148,11 +148,24 @@ class Reachability(minInitCons):
         return self.alsure_values
 
     def action_value_T(self, a, values, survival_val=None):
-        """Compute value of action basd on curent values pf `r`
+        """Compute value of action wtih preference and survival.
 
-        `target_values` = List with values that applies for `r(t)` if `t`
-                          satisfies `target_cond`. Equal to self.safe_values
-                          if not given.
+        The value picks a prefered target `t` that it wants to reach;
+        considers `values` for `t` and `survival` for the other successors.
+        Chooses the best (minimum) among possible `t` from `a.succs`.
+
+        The value is cost of the action plus minimum of `v(t)` over
+        t ∈ a.succs where `v(t)` is:
+        ```
+        max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
+        ```
+        where survival is given by `survival_val` vector. It's
+        `self.safe_values` as default.
+
+        Parameters
+        ==========
+        `a` : action_data, action for which the value is computed.
+        `values` = vector with current values.
         `survival_val` = Function: `state` -> `value` interpreted as "what is
                          the level of energy I need to have in order to survive
                          if I reach `state`". Returns `self.safe_values[state]`
@@ -166,10 +179,12 @@ class Reachability(minInitCons):
         succs = a.distr.keys()
 
         for t in succs:
+            # Compute value for t
             survivals = [survival_val(s) for s in succs if s != t]
             current_v = values[t]
             t_v = max([current_v] + survivals)
 
+            # Choose minimum
             if t_v < candidate:
                 candidate = t_v
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
