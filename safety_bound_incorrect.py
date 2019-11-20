@@ -121,7 +121,7 @@ class minInitCons:
             self.fixpoint()
         return self.values
 
-    def get_safe_values(self, recompute=False):
+    def get_safe(self, recompute=False):
         """Return (and compute) safe runs minimal cost for self.capacity
 
         When called for the first time, it computes the values.

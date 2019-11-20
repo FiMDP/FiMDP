@@ -1,6 +1,6 @@
-from safety import minInitCons, largest_fixpoint
+from energy_levels import EnergyLevels, largest_fixpoint
 from math import inf
-class Reachability(minInitCons):
+class Reachability(EnergyLevels):
     """Compute energy needed to safely reach target set T with
     probability > 0.
     
@@ -16,7 +16,7 @@ class Reachability(minInitCons):
     """
 
     def __init__(self, mdp, targets, cap = inf):
-        minInitCons.__init__(self, mdp, cap)
+        EnergyLevels.__init__(self, mdp, cap)
 
         self.targets = targets
         self.pos_reach_values = None
@@ -49,7 +49,7 @@ class Reachability(minInitCons):
         if not recompute and self.pos_reach_values is not None:
             return self.pos_reach_values
 
-        self.get_safe_values(recompute)
+        self.get_safe(recompute)
 
         # Initialize:
         #  * safe_value for target states
@@ -76,7 +76,7 @@ class Reachability(minInitCons):
         A Bellman-style equation largest fixpoint solver.
 
         On the high level, it goes as:
-          1. Compute Safe = Safe_M (achieved by get_safe_values())
+          1. Compute Safe = Safe_M (achieved by get_safe())
           2. Repeat the following until fixpoint:
             2.1. Compute PosReach_M with modified Safe_M computation
             2.2. NonReach = {r is reload and PosReach_M[r] = ∞}
@@ -118,7 +118,7 @@ class Reachability(minInitCons):
             #  * inf otherwise
             self.alsure_values = [inf] * self.states
             for t in self.targets:
-                self.alsure_values[t] = self.get_safe_values()[t]
+                self.alsure_values[t] = self.get_safe()[t]
 
             ### 2.1.3 Compute PosReach on sub-MDP
             # Mitigate reload removal (use Safe_M for survival)

@@ -1,6 +1,6 @@
 import consMDP
 from math import inf
-from safety import minInitCons
+from energy_levels import EnergyLevels
 
 m = consMDP.ConsMDP()
 m.new_states(13)
@@ -23,28 +23,28 @@ m.add_action(0, {0:1}, "r", 0)
 m.add_action(9, {9:1}, "r", 0)
 m.add_action(11, {11:1}, "a", 1)
 
-MI = minInitCons(m)
+MI = EnergyLevels(m)
 
-result   = MI.get_values()
+result   = MI.get_minInitCons()
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, 5, 1, 1]
 
-assert result == expected, ("minInitCons.get_values() returns" +
+assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 
 m.unset_reload(11)
 
-result = MI.get_values(recompute=True)
+result = MI.get_minInitCons(recompute=True)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 
-assert result == expected, ("minInitCons.get_values() returns" +
+assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
-## Test minInitCons with capacity
+## Test EnergyLevels with capacity
 MI.cap=14
-result = MI.get_values(recompute=True)
+result = MI.get_minInitCons(recompute=True)
 result2 = m.get_minInitCons(14)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 
@@ -52,19 +52,19 @@ assert result == result2, ("result and result2 should be the same\n" +
     f"  result  : {result}\n" +
     f"  result2 : {result2}\n")
 
-assert result == expected, ("minInitCons.get_values() returns" +
+assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 result = m.get_minInitCons(capacity=13)
 expected = [0, 3, 2, 1, 3, 9, inf, 1, 1, 0, inf, inf, 1]
 
-assert result == expected, ("minInitCons.get_values() returns" +
+assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 ## Test safe reloads:
-result = m.get_safeReloads(14)
+result = m.get_safe(14)
 expected = [0, 3, 2, 0, 0, 9, 14, 1, 1, 0, inf, inf, 1]
 
 assert result == expected, ("Safe reloads are wrong.\n" +
@@ -75,13 +75,13 @@ assert result == expected, ("Safe reloads are wrong.\n" +
 a = next(m.actions_for_state(3))
 a.cons = 9
 
-result = m.get_safeReloads(8)
+result = m.get_safe(8)
 expected = [0, inf, inf, inf, inf, inf, inf, inf, 1, 0, inf, inf, inf]
 
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
-### Reloads are not safe with minInitCons = ∞ even with cap = ∞
+### Reloads are not safe with EnergyLevels = ∞ even with cap = ∞
 m = consMDP.ConsMDP()
 m.new_states(4)
 m.set_reload(2)
@@ -93,7 +93,7 @@ m.add_action(3, {3:1}, "r", 1010)
 m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
-result = m.get_safeReloads()
+result = m.get_safe()
 expected = [0, 1000, inf, inf]
 
 assert result == expected, ("Safe reloads are wrong.\n" +
@@ -108,12 +108,12 @@ m.add_action(0, {0:1}, "", 0)
 m.add_action(1, {0:1}, "a", 1000)
 m.add_action(1, {2:1}, "b", 1)
 m.add_action(2, {1:1}, "b", 1)
-MI = minInitCons(m)
+MI = EnergyLevels(m)
 
-result = MI.get_values()
+result = MI.get_minInitCons()
 expected = [0,1000,1001]
 
-assert result == expected, ("minInitCons.get_values() returns" +
+assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
@@ -131,9 +131,9 @@ m.add_action(3, {3:1}, "r", 1010)
 m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
-result = m.get_safeReloads(1005)
+result = m.get_safe(1005)
 expected = [0, 1000, 1001, inf]
 
-assert result == expected, ("minInitCons.get_safe_values() returns" +
+assert result == expected, ("EnergyLevels.get_safe() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")

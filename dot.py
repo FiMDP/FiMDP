@@ -78,7 +78,7 @@ class consMDP2dot:
         if "s" in self.options:
             self.opt_sr = MI is not None and MI.safe_values is not None
         if "S" in self.options:
-            mdp.get_safeReloads()
+            mdp.get_safe()
             self.opt_sr = True
 
         if "r" in self.options:

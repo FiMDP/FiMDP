@@ -1,6 +1,6 @@
 from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-import safety, reachability, buchi
+from energy_levels import EnergyLevels
 import math
 
 def is_distribution(d):
@@ -44,13 +44,11 @@ class ConsMDP:
         self.reloads = []
 
         self.num_states = 0
-        self.minInitCons = None
-        self.reachability = None
-        self.buchi = None
+
+        self.energy_levels = None
 
     def structure_change(self):
-        self.minInitCons = None
-        self.reachability = None
+        self.energy_levels = None
 
     def state_with_label(self, label):
         '''Return id of state with label `label` or `None` if not exists.'''
@@ -196,17 +194,16 @@ class ConsMDP:
 
         By default use last capacity or ∞.
         """
-        MI = self.minInitCons
+        el = self.energy_levels
         if capacity is None:
-            capacity = math.inf if MI is None else MI.cap
-        if MI is None or capacity != MI.cap:
+            capacity = math.inf if el is None else el.cap
+        if el is None or capacity != el.cap:
             recompute = True
         if recompute:
-            self.minInitCons = safety.minInitCons(self, capacity)
-            self.minInitCons.get_values()
-        return self.minInitCons.get_values()
+            self.energy_levels = EnergyLevels(self, capacity)
+        return self.energy_levels.get_minInitCons()
 
-    def get_safeReloads(self, capacity=None, recompute=False):
+    def get_safe(self, capacity=None, recompute=False):
         """Return (and store) the energy levels needed to survive
         with given capacity.
 
@@ -216,8 +213,7 @@ class ConsMDP:
         By default use last capacity or ∞.
         """
         self.get_minInitCons(capacity, recompute)
-        MI = self.minInitCons
-        return MI.get_safe_values()
+        return self.energy_levels.get_safe()
 
     def get_positiveReachability(self, targets,
                                  capacity=None, recompute=False):
@@ -225,19 +221,18 @@ class ConsMDP:
         from each state.
 
         `targets` : set of ints
+        `capacity`: capacity
 
         By default use last capacity or ∞.
         """
-        reach = self.reachability
+        el = self.energy_levels
         if capacity is None:
-            capacity = math.inf if reach is None else reach.cap
-        if reach is None or reach.cap != capacity:
+            capacity = math.inf if el is None else el.cap
+        if el is None or el.cap != capacity or el.targets is None:
             recompute = True
         if recompute:
-            reach = reachability.Reachability(self, targets, capacity)
-            self.reachability = reach
-            self.minInitCons = reach
-        return reach.get_positiveReachability()
+            self.energy_levels = EnergyLevels(self, capacity, targets)
+        return self.energy_levels.get_positiveReachability()
 
     def get_almostSureReachability(self, targets,
                                    capacity=None, recompute=False):
@@ -248,18 +243,14 @@ class ConsMDP:
 
         By default use last capacity or ∞.
         """
-        reach = self.reachability
+        el = self.energy_levels
         if capacity is None:
-            capacity = math.inf if reach is None else reach.cap
-        if reach is None or reach.cap != capacity:
+            capacity = math.inf if el is None else el.cap
+        if el is None or el.cap != capacity or el.targets is None:
             recompute = True
         if recompute:
-            reach = reachability.Reachability(self, targets, capacity)
-            self.reachability = reach
-            self.minInitCons = reach
-            reach.get_positiveReachability()
-            self.get_safeReloads()
-        return reach.get_almostSureReachability()
+            self.energy_levels = EnergyLevels(self, capacity, targets)
+        return self.energy_levels.get_almostSureReachability()
 
     def get_Buchi(self, targets, capacity=None, recompute=False):
         """Return (and store) the energy levels needed to reach T (`targets`)
@@ -269,19 +260,14 @@ class ConsMDP:
 
         By default use last capacity or ∞.
         """
-        b = self.buchi
+        el = self.energy_levels
         if capacity is None:
-            capacity = math.inf if b is None else b.cap
-        if b is None or b.cap != capacity:
+            capacity = math.inf if el is None else el.cap
+        if el is None or el.cap != capacity or el.targets is None:
             recompute = True
         if recompute:
-            b = buchi.Buchi(self, targets, capacity)
-            self.reachability = b
-            self.minInitCons = b
-            self.buchi = b
-            b.get_Buchi()
-            self.get_safeReloads()
-        return b.get_Buchi()
+            self.energy_levels = EnergyLevels(self, capacity, targets)
+        return self.energy_levels.get_Buchi()
 
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, options)

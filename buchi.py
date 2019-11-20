@@ -1,6 +1,6 @@
 from reachability import Reachability
 from math import inf
-from safety import largest_fixpoint
+from energy_levels import largest_fixpoint
 
 class Buchi(Reachability):
     """Compute energy needed to safely satisy Büchi objective
@@ -15,7 +15,7 @@ class Buchi(Reachability):
         self.buchi_values = None
         self.buchi_safe   = [inf] * self.states
 
-        self.get_safe_values()
+        self.get_safe()
 
     def get_Buchi(self, recompute=False):
         """Return (and compute) minimal levels for Buchi
