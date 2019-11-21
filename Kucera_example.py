@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 import consMDP
-import reachability
 import importlib
 import dot
 importlib.reload(consMDP)
-importlib.reload(reachability)
 importlib.reload(dot)
 
 m = consMDP.ConsMDP()

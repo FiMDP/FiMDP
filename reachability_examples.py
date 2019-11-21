@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 import consMDP
-import reachability
 import importlib
 import dot
 importlib.reload(consMDP)
-importlib.reload(reachability)
 importlib.reload(dot)
 
 

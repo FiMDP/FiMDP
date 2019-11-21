@@ -63,33 +63,32 @@ class consMDP2dot:
         self.opt_ar = False # Almost-sure reachability
         self.opt_bu = False # Büchi
 
-        MI = mdp.minInitCons
-        self.reach = mdp.reachability
-        self.buchi = mdp.buchi
-        reach = self.reach
-        b = self.buchi
+        self.el = mdp.energy_levels
 
         if "m" in self.options:
-            self.opt_mi = MI is not None and MI.values is not None
+            self.opt_mi = self.el is not None and self.el.mic_values is not None
         if "M" in self.options:
             mdp.get_minInitCons()
             self.opt_mi = True
+            self.el = mdp.energy_levels
 
         if "s" in self.options:
-            self.opt_sr = MI is not None and MI.safe_values is not None
+            self.opt_sr = self.el is not None and self.el.safe_values is not None
         if "S" in self.options:
             mdp.get_safe()
             self.opt_sr = True
+            self.el = mdp.energy_levels
 
         if "r" in self.options:
-            self.opt_pr = reach is not None and reach.pos_reach_values is not None
+            self.opt_pr = self.el is not None and self.el.pos_reach_values is not None
         if "R" in self.options:
-            self.opt_ar = reach is not None and reach.alsure_values is not None
+            self.opt_ar = self.el is not None and self.el.alsure_values is not None
 
         if "b" in self.options:
-            self.opt_bu = b is not None and b.buchi_values is not None
+            self.opt_bu = self.el is not None and self.el.buchi_values is not None
             if self.opt_bu:
                 self.label_row_span = 3
+        #print(self.opt_bu,file=stderr)
 
     def get_dot(self):
         self.start()
@@ -124,30 +123,29 @@ class consMDP2dot:
 
         # minInitCons
         if self.opt_mi or self.opt_sr or self.opt_pr or self.opt_bu:
-            mi = self.mdp.minInitCons
             state_str = f"<table{tab_MI_style}>" + \
                         f"<tr><td{tab_state_cell_style.format(self.label_row_span)}>{state_str}</td>"
 
         if self.opt_mi:
-            val = mi.values[s]
+            val = self.el.mic_values[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_MI_cell_style}>" + \
                 f"<font{tab_MI_cell_font}>{val}</font></td>"
 
         if self.opt_sr:
-            val = mi.safe_values[s]
+            val = self.el.safe_values[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_SR_cell_style}>" + \
                 f"<font{tab_SR_cell_font}>{val}</font></td>"
 
-        if self.opt_mi or self.opt_sr or self.opt_pr:
+        if self.opt_mi or self.opt_sr or self.opt_pr or self.opt_bu:
             state_str += f"</tr><tr>"
 
             empty_row = True
             # positive reachability
             if self.opt_pr:
                 empty_row = False
-                val = self.reach.pos_reach_values[s]
+                val = self.el.pos_reach_values[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_PR_cell_style}>" + \
                     f"<font{tab_PR_cell_font}>{val}</font></td>"
@@ -155,11 +153,11 @@ class consMDP2dot:
             # almost-sure reachability
             if self.opt_ar:
                 empty_row = False
-                val = self.reach.alsure_values[s]
+                val = self.el.alsure_values[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_AR_cell_style}>" + \
                     f"<font{tab_AR_cell_font}>{val}</font></td>"
-                val = self.reach.reach_safe_val[s]
+                val = self.el.reach_safe[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_RS_cell_style}>" + \
                     f"<font{tab_RS_cell_font}>{val}</font></td>"
@@ -171,11 +169,11 @@ class consMDP2dot:
             if self.opt_bu:
                 state_str += f"</tr><tr>"
                 empty_row = False
-                val = self.buchi.buchi_values[s]
+                val = self.el.buchi_values[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_BU_cell_style}>" + \
                     f"<font{tab_BU_cell_font}>{val}</font></td>"
-                val = self.buchi.buchi_safe[s]
+                val = self.el.buchi_safe[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_BS_cell_style}>" + \
                     f"<font{tab_BS_cell_font}>{val}</font></td>"
@@ -190,7 +188,7 @@ class consMDP2dot:
         # Reload states are double circled and target states filled
         if self.mdp.is_reload(s):
             self.str += ", peripheries=2"
-        if (self.opt_pr or self.opt_ar or self.opt_bu) and s in self.reach.targets:
+        if (self.opt_pr or self.opt_ar or self.opt_bu) and s in self.el.targets:
             self.str += targets_style
         self.str += "]\n"
 
