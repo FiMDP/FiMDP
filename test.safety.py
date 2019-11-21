@@ -1,6 +1,7 @@
 import consMDP
 from math import inf
-from energy_levels import EnergyLevels
+from energy_levels import EnergyLevels, EnergyLevels_least
+from sys import stderr
 
 m = consMDP.ConsMDP()
 m.new_states(13)
@@ -70,16 +71,30 @@ expected = [0, 3, 2, 0, 0, 9, 14, 1, 1, 0, inf, inf, 1]
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
+# Test the version with LeastFixpoint
+m.energy_levels = EnergyLevels_least(m, 14)
+result = m.get_safe(14)
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
 # Change the consumption on the action of st. 3
 # This makes state 3 an useless reload
 a = next(m.actions_for_state(3))
-a.cons = 9
+a.cons = 15
+m.structure_change()
 
-result = m.get_safe(8)
+result = m.get_safe(14)
 expected = [0, inf, inf, inf, inf, inf, inf, inf, 1, 0, inf, inf, inf]
 
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
+
+# Test the version with LeastFixpoint
+m.energy_levels = EnergyLevels_least(m, 14)
+result = m.get_safe(14)
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
 
 ### Reloads are not safe with EnergyLevels = ∞ even with cap = ∞
 m = consMDP.ConsMDP()
@@ -96,6 +111,12 @@ m.add_action(2, {3:1}, "r", 1)
 result = m.get_safe()
 expected = [0, 1000, inf, inf]
 
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
+# Test the version with LeastFixpoint
+m.energy_levels = EnergyLevels_least(m)
+result = m.get_safe()
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
@@ -136,4 +157,10 @@ expected = [0, 1000, 1001, inf]
 
 assert result == expected, ("EnergyLevels.get_safe() returns" +
     " wrong values:\n" +
+    f"  expected: {expected}\n  returns:  {result}\n")
+
+# Test the version with LeastFixpoint
+m.energy_levels = EnergyLevels_least(m, 1005)
+result = m.get_safe()
+assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")

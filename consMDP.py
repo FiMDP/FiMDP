@@ -1,6 +1,6 @@
 from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-from energy_levels import EnergyLevels
+from energy_levels import EnergyLevels, EnergyLevels_least
 import math
 
 def is_distribution(d):
@@ -21,6 +21,25 @@ class ConsMDP:
 
     States can be labeled using the list `labels`. Reload states are stored
     in the set `reload_states`.
+    
+    Computation of Safe vector
+    ==========================
+    The Safe^cap vector can be computed in 2 different ways.
+    
+    The variant used by default in M can be controlled by def_EL_class.
+    Currently, the default is 
+    ```
+    self.def_EL_class = EnergyLevels
+    ```
+    The other option is `EnergyLevels_least`.
+    
+    The running times between the 2 variants can vary a lot, it hugely
+    depends on the MDP and its structure. See notebook 
+    [Safe-variants](Safe-variants.ipynb) for more details and comparison.
+    
+    Basically, EnergyLevels_least is faster on models where the maximal
+    consumption on an action is strictly smaller than the number of states,
+    and the other way.
 
     Important
     =========
@@ -46,6 +65,7 @@ class ConsMDP:
         self.num_states = 0
 
         self.energy_levels = None
+        self.def_EL_class = EnergyLevels
 
     def structure_change(self):
         self.energy_levels = None
@@ -200,7 +220,7 @@ class ConsMDP:
         if el is None or capacity != el.cap:
             recompute = True
         if recompute:
-            self.energy_levels = EnergyLevels(self, capacity)
+            self.energy_levels = self.def_EL_class(self, capacity)
         return self.energy_levels.get_minInitCons()
 
     def get_safe(self, capacity=None, recompute=False):
@@ -231,7 +251,7 @@ class ConsMDP:
         if el is None or el.cap != capacity or el.targets is None:
             recompute = True
         if recompute:
-            self.energy_levels = EnergyLevels(self, capacity, targets)
+            self.energy_levels = self.def_EL_class(self, capacity, targets)
         return self.energy_levels.get_positiveReachability()
 
     def get_almostSureReachability(self, targets,
@@ -249,7 +269,7 @@ class ConsMDP:
         if el is None or el.cap != capacity or el.targets is None:
             recompute = True
         if recompute:
-            self.energy_levels = EnergyLevels(self, capacity, targets)
+            self.energy_levels = self.def_EL_class(self, capacity, targets)
         return self.energy_levels.get_almostSureReachability()
 
     def get_Buchi(self, targets, capacity=None, recompute=False):
@@ -266,7 +286,7 @@ class ConsMDP:
         if el is None or el.cap != capacity or el.targets is None:
             recompute = True
         if recompute:
-            self.energy_levels = EnergyLevels(self, capacity, targets)
+            self.energy_levels = self.def_EL_class(self, capacity, targets)
         return self.energy_levels.get_Buchi()
 
     def get_dot(self, options=""):
