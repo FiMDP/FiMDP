@@ -24,7 +24,7 @@ class EnergyLevels:
         self.targets     = targets
 
         # minInitCons & Safe^cap
-        self.values      = None
+        self.mic_values  = None
         self.safe_values = None
 
         # Reachability
@@ -190,13 +190,13 @@ class EnergyLevels:
         When called for the first time, compute the values.
         Recompute the values if requested by `recompute`.
         """
-        if self.values is None or recompute:
-            self.values = [inf] * self.states
+        if self.mic_values is None or recompute:
+            self.mic_values = [inf] * self.states
             cap = lambda s, v: inf if v > self.cap else v
-            largest_fixpoint(self.mdp, self.values,
+            largest_fixpoint(self.mdp, self.mic_values,
                              self._action_value,
                              value_adj=cap)
-        return self.values
+        return self.mic_values
 
     def get_safe(self, recompute=False):
         """Return (and compute) safe runs minimal cost for self.capacity
