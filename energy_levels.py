@@ -3,14 +3,21 @@ from sys import stderr
 from fixpoints import largest_fixpoint, least_fixpoint
 
 class EnergyLevels:
-    """Compute function minInitCons for given consMDP `m`.
+    """Compute minimum levels of energy needed to fulfill objectives
+    with given capacity (and target set).
 
-    minInitCons_m: S -> N ∪ {∞} returns for given `s` the minimum
-    amount `s_m` of resource such that there exists a strategy that
-    guarantees reachability of some reload state from s consuming
-    at most `s_m`.
+    For each objective `o` and each state `s`, compute a value `o[s]
+    which guaranteed that there exists a strategy with fiven capacity
+    that fulfills `o` from `s` and it needs `o[s]` to start with in `s`.
     
-    TODO other values
+    Currently, the supported objectives are:
+     * minInitCons: reaching a reload state different from `s`
+     * safe       : survive from `s` forever
+     * positiveReachability(T)  : survive and the probability of reaching
+             some target from T is positive (>0)
+     * almostSureReachability(T): survive and the probability of reaching
+             some target from T is 1
+     * Büchi(T) : survive and keep visiting T forever (with prob. 1).
     """
 
     def __init__(self, mdp, cap = inf, targets = None):
