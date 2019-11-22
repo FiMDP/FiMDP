@@ -118,7 +118,7 @@ class EnergyLevels:
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons
 
-    def _sufficient_levels(self, removed=None, values=None,
+    def _sufficient_levels(self, values=None, removed=None,
                           init_val=lambda s: inf):
         """Compute the safe_values using the largest-fixpoint method
         based on minInitCons computation with removal of reload states
@@ -128,10 +128,10 @@ class EnergyLevels:
 
         The worst-case complexity is |R| * minInitCons = |R|*|S|^2
 
-        `removed` : set of reloads - start with the reloads already removed
-                    ∅ by default
         `values`  : list used for computation
                     self.safe_values as default
+        `removed` : set of reloads - start with the reloads already removed
+                    ∅ by default
         `init_val`: state -> value - defines the values at the start of each
                     iteration of inner fixpoint (currently needed only for)
                     almost-sure reachability. It simulates switching between
@@ -213,7 +213,7 @@ class EnergyLevels:
         """
         if self.safe_values is None or recompute:
             self.safe_values = [inf] * self.states
-            self._sufficient_levels()
+            self._sufficient_levels(self.safe_values)
 
             # Set the value of Safe to 0 for all good reloads 
             for s in range(self.states):
@@ -311,7 +311,7 @@ class EnergyLevels:
             #  * self.safe_values[t] for targets (reach done, just survive)
             #  * ∞ for the rest
 
-            self._sufficient_levels(removed, self.reach_safe, safe_after_T)
+            self._sufficient_levels(self.reach_safe, removed, safe_after_T)
 
             ### 2.1.2. Initialize PosReach_M:
             #  * safe_value for target states
@@ -392,7 +392,7 @@ class EnergyLevels:
         done = False
         while not done:
             ### 1.1. Compute Safe(M\removed) and store it in buchi_safe
-            self._sufficient_levels(removed, self.buchi_safe)
+            self._sufficient_levels(self.buchi_safe, removed)
 
             ### 1.2. Initialization of PosReach_M
             #  * buchi_safe for target states
