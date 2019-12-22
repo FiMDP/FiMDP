@@ -3,9 +3,25 @@ from sys import stderr
 debug = False
 debug_vis = False
 
+
+def argmin(iterable, func):
+    """Compute argmin of func on iterable.
+
+    Returns (i, v) such that v=func(i) is smallest in iterable.
+    """
+    res_item, res_val = None, inf
+    for item in iterable:
+        val = func(item)
+        if val < res_val:
+            res_item, res_val = item, val
+
+    return res_item, res_val
+
+
 def largest_fixpoint(mdp, values, action_value,
                      value_adj=lambda s, v: v,
-                     skip_state=lambda x: False):
+                     skip_state=lambda x: False,
+                     on_upadate=lambda s, v, a: None):
     """Largest fixpoint on list of values indexed by states.
     
     Most of the computations of energy levels are, in the end,
@@ -38,6 +54,12 @@ def largest_fixpoint(mdp, values, action_value,
                       If True, stave will be skipped and its value
                       not changed.
 
+     * on_upadate : function called when new value for state is found.
+                    Arguments are: state × value × action
+                    The meaning is for `s` we found new value `v` using
+                    action `a`.
+                    By default only None is returned.
+
     Debug options
     =============
     We have 2 options that help us debug the code using this function:
@@ -61,8 +83,9 @@ def largest_fixpoint(mdp, values, action_value,
                 continue
             current_v = values[s]
             actions = mdp.actions_for_state(s)
+
             # candidate_v is the minimum over action values
-            candidate_v = min([act_value(a) for a in actions])
+            candidate_a, candidate_v = argmin(actions, act_value)
 
             # apply value_adj (capacity, reloads, ...)
             candidate_v = value_adj(s, candidate_v)
@@ -70,6 +93,7 @@ def largest_fixpoint(mdp, values, action_value,
             # check for decrease in value
             if candidate_v < current_v:
                 values[s] = candidate_v
+                on_upadate(s, candidate_v, candidate_a)
                 iterate = True
 
 
