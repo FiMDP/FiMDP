@@ -21,7 +21,7 @@ def argmin(iterable, func):
 def largest_fixpoint(mdp, values, action_value,
                      value_adj=lambda s, v: v,
                      skip_state=lambda x: False,
-                     on_upadate=lambda s, v, a: None):
+                     on_update=lambda s, v, a: None):
     """Largest fixpoint on list of values indexed by states.
     
     Most of the computations of energy levels are, in the end,
@@ -93,7 +93,7 @@ def largest_fixpoint(mdp, values, action_value,
             # check for decrease in value
             if candidate_v < current_v:
                 values[s] = candidate_v
-                on_upadate(s, candidate_v, candidate_a)
+                on_update(s, candidate_v, candidate_a)
                 iterate = True
 
 

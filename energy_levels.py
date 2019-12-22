@@ -2,6 +2,16 @@ from math import inf
 from sys import stderr
 from fixpoints import largest_fixpoint, least_fixpoint
 
+# objectives
+MIN_INIT_CONS = 0
+SAFE = 1
+POS_REACH = 2
+AS_REACH = 3
+BUCHI = 4
+HELPER = 5
+OBJ_COUNT = 6
+
+
 class EnergyLevels:
     """Compute minimum levels of energy needed to fulfill objectives
     with given capacity (and target set).
@@ -9,6 +19,8 @@ class EnergyLevels:
     For each objective `o` and each state `s`, compute a value `o[s]
     which guaranteed that there exists a strategy with fiven capacity
     that fulfills `o` from `s` and it needs `o[s]` to start with in `s`.
+
+    If `compute_strategy` is `True`, compute also corresponding strategy.
     
     Currently, the supported objectives are:
      * minInitCons: reaching a reload state within >0 steps
@@ -20,7 +32,7 @@ class EnergyLevels:
      * Büchi(T) : survive and keep visiting T forever (with prob. 1).
     """
 
-    def __init__(self, mdp, cap = inf, targets = None):
+    def __init__(self, mdp, cap=inf, targets=None, compute_strategy=True):
         # cap has to be defined
         if cap is None:
             cap = inf
@@ -44,11 +56,20 @@ class EnergyLevels:
         # reloads
         self.is_reload  = lambda x: self.mdp.is_reload(x)
 
+        self.compute_strategy = compute_strategy
+        if compute_strategy:
+            self.strategy = {}
+        else:
+            self.strategy = None
+
     ### Helper functions ###
     # * reload_capper     : [v]^cap
     # * action_value      : the worst value of succ(a) + cons(a)
     # * action_value_T    : directed action value
     # * sufficient_levels : inicialized safe values
+    # * init_strategy     : initializes an empty strategy for given objective
+    # * copy_strategy     : copy strategy on given states from one strategy to another
+    # * update_function   : return function that updates strategy for given objective (or does nothing)
 
     def _reload_capper(self, s, v):
         """Reloads with value < capacity should be 0,
@@ -118,8 +139,10 @@ class EnergyLevels:
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons
 
-    def _sufficient_levels(self, values=None, removed=None,
-                          init_val=lambda s: inf):
+    def _sufficient_levels(self, values=None,
+                           removed=None,
+                           init_val=lambda s: inf,
+                           objective=HELPER):
         """Compute the safe_values using the largest-fixpoint method
         based on minInitCons computation with removal of reload states
         that have minInitCons() = ∞ in the previous itertions.
@@ -147,6 +170,7 @@ class EnergyLevels:
         done = False
         while not done:
             # Compute fixpoint without removed reloads
+            self._init_strategy(objective)
 
             # Reset the computation, by default set all values to ∞.
             # `init_val: s -> v
@@ -165,7 +189,8 @@ class EnergyLevels:
             largest_fixpoint(self.mdp, values,
                              rem_action_value,
                              value_adj=cap,
-                             skip_state=skip_cond)
+                             skip_state=skip_cond,
+                             on_update=self._update_function(objective))
 
             done = True
             # Iterate over reloads and remove unusable ones (∞)
@@ -180,11 +205,229 @@ class EnergyLevels:
                 if self.mdp.is_reload(s) and values[s] < self.cap:
                     values[s] = 0
 
+    def _init_strategy(self, objective):
+        """Initialize strategy for given objective to be empty.
+
+        The empty strategy is a list with an empty dict for each state.
+        """
+        if objective not in range(OBJ_COUNT):
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
+        if self.compute_strategy:
+            self.strategy[objective] = [{} for s in range(self.states)]
+
+    def _copy_strategy(self, source, to, state_set=None):
+        """Copy strategy for objective `source` to objective `to` for states in `states_set`
+
+        Parameters:
+        ===========
+        `source` : int, index of objective to copy from
+        `to`     : int, index of objective to copy to
+        `state_set` : set of states for which to copy the strategy
+                       -- all states by default
+        """
+        if state_set is None:
+            state_set = range(self.states)
+
+        if source not in range(OBJ_COUNT):
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {source} was given!")
+        if to not in range(OBJ_COUNT):
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {to} was given!")
+
+        for s in state_set:
+            self.strategy[to][s] = self.strategy[source][s].copy()
+
+
+
+
+    def _update_function(self, objective):
+        """Return update function for given objective.
+
+        Returns function that should be passed to `largest_fixpoint` to
+        update strategy for given objective.
+
+        If `self.compute_strategy` is `False`, return empty function.
+        """
+        if objective not in range(OBJ_COUNT):
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
+
+        if not self.compute_strategy:
+            return lambda s, v, a: None
+
+        def update(s, v, a):
+            self.strategy[objective][s][v] = a
+
+        return update
+
+    ### Functions for running the computations for objectives ###
+    # * compute_minInitCons
+    # * compute_safe
+    # * compute_positive_reachability
+    # * compute_almost_sure_reachability
+    # * compute_buchi
+    def _compute_minInitCons(self):
+        objective = MIN_INIT_CONS
+        self._init_strategy(objective)
+
+        self.mic_values = [inf] * self.states
+        cap = lambda s, v: inf if v > self.cap else v
+        largest_fixpoint(self.mdp,
+                         self.mic_values,
+                         self._action_value,
+                         value_adj=cap,
+                         on_update=self._update_function(objective))
+
+    def _compute_safe(self):
+        objective = SAFE
+        self._init_strategy(objective)
+
+        self.safe_values = [inf] * self.states
+        self._sufficient_levels(self.safe_values, objective=objective)
+
+        # Set the value of Safe to 0 for all good reloads
+        for s in range(self.states):
+            if self.mdp.is_reload(s) and self.safe_values[s] < self.cap:
+                self.safe_values[s] = 0
+
+    def _compute_positive_reachability(self):
+        objective = POS_REACH
+        self._init_strategy(objective)
+
+        # Initialize:
+        #  * safe_value for target states
+        #  * inf otherwise
+        self.get_safe()
+        self.pos_reach_values = [inf] * self.states
+
+        for t in self.targets:
+            self.pos_reach_values[t] = self.safe_values[t]
+
+        largest_fixpoint(self.mdp, self.pos_reach_values,
+                         self._action_value_T,
+                         value_adj=self._reload_capper,
+                         # Target states are always safe_values[t]
+                         skip_state=lambda x: x in self.targets,
+                         on_update=self._update_function(objective))
+
+        if self.compute_strategy:
+            self._copy_strategy(SAFE, objective, self.targets)
+
+    def _compute_almost_sure_reachability(self):
+        objective = AS_REACH
+        # removed stores reloads that had been removed from the MDP
+        removed = set()
+
+        # Initialize the helper values
+        self.reach_safe = [inf] * self.states
+
+        # Initialized safe values after reaching T
+        self.get_safe()
+        safe_after_T = lambda s: self.safe_values[s] if s in self.targets else inf
+
+        done = False
+        while not done:
+            ### 2.1.1.
+            # safe_after_T initializes each iteration of the fixpoint with:
+            #  * self.safe_values[t] for targets (reach done, just survive)
+            #  * ∞ for the rest
+
+            self._sufficient_levels(self.reach_safe, removed, safe_after_T)
+
+            ### 2.1.2. Initialize PosReach_M:
+            #  * safe_value for target states
+            #  * inf otherwise
+            self.alsure_values = [inf] * self.states
+            for t in self.targets:
+                self.alsure_values[t] = self.get_safe()[t]
+
+            self._init_strategy(objective)
+
+            ### 2.1.3 Compute PosReach on sub-MDP
+            # Mitigate reload removal (use Safe_M for survival)
+            rem_survival_val = lambda s: self.reach_safe[s]
+            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+
+            # Avoid unnecesarry computations
+            is_removed = lambda x: x in removed  # always ∞
+            is_target = lambda x: x in self.targets  # always Safe
+            skip_cond = lambda x: is_removed(x) or is_target(x)
+
+            ## Finish the fixpoint
+            largest_fixpoint(self.mdp, self.alsure_values,
+                             rem_action_value,
+                             value_adj=self._reload_capper,
+                             skip_state=skip_cond,
+                             on_update=self._update_function(objective))
+
+            ### 2.2. & 2.3. Detect bad reloads and remove them
+            done = True
+            # Iterate over reloads and remove unusable ones (∞)
+            for s in range(self.states):
+                if self.is_reload(s) and self.alsure_values[s] == inf:
+                    if s not in removed:
+                        removed.add(s)
+                        done = False
+
+            self._copy_strategy(SAFE, objective, self.targets)
+
+    def _compute_buchi(self):
+        objective = BUCHI
+
+        # removed stores reloads that had been removed from the MDP
+        removed = set()
+
+        # Initialize the helper values
+        self.buchi_safe = [inf] * self.states
+
+        done = False
+        while not done:
+            ### 1.1. Compute Safe(M\removed) and store it in buchi_safe
+            self._sufficient_levels(self.buchi_safe, removed, objective=HELPER)
+
+            ### 1.2. Initialization of PosReach_M
+            #  * buchi_safe for target states
+            #  * inf otherwise
+            self.buchi_values = [inf] * self.states
+            for t in self.targets:
+                self.buchi_values[t] = self.buchi_safe[t]
+
+            self._init_strategy(objective)
+
+            ### 1.3. Computation of PosReach on sub-MDP (with removed reloads)
+            ## how much do I need to survive via this state after reloads removal
+            # Use Safe_m (stored in buchi_safe) as value needed for survival
+            rem_survival_val = lambda s: self.buchi_safe[s]
+            # Navigate towards T and survive with Safe_m
+            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+
+            ## Avoid unnecessary computations
+            is_removed = lambda x: x in removed  # always ∞
+            is_target = lambda x: x in self.targets  # always Safe_M
+            skip_cond = lambda x: is_removed(x) or is_target(x)
+
+            ## Finish the fixpoint
+            largest_fixpoint(self.mdp, self.buchi_values,
+                             rem_action_value,
+                             value_adj=self._reload_capper,
+                             skip_state=skip_cond,
+                             on_update=self._update_function(objective))
+
+            ### 2. & 3. Detect bad reloads and remove them
+            done = True
+            # Iterate over reloads and remove unusable ones (∞)
+            for s in range(self.states):
+                if self.is_reload(s) and self.buchi_values[s] == inf:
+                    if s not in removed:
+                        removed.add(s)
+                        done = False
+
+            self._copy_strategy(HELPER, objective, self.targets)
+
     ### Public interface ###
     # * get_minInitCons
     # * get_safe
     # * get_positiveReachability
     # * get_almostSureReachability
+    # * get_Buchi
     def get_minInitCons(self, recompute=False):
         """Return (and compute) minInitCons list for self.mdp.
 
@@ -198,11 +441,7 @@ class EnergyLevels:
         Recompute the values if requested by `recompute`.
         """
         if self.mic_values is None or recompute:
-            self.mic_values = [inf] * self.states
-            cap = lambda s, v: inf if v > self.cap else v
-            largest_fixpoint(self.mdp, self.mic_values,
-                             self._action_value,
-                             value_adj=cap)
+            self._compute_minInitCons()
         return self.mic_values
 
     def get_safe(self, recompute=False):
@@ -212,13 +451,7 @@ class EnergyLevels:
         Recomputes the values if requested by `recompute`.
         """
         if self.safe_values is None or recompute:
-            self.safe_values = [inf] * self.states
-            self._sufficient_levels(self.safe_values)
-
-            # Set the value of Safe to 0 for all good reloads 
-            for s in range(self.states):
-                if self.mdp.is_reload(s) and self.safe_values[s] < self.cap:
-                    self.safe_values[s] = 0
+            self._compute_safe()
         return self.safe_values
 
     def get_positiveReachability(self, recompute=False):
@@ -242,21 +475,7 @@ class EnergyLevels:
         if not recompute and self.pos_reach_values is not None:
             return self.pos_reach_values
 
-        self.get_safe(recompute)
-
-        # Initialize:
-        #  * safe_value for target states
-        #  * inf otherwise
-        self.pos_reach_values = [inf] * self.states
-
-        for t in self.targets:
-            self.pos_reach_values[t] = self.safe_values[t]
-
-        largest_fixpoint(self.mdp, self.pos_reach_values,
-                         self._action_value_T,
-                         value_adj=self._reload_capper,
-                         # Target states are always safe_values[t]
-                         skip_state=lambda x: x in self.targets)
+        self._compute_positive_reachability()
         return self.pos_reach_values
 
     def get_almostSureReachability(self, recompute=False):
@@ -294,57 +513,7 @@ class EnergyLevels:
         if not recompute and self.alsure_values is not None:
             return self.alsure_values
 
-        # removed stores reloads that had been removed from the MDP
-        removed = set()
-
-        # Initialize the helper values
-        self.reach_safe = [inf] * self.states
-
-        # Initialized safe values after reaching T
-        self.get_safe()
-        safe_after_T = lambda s: self.safe_values[s] if s in self.targets else inf
-
-        done = False
-        while not done:
-            ### 2.1.1.
-            # safe_after_T initializes each iteration of the fixpoint with:
-            #  * self.safe_values[t] for targets (reach done, just survive)
-            #  * ∞ for the rest
-
-            self._sufficient_levels(self.reach_safe, removed, safe_after_T)
-
-            ### 2.1.2. Initialize PosReach_M:
-            #  * safe_value for target states
-            #  * inf otherwise
-            self.alsure_values = [inf] * self.states
-            for t in self.targets:
-                self.alsure_values[t] = self.get_safe()[t]
-
-            ### 2.1.3 Compute PosReach on sub-MDP
-            # Mitigate reload removal (use Safe_M for survival)
-            rem_survival_val = lambda s: self.reach_safe[s]
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
-
-            # Avoid unnecesarry computations
-            is_removed = lambda x: x in removed # always ∞
-            is_target  = lambda x: x in self.targets # always Safe
-            skip_cond  = lambda x: is_removed(x) or is_target(x)
-
-            ## Finish the fixpoint
-            largest_fixpoint(self.mdp, self.alsure_values,
-                             rem_action_value,
-                             value_adj=self._reload_capper,
-                             skip_state=skip_cond)
-
-            ### 2.2. & 2.3. Detect bad reloads and remove them
-            done = True
-            # Iterate over reloads and remove unusable ones (∞)
-            for s in range(self.states):
-                if self.is_reload(s) and self.alsure_values[s] == inf:
-                    if s not in removed:
-                        removed.add(s)
-                        done = False
-
+        self._compute_almost_sure_reachability()
         return self.alsure_values
 
     def get_Buchi(self, recompute=False):
@@ -383,50 +552,7 @@ class EnergyLevels:
         if not recompute and self.buchi_values is not None:
             return self.buchi_values
 
-        # removed stores reloads that had been removed from the MDP
-        removed = set()
-
-        # Initialize the helper values
-        self.buchi_safe = [inf] * self.states
-
-        done = False
-        while not done:
-            ### 1.1. Compute Safe(M\removed) and store it in buchi_safe
-            self._sufficient_levels(self.buchi_safe, removed)
-
-            ### 1.2. Initialization of PosReach_M
-            #  * buchi_safe for target states
-            #  * inf otherwise
-            self.buchi_values = [inf] * self.states
-            for t in self.targets:
-                self.buchi_values[t] = self.buchi_safe[t]
-
-            ### 1.3. Computation of PosReach on sub-MDP (with removed reloads)
-            ## how much do I need to survive via this state after reloads removal
-            # Use Safe_m (stored in buchi_safe) as value needed for survival
-            rem_survival_val = lambda s: self.buchi_safe[s]
-            # Navigate towards T and survive with Safe_m
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
-
-            ## Avoid unnecessary computations
-            is_removed = lambda x: x in removed # always ∞
-            is_target  = lambda x: x in self.targets # always Safe_M
-            skip_cond  = lambda x: is_removed(x) or is_target(x)
-
-            ## Finish the fixpoint
-            largest_fixpoint(self.mdp, self.buchi_values,
-                             rem_action_value,
-                             value_adj=self._reload_capper,
-                             skip_state=skip_cond)
-
-            ### 2. & 3. Detect bad reloads and remove them
-            done = True
-            # Iterate over reloads and remove unusable ones (∞)
-            for s in range(self.states):
-                if self.is_reload(s) and self.buchi_values[s] == inf:
-                    if s not in removed:
-                        removed.add(s)
-                        done = False
+        self._compute_buchi()
 
         return self.buchi_values
 
