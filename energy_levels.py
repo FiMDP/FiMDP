@@ -11,7 +11,7 @@ class EnergyLevels:
     that fulfills `o` from `s` and it needs `o[s]` to start with in `s`.
     
     Currently, the supported objectives are:
-     * minInitCons: reaching a reload state different from `s`
+     * minInitCons: reaching a reload state within >0 steps
      * safe       : survive from `s` forever
      * positiveReachability(T)  : survive and the probability of reaching
              some target from T is positive (>0)
@@ -264,7 +264,7 @@ class EnergyLevels:
         reachability of `self.targets` and `self.capacity`.
 
         When called for the first time, compute the values.
-        Recomputes the values if requested by `recompute`.
+        Recompute the values if requested by `recompute`.
 
         A Bellman-style equation largest fixpoint solver.
 
@@ -356,7 +356,7 @@ class EnergyLevels:
 
         A Bellman-style equation largest fixpoint solver.
 
-        On the high level, repeats following until fixpoint:
+        On the high level, repeat following until fixpoint:
           1. compute PosReach_M
           2. NonReach = {r is reload and PosReach_M[r] = ∞}
           3. M = M \ NonReach
@@ -368,11 +368,11 @@ class EnergyLevels:
 
         This guarantees that we can always keep in states that
         have positive probability of reaching T and that we can
-        always eventualy reach energy sufficient to navigate
+        always eventually reach energy sufficient to navigate
         towards T.
 
-        In contrast to almostSureReachability here we do not set
-        the buchi_safe values of targets to safe_values after
+        In contrast to `almostSureReachability` here we do not set
+        the `buchi_safe` values of targets to `safe_values` after
         each iteration. This si because after reaching a target,
         we still need to reach target again. So the steps 1.1 and
         1.2 slightly differ. Otherwise, the computation is the same.
