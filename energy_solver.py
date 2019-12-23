@@ -254,7 +254,7 @@ class EnergySolver:
             return lambda s, v, a: None
 
         def update(s, v, a):
-            self.strategy[objective][s][v] = a
+            self.strategy[objective][s][v] = a.label
 
         return update
 

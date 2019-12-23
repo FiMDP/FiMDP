@@ -29,7 +29,7 @@ MI = EnergySolver(m)
 result   = MI.get_minInitCons()
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, 5, 1, 1]
 
-assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
+assert result == expected, ("EnergySolver.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
@@ -39,11 +39,11 @@ m.unset_reload(11)
 result = MI.get_minInitCons(recompute=True)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 
-assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
+assert result == expected, ("EnergySolver.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
-## Test EnergyLevels with capacity
+## Test EnergySolver with capacity
 MI.cap=14
 result = MI.get_minInitCons(recompute=True)
 result2 = m.get_minInitCons(14)
@@ -53,14 +53,14 @@ assert result == result2, ("result and result2 should be the same\n" +
     f"  result  : {result}\n" +
     f"  result2 : {result2}\n")
 
-assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
+assert result == expected, ("EnergySolver.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 result = m.get_minInitCons(capacity=13)
 expected = [0, 3, 2, 1, 3, 9, inf, 1, 1, 0, inf, inf, 1]
 
-assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
+assert result == expected, ("EnergySolver get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
@@ -96,7 +96,7 @@ assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 
-### Reloads are not safe with EnergyLevels = ∞ even with cap = ∞
+### Reloads are not safe with EnergySolver.= ∞ even with cap = ∞
 m = consMDP.ConsMDP()
 m.new_states(4)
 m.set_reload(2)
@@ -134,7 +134,7 @@ MI = EnergySolver(m)
 result = MI.get_minInitCons()
 expected = [0,1000,1001]
 
-assert result == expected, ("EnergyLevels.get_minInitCons() returns" +
+assert result == expected, ("EnergySolver.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
