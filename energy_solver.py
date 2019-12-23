@@ -12,7 +12,7 @@ HELPER = 5
 OBJ_COUNT = 6
 
 
-class EnergyLevels:
+class EnergySolver:
     """Compute minimum levels of energy needed to fulfill objectives
     with given capacity (and target set).
 
@@ -556,9 +556,38 @@ class EnergyLevels:
 
         return self.buchi_values
 
+    def get_minimal_levels(self, objective, recompute=False):
+        """Return (and compute) minimal levels required to satisfy given objective
+
+        `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
+        `recompute` : if `True` forces all computations to be done again
+        """
+        if objective == MIN_INIT_CONS:
+            return self.get_minInitCons(recompute=recompute)
+        if objective == SAFE:
+            return self.get_safe(recompute=recompute)
+        if objective == POS_REACH:
+            return self.get_positiveReachability(recompute=recompute)
+        if objective == AS_REACH:
+            return self.get_almostSureReachability(recompute=recompute)
+        if objective == BUCHI:
+            return self.get_Buchi(recompute=recompute)
+
+    def get_strategy(self, objective, recompute=False):
+        """Return (and compute) strategy such that it ensures it can handle
+        the minimal levels of energy required to satisfy given objective
+        from each state (if < ∞).
+
+        `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
+        `recompute` : if `True` forces all computations to be done again
+        """
+        recompute = recompute or not self.compute_strategy
+        self.compute_strategy = True
+        self.get_minimal_levels(objective, recompute=recompute)
+        return self.strategy[objective]
 
 
-class EnergyLevels_least(EnergyLevels):
+class EnergyLevels_least(EnergySolver):
     """Variant of EnergyLevels class that uses (almost)
     least fixpoint to compute Safe values.
 

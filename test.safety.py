@@ -1,6 +1,6 @@
 import consMDP
 from math import inf
-from energy_levels import EnergyLevels, EnergyLevels_least
+from energy_solver import EnergySolver, EnergyLevels_least
 from sys import stderr
 
 m = consMDP.ConsMDP()
@@ -24,7 +24,7 @@ m.add_action(0, {0:1}, "r", 0)
 m.add_action(9, {9:1}, "r", 0)
 m.add_action(11, {11:1}, "a", 1)
 
-MI = EnergyLevels(m)
+MI = EnergySolver(m)
 
 result   = MI.get_minInitCons()
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, 5, 1, 1]
@@ -129,7 +129,7 @@ m.add_action(0, {0:1}, "", 0)
 m.add_action(1, {0:1}, "a", 1000)
 m.add_action(1, {2:1}, "b", 1)
 m.add_action(2, {1:1}, "b", 1)
-MI = EnergyLevels(m)
+MI = EnergySolver(m)
 
 result = MI.get_minInitCons()
 expected = [0,1000,1001]

@@ -1,6 +1,6 @@
 from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-from energy_levels import EnergyLevels, EnergyLevels_least
+from energy_solver import EnergySolver, EnergyLevels_least
 import math
 
 def is_distribution(d):
@@ -65,7 +65,7 @@ class ConsMDP:
         self.num_states = 0
 
         self.energy_levels = None
-        self.def_EL_class = EnergyLevels
+        self.def_EL_class = EnergySolver
 
     def structure_change(self):
         self.energy_levels = None
@@ -206,7 +206,10 @@ class ConsMDP:
         it = Succ_iteraser(self, s)
         return it
 
-    def get_minInitCons(self, capacity=None, recompute=False):
+    def get_minInitCons(self,
+                        capacity=None,
+                        recompute=False,
+                        compute_strategy=True):
         """Return (and store) the energy levels needed to reach some
         target within > 0 steps.
         
