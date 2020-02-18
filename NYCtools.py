@@ -1,46 +1,129 @@
-# -*- coding: utf-8 -*-
 """
-Description:
-
-Author: Pranay Thangeda
-License: MIT License
-Email: contact@prny.me
-Description: Collection of tools for working on the NYC example.
+Benchmarking and visualization tools for AEV in NYC case study.
 """
 
 import timeit
 import json
+import ch_parser
 import numpy as np
-import pandas as pd
-import networkx as nx
 from energy_solver import *
-import matplotlib.pyplot as plt
 
-# Function for evaluating compute time of Buchi objective for different target sets
-def timeit_difftargets(m, cap, set_size = 100, num_tests = 1):
+def timeit_difftargets(m, cap, target_size = 100, num_samples = 100, num_tests=5, obj=BUCHI):
 
-    compute_time = np.empty(num_tests)
-    for i in range(num_tests):
-        targets = np.random.randint(0, high=m.num_states, size=(set_size))
+    """Returns a list of compute times for given objective for the NYC AEV
+        problem with varying target sets.
+
+    Parameters
+    ----------
+    m : mdp;  object of class ConsMDP.
+       A valid Markov Decision Process.
+
+    cap : positive integer.
+       The energy capacity of the agent.
+
+    target_size : positive integer, optional
+       Size of the set of random targets to be generated for calculating the
+       compute time variation. Takes a default value of 100.
+
+    num_samples : positive integer, optional
+       Number of times a random target set is generated and it's compute time
+       for any given objective is calculated. Takes a default of 100.
+
+    num_tests : positive integer, optional
+       Number of times the compute time is calculated using timeit for each
+       individual test. Takes a default value of 5.
+
+    obj : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI, optional
+       Objective for which the compute times are calculated. Takes BUCHI as
+       the default value.
+
+    Returns
+    -------
+    comptime : array_like
+       List of computational times for different target sets.
+
+    Examples
+    --------
+    >>> m, targets = ch_parser.parse('NYCstreetnetwork.json')
+    >>> comptime = timeit_difftargets(m, cap=200, target_size=100)
+
+    Notes
+    -----
+    The values of timings returned might signficantly vary depending on the
+    machine configuration and the target states set.
+
+    """
+
+    comptime = np.empty(num_samples)
+    for i in range(num_samples):
+        targets = np.random.randint(0, high=m.num_states, size=(target_size))
         def calc_time():
             s = EnergySolver(m, cap=cap, targets=targets)
-            s.get_strategy(BUCHI, recompute=True)
-        num_compute = 10
-        compute_time[i] = timeit.timeit(calc_time, number=num_compute)/num_compute
-
-    plt.hist(compute_time, density=True, facecolor='b')
-
-    plt.xlabel('Compute Time (sec)')
-    plt.ylabel('Probability')
-    plt.title('Histogram of Buchi Objective Compute Time')
-    plt.grid(True)
-    plt.show()
-    mean = np.mean(compute_time)
-    sd = np.std(compute_time)
-    return (mean, sd)
+            s.get_strategy(obj, recompute=True)
+        comptime[i] = timeit.timeit(calc_time, number=num_tests)/num_tests
+    return comptime
 
 
-# Function for visualizing the Strategies of the agent
+def timeit_diffcaps(m, targets, cap_bound , num_samples = 100, num_tests=10, obj=BUCHI):
+
+    """Returns a list of tuples where each tuple consists of the energy capacity
+    and its corresponding computational time for a given objective and target
+    set in the NYC AEV problem.
+
+    Parameters
+    ----------
+    m : mdp;  object of class ConsMDP.
+       A valid Markov Decision Process.
+
+    targets : array_like, list of target states
+       A list containing all the target states.
+
+    cap_bound : positive integer.
+       Upper bound of the interval specifying the allowed energy capacity
+       for the agent.
+
+    num_samples : positive integer, optional
+       Number of equally spaced samples to be collected from the interval
+       [0, cap_bound] for evaluation of their computational time. Takes a
+       default value of 100.
+
+    num_tests : positive integer, optional
+       Number of times the compute time is calculated using timeit for each
+       sampled capacity value. Takes a default value of 10.
+
+    obj : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI, optional
+       Objective for which the compute times are calculated. Takes BUCHI as
+       the default value.
+
+    Returns
+    -------
+    comptime : array_like
+       List with tuples of capacity and expected computational time for a fixed
+       set of targets
+
+    Examples
+    --------
+    >>> m, targets = ch_parser.parse('NYCstreetnetwork.json')
+    >>> comptime = timeit_diffcaps(m, targets=targets, cap_bound=200, obj=BUCHI)
+
+    Notes
+    -----
+    The values of timings returned might signficantly vary depending on the
+    machine configuration.
+
+    """
+
+    comptime = []
+
+    cap_list = np.linspace(1,cap_bound, num_samples)
+    for i in range(num_samples):
+        def calc_time():
+            s = EnergySolver(m, cap=cap_list[i], targets=targets)
+            s.get_strategy(obj, recompute=True)
+        comptime.append((cap_list[i], timeit.timeit(calc_time, number=num_tests)/num_tests))
+    return comptime
+
+
 def visualize_strategy(strategy, m, starting_state, targets):
 
     # Create policy array with state-action mapping
@@ -93,3 +176,16 @@ def visualize_strategy(strategy, m, starting_state, targets):
         if len(targets_beta.intersection(set(history))) == num_targets:
             break
             rt.visualize_route(history, targets_beta)
+
+
+if __name__ == '__main__':
+
+    m, targets = ch_parser.parse('NYCstreetnetwork.json')
+ #   comptime_dt = timeit_difftargets(m, cap=200, target_size = 100, num_samples=100, obj=BUCHI)
+    comptime_dc = timeit_diffcaps(m, targets, cap_bound = 100, num_samples = 20, num_tests=10, obj=BUCHI)
+
+
+
+
+
+
