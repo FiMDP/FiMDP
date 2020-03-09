@@ -19,7 +19,7 @@ class ConsMDP:
     use `actions_for_states(s)`. If you wish to remove actions, use
     `out_iterases(s)` instead.
 
-    States can be labeled using the list `labels`. Reload states are stored
+    States can have names using the list `names`. Reload states are stored
     in the set `reload_states`.
     
     Computation of Safe vector
@@ -58,8 +58,8 @@ class ConsMDP:
         self.succ = []
         self.actions = [0]
 
-        self.state_labels = []
-        self.label_dict = dict()
+        self.names = []
+        self.names_dict = dict()
         self.reloads = []
 
         self.num_states = 0
@@ -72,7 +72,7 @@ class ConsMDP:
 
     def state_with_label(self, label):
         '''Return id of state with label `label` or `None` if not exists.'''
-        return self.label_dict.get(label)
+        return self.names_dict.get(label)
 
     def new_state(self, reload=False, label=None):
 
@@ -89,9 +89,9 @@ class ConsMDP:
         
         self.succ.append(0)
         self.reloads.append(reload)
-        self.state_labels.append(label)
+        self.names.append(label)
         if label is not None:
-            self.label_dict[label] = sid
+            self.names_dict[label] = sid
         self.num_states+=1
         return sid
     
