@@ -9,7 +9,7 @@ def consMDP_double_flower(cap=32,path=3):
     #m.add_action(0,{1:1},"t",cap)
 
     for c in range(2,cap, 2):
-        s = m.new_state(reload=True, label = f"{c}")
+        s = m.new_state(reload=True, name=f"{c}")
         h = (c//2) % 2
         m.add_action(h,{s:1},f"{s}",cap-c)
         m.add_action(s,{h:1},"a",c-1)
