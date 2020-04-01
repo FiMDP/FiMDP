@@ -3,8 +3,7 @@ Welcome to CMDP's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
+   
    cmdp_autodoc   
 
 
