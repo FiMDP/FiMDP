@@ -1,15 +1,39 @@
-.. PACS-CMDP documentation master file, created by
-   sphinx-quickstart on Mon Mar 23 21:34:23 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to PACS-CMDP's documentation!
-=====================================
+Welcome to CMDP's documentation!
+================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   cmdp_autodoc   
+
+
+Introduction
+------------
+CMDP is a Python package that implements a polynomial-time controller synthesis algorithm for 
+resource-constrained problems modeled as consumption Markov decision processes. The algorithm is detailed
+in the work titled 'Qualitative Controller Synthesis for Consumption Markov Decision Processes' by 
+František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu.
+
+Citation info
+-------------
+Coming soon.
+
+
+Installation
+------------
+
+
+Examples
+--------
+
+
+Support
+-------
+
+
+License
+-------
 
 
 Indices and tables
