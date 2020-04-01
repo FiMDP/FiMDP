@@ -8,7 +8,7 @@ Email: contact@prny.me
 
 import numpy as np
 from numpy import linalg as LA
-import consMDP
+from . import consMDP
 from decimal import Decimal
 
 class MarsEnv:

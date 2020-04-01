@@ -4,9 +4,9 @@ Benchmarking and visualization tools for AEV in NYC case study.
 
 import timeit
 import json
-import ch_parser
+from . import ch_parser
 import numpy as np
-from energy_solver import *
+from .energy_solver import *
 
 def timeit_difftargets(m, cap, target_size = 100, num_samples = 100, num_tests=5, obj=BUCHI):
 

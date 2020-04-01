@@ -3,7 +3,7 @@
 
 # Parse examples given as JSON using Chase's format
 
-import consMDP
+from . import consMDP
 import json
 from decimal import Decimal
 

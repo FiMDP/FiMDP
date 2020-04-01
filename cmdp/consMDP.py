@@ -1,6 +1,6 @@
-from dot import consMDP2dot, dot_to_svg
+from .dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-from energy_solver import EnergySolver, EnergyLevels_least
+from .energy_solver import EnergySolver, EnergyLevels_least
 import math
 
 def is_distribution(d):

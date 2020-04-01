@@ -1,6 +1,6 @@
 from math import inf
 from sys import stderr
-from fixpoints import largest_fixpoint, least_fixpoint
+from .fixpoints import largest_fixpoint, least_fixpoint
 
 # objectives
 MIN_INIT_CONS = 0
