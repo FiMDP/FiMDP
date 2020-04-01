@@ -40,7 +40,7 @@ pip3 install -e .
 
 ## Documentation
 
-Documentation available at [readthedocs](https://pacscmdp.readthedocs.io/).
+Documentation available at [readthedocs](https://cmdp.readthedocs.io/).
 
 ## Contact
 
