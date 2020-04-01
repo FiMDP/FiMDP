@@ -1,5 +1,5 @@
 
-# PACSCMDP
+# CMDP
 **Polynomial-time Algorithm for Controller Synthesis in Consumption Markov Decision Processes**
 
 Full overview of the tool, installation options, documentation, and interactive examples:
