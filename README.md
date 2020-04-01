@@ -1,15 +1,15 @@
 
-# PACSCMDP
+# CMDP
 **Polynomial-time Algorithm for Controller Synthesis in Consumption Markov Decision Processes**
 
 Full overview of the tool, installation options, documentation, and interactive examples:
-[PACSCMDP readthedocs](https://pacscmdp.readthedocs.io/).
+[CMDP readthedocs](https://cmdp.readthedocs.io/).
 
 **Citation info**: coming soon. 
 
 ## Overview
 
-**PACSCMDP** is a Python package that implements a polynomial-time controller synthesis algorithm for 
+**CMDP** is a Python package that implements a polynomial-time controller synthesis algorithm for 
 resource-constrained problems modeled as consumption Markov decision processes. The algorithm is detailed
 in the work titled 'Qualitative Controller Synthesis for Consumption Markov Decision Processes' by 
 František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu.
