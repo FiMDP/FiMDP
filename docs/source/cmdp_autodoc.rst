@@ -6,16 +6,17 @@ modules listed are purpose designed for the examples used in our work and do not
 to the core implementation of the algorithm. Such modules are explicitly mentioned in their
 corresponding descriptions. 
 
-cmdp.dot module
------------------
-.. automodule:: cmdp.dot
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 cmdp.fixpoints module
 ---------------------
 .. automodule:: cmdp.fixpoints
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+cmdp.dot module
+-----------------
+.. automodule:: cmdp.dot
     :members:
     :undoc-members:
     :show-inheritance:

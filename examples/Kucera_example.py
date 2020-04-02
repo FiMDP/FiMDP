@@ -1,10 +1,8 @@
 #!/usr/bin/env python
+import sys; sys.path.insert(0, '..')
+from cmdp import consMDP
+from cmdp import dot
 
-import consMDP
-import importlib
-import dot
-importlib.reload(consMDP)
-importlib.reload(dot)
 
 m = consMDP.ConsMDP()
 m.new_states(13)
