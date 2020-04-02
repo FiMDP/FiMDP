@@ -17,10 +17,10 @@ František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Tha
 ## Installation
 
 **Docker Container**
-Use this [docker container]() to run PACSMDP + Jupyter to access the interactive examples. 
+Use this [docker container]() to run CMDP + Jupyter to access the interactive examples. 
 
 **Binder**
-Use this [link]() to access the interactive Jupter notebooks on the web without any installation.
+Use this [link](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master) to access the interactive Jupter notebooks on the web without any installation.
 
 **Manual Install**
 Create a new virtual environment, clone this repository, and install the dependencies with `pip3`:
@@ -40,7 +40,7 @@ pip3 install -e .
 
 ## Documentation
 
-Documentation available at [readthedocs](https://pacscmdp.readthedocs.io/).
+Documentation available at [readthedocs](https://cmdp.readthedocs.io/).
 
 ## Contact
 
