@@ -1,3 +1,8 @@
+"""
+Core module defining thw two variants of solvers for computing the safe vector.
+"""
+
+
 from math import inf
 from sys import stderr
 from .fixpoints import largest_fixpoint, least_fixpoint

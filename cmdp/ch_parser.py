@@ -1,7 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# Parse examples given as JSON using Chase's format
+"""
+Example related module for parsing electric vehicle energy consumption data
+from a json file. 
+"""
 
 from . import consMDP
 import json

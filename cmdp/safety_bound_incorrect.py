@@ -1,3 +1,7 @@
+"""
+Core module used to compute `minInitCons` for a given consMDP.
+"""
+
 from math import inf
 import sys
 

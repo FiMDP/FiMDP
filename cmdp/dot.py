@@ -1,3 +1,8 @@
+"""
+Core module defining the functions for converting a consumption Markov Decision 
+Process from consMDP model to dot representation and present it. 
+"""
+
 import subprocess
 import sys
 dotpr = 'dot'

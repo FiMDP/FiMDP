@@ -1,35 +1,53 @@
+"""
+Core module defining the class to model a consumption Markov Decision Process and
+the associated methods. 
+"""
+
 from .dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
 from .energy_solver import EnergySolver, EnergyLevels_least
 import math
 
 def is_distribution(d):
+
+    """Checks if a given array of probabilities is indeed a valid distribution
+
+    Parameters
+    ----------
+    d: distribution; an array that sums up to 1.
+       A valid probability distribution.
+
+    Returns
+    -------
+    Boolean: Boolean Type
+       0 or 1 depending on whether array d is a valid distribution.
+
+    """
     probs = d.values()
     return sum(probs) == 1
 
 class ConsMDP:
-    """Represent Markov Decission Process with consumption on actions.
-
-    The data describing the MDP are stored mainly in two vectors:
-     - `succ`
-     - `actions`
+    """Represent Markov Decision Process with consumption on actions. The data describing 
+    the MDP are stored mainly in two vectors:
+         - `succ`
+         - `actions`
     States are represented by integers and `succ[i]` stores the index to
     the list `actions` where the data for `i` start. Thus `actions[succ[i]]`
     hold the first action of `i`. To iterate over actions of a state `s`
-    use `actions_for_states(s)`. If you wish to remove actions, use
-    `out_iterases(s)` instead.
+    use `actions_for_state(s)`. If you wish to remove actions, use
+    `out_iteraser(s)` instead.
 
     States can be labeled using the list `labels`. Reload states are stored
     in the set `reload_states`.
     
     Computation of Safe vector
     ==========================
-    The Safe^cap vector can be computed in 2 different ways.
+    The :math:`safe^{cap}` vector can be computed in 2 different ways.
     
-    The variant used by default in M can be controlled by def_EL_class.
+    The variant used by default in consMDP can be controlled by def_EL_class.
     Currently, the default is 
     ```
-    self.def_EL_class = EnergyLevels
+    self.def_EL_class = EnergySolver
     ```
     The other option is `EnergyLevels_least`.
     
@@ -44,7 +62,7 @@ class ConsMDP:
     Important
     =========
     Functions that change the structure of the consMDP should always call
-    self.structure_change().
+    `self.structure_change()`.
 
     Define your probabilities in distributions in some exact representation
     like `decimal.Decimal(probability_string)` and always avoid floating-point
@@ -53,6 +71,8 @@ class ConsMDP:
     """
 
     def __init__(self):
+        """Constructor method - consMDP class
+        """
         self.name = None
 
         self.succ = []
@@ -68,13 +88,15 @@ class ConsMDP:
         self.def_EL_class = EnergySolver
 
     def structure_change(self):
+        """Reset `energy_levels` to None after structure change."""
         self.energy_levels = None
 
     def state_with_label(self, label):
-        '''Return id of state with label `label` or `None` if not exists.'''
+        """Return id of state with label `label` or `None` if not exists."""
         return self.label_dict.get(label)
 
     def new_state(self, reload=False, label=None):
+        """Add state to the consMDP object."""
 
         self.structure_change()
 
@@ -307,8 +329,10 @@ class ConsMDP:
         
         
 class ActionData:
+    """Object that holds the data of an action in the consMDP for a given
+    state, consumption, distribution and label. 
+    """
        
-    
     def __init__(self, src, cons, distr, label, next_succ):
         if not is_distribution(distr):
             raise AttributeError("Supplied dict is not a distribution." +
@@ -347,6 +371,8 @@ class Succ_iter:
     
     """
     def __init__(self, l, i):
+        """Constructor method - Succ_iter class
+        """
         # TODO check for types
         self.l = l
         self.next = i
@@ -388,6 +414,8 @@ class Succ_iteraser(Succ_iter):
     """
 
     def __init__(self, mdp, s):
+        """Constructor method - Succ_iteraser class
+        """
         super(Succ_iteraser,self).__init__(mdp.actions, mdp.succ[s])
         self.curr = None
         self.prev = None

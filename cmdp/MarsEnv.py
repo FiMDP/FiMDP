@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 """
-Description: multi-agent gird world testbed
-
-Author: Pranay Thangeda
-Email: contact@prny.me
+Example related module used to generate Multi-agent grid world testbed that simulates
+the motion of a rover and a helicopter operating on Martian surface with obstacles.
 """
 
 import numpy as np
@@ -12,9 +9,25 @@ from . import consMDP
 from decimal import Decimal
 
 class MarsEnv:
+    """Class that models a consumption Markov Decision Process with two agents following different dynamics. The 
+    consumption MDP models the motion of a Martian rover and a aerial vehicle where the aerial vehicle can only reload
+    when it occupies the same state as the rover. The aerial vehicle is referred to as agent.
+
+    :param grid_size: Positive integer that denotes the size of the 2D grid to be generated. 
+    :type grid_size: int
+    :param agent_capacity: Non negative number denoting the energy capacity of the agent
+    :type agent_capacity: float
+    :param agent_actioncost: Positive number that denotes the energy consumed by the agent for any action other than stay, defaults to 1.
+    :type agent_actioncost: float
+    :param agent_staycost: Positive number that denotes the energy consumed by the agent for the stay action, defaults to 1.
+    :type agent_staycost: float
+    :param init_state: A tuple of length two denoting the initial state of the rover and the agent, defaults to None
+    :type init_state: tuple, optional
+    """
 
     def __init__(self, grid_size, agent_capacity, agent_actioncost=1, agent_staycost=1, init_state=None):
-
+        """Constructor method
+        """
         # User inputs and other required constants
         self.grid_size = grid_size
         self.agent_actioncost = agent_actioncost
@@ -105,11 +118,10 @@ class MarsEnv:
         self.reset(init_state)
 
     def _unreachablestates(self):
-        '''
-        A set of cells are made unreachable to the rover
-        i.e. rover dynamics are modified to make sure rover can never enter these
-        cells irrespective of the action it takes.
-        '''
+        """
+        Internal method that generates a set of cells are made unreachable to the rover i.e. rover dynamics 
+        are modified to make sure rover can never enter these cells irrespective of the action it takes.
+        """
 
         if self.grid_size < 5:
             raise Exception("Grid size too small to generate unreachable cells; use a grid size no smaller than 5.")
@@ -182,11 +194,15 @@ class MarsEnv:
             self.unreachable_cells = unreachable
 
     def step(self, action):
-        '''
-        Given action [agent action, rover action], function step updates the
+        """
+        Method that given action [agent action, rover action], function step updates the
         position of the rover and agent in the grid and also the energy of the
-        agent. Stochastic actions inputs are also allowed.
-        '''
+        agent. 
+        
+        Notes
+        -----
+        Stochastic actions inputs are also allowed.
+        """
 
         # initialize variables
         done = 0
@@ -233,6 +249,10 @@ class MarsEnv:
         return info
 
     def reset(self, init_state=None):
+        """
+        Method that resets the position of the rover and the agent and also the energy of the agent.
+        It is ensured that the agent and the rover and reset to a feasible state. 
+        """
 
         # random initial position
         if init_state == None:
@@ -257,10 +277,10 @@ class MarsEnv:
         self.agent_energy = self.agent_capacity
 
     def _get_targets(self, mdp):    
-        '''
-        Function that generates target states that are well distributed over reachable
+        """
+        Internal method that generates target states that are well distributed over reachable
         and unreachable states and are a pre-defined proportion of the total no.of states. 
-        '''        
+        """        
         
         target_prop = 0.2 # % of all states that will be targets
         
@@ -274,11 +294,10 @@ class MarsEnv:
         
         
     def _get_dist(self, mdp, state, action):
-        
-        '''
-        Function that returns a dictionary of states with nonzero probabilities for
+        """
+        Internal method that returns a dictionary of states with nonzero probabilities for
         a given state and action
-        '''
+        """
         
         # Initialize
         dist = dict()
@@ -304,11 +323,10 @@ class MarsEnv:
         return dist
     
     def get_mdp_targets(self):
-    
-        '''
-        Function to export the martian gridworld and target states into a pre-defined
+        """
+        Method to export the martian gridworld and target states into a pre-defined
         standard form. Returns MDP object and the target set.
-        '''
+        """
         mdp = consMDP.ConsMDP()
     
         # Add states

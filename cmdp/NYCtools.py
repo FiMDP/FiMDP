@@ -1,5 +1,5 @@
 """
-Benchmarking and visualization tools for AEV in NYC case study.
+Example related module with benchmarking and visualization tools for AEV in NYC case study.
 """
 
 import timeit
@@ -11,7 +11,7 @@ from .energy_solver import *
 def timeit_difftargets(m, cap, target_size = 100, num_samples = 100, num_tests=5, obj=BUCHI):
 
     """Returns a list of compute times for given objective for the NYC AEV
-        problem with varying target sets.
+    problem with varying target sets.
 
     Parameters
     ----------

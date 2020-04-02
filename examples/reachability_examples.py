@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-
-import consMDP
+import sys; sys.path.insert(0, '..')
+import cmdp
+from cmdp import consMDP
 import importlib
-import dot
-importlib.reload(consMDP)
-importlib.reload(dot)
+from cmdp import dot
+importlib.reload(cmdp.consMDP)
+importlib.reload(cmdp.dot)
 
 
 # ## Almost sure reachability example

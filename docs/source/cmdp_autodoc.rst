@@ -1,8 +1,10 @@
-cmdp documentation
-===================
+Documentation
+==============
 
-Submodules
-----------
+This section provides the documentation of all the modules in the package. Some of the
+modules listed are purpose designed for the examples used in our work and do not contribute
+to the core implementation of the algorithm. Such modules are explicitly mentioned in their
+corresponding descriptions. 
 
 cmdp.dot module
 -----------------

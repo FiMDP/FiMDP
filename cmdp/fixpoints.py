@@ -1,3 +1,8 @@
+"""
+Core module for calculating the largest and the least fix point to be used
+in energy_solver module for computing safe vector.
+"""
+
 from math import inf
 from sys import stderr
 debug = False
