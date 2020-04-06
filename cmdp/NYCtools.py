@@ -49,7 +49,7 @@ def timeit_difftargets(m, cap, target_size = 100, num_samples = 100, num_tests=5
 
     Notes
     -----
-    The values of timings returned might signficantly vary depending on the
+    The values of timings returned might significantly vary depending on the
     machine configuration and the target states set.
 
     """
@@ -64,7 +64,7 @@ def timeit_difftargets(m, cap, target_size = 100, num_samples = 100, num_tests=5
     return comptime
 
 
-def timeit_diffcaps(m, targets, cap_bound , num_samples = 100, num_tests=10, obj=BUCHI):
+def timeit_diffcaps(m, targets, cap_bound , num_samples = 20, num_tests=10, obj=BUCHI):
 
     """Returns a list of tuples where each tuple consists of the energy capacity
     and its corresponding computational time for a given objective and target
@@ -85,7 +85,7 @@ def timeit_diffcaps(m, targets, cap_bound , num_samples = 100, num_tests=10, obj
     num_samples : positive integer, optional
        Number of equally spaced samples to be collected from the interval
        [0, cap_bound] for evaluation of their computational time. Takes a
-       default value of 100.
+       default value of 20.
 
     num_tests : positive integer, optional
        Number of times the compute time is calculated using timeit for each
@@ -108,7 +108,7 @@ def timeit_diffcaps(m, targets, cap_bound , num_samples = 100, num_tests=10, obj
 
     Notes
     -----
-    The values of timings returned might signficantly vary depending on the
+    The values of timings returned might significantly vary depending on the
     machine configuration.
 
     """
@@ -123,6 +123,66 @@ def timeit_diffcaps(m, targets, cap_bound , num_samples = 100, num_tests=10, obj
         comptime.append((cap_list[i], timeit.timeit(calc_time, number=num_tests)/num_tests))
     return comptime
 
+def timeit_difftargetsizes(m, cap, size_bound , num_samples = 20, num_tests=10, obj=BUCHI):
+
+    """Returns a list of tuples where each tuple consists of the target size
+    and its corresponding computational time for a given objective and capacity
+     in the NYC AEV problem.
+
+    Parameters
+    ----------
+    m : mdp;  object of class ConsMDP.
+       A valid Markov Decision Process.
+
+    cap : positive integer.
+       The energy capacity of the agent.
+
+    size_bound : positive integer.
+       Upper bound of the interval specifying the allowed size of randomly
+       generated target set for the agent.
+
+    num_samples : positive integer, optional
+       Number of equally spaced samples to be collected from the interval
+       [20, size_bound] for evaluation of their computational time. Takes a
+       default value of 20.
+
+    num_tests : positive integer, optional
+       Number of times the compute time is calculated using timeit for each
+       target set. Takes a default value of 10.
+
+    obj : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI, optional
+       Objective for which the compute times are calculated. Takes BUCHI as
+       the default value.
+
+    Returns
+    -------
+    comptime : array_like
+       List with tuples of target set size and expected computational time for a fixed
+       capacity.
+
+    Examples
+    --------
+    >>> m, targets = ch_parser.parse('NYCstreetnetwork.json')
+    >>> comptime = timeit_difftargetsizes(m, cap=100, size_bound=200, obj=BUCHI)
+
+    Notes
+    -----
+    The values of timings returned might significantly vary depending on the
+    machine configuration.
+
+    """
+
+    comptime = []
+
+    targetsize_list = np.linspace(20,size_bound, num_samples)
+    targetsize_list = targetsize_list.astype(np.int64)
+    for i in range(num_samples):
+        def calc_time():
+            targets = np.random.randint(0, high=m.num_states, size=(targetsize_list[i]))
+            s = EnergySolver(m, cap=cap, targets=targets)
+            s.get_strategy(obj, recompute=True)
+        comptime.append((targetsize_list[i], timeit.timeit(calc_time, number=num_tests)/num_tests))
+    return comptime
 
 def visualize_strategy(strategy, m, starting_state, targets):
 

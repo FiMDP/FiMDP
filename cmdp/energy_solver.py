@@ -104,7 +104,7 @@ class EnergySolver:
     def _action_value_T(self, a, values, survival_val=None):
         """Compute value of action wtih preference and survival.
 
-        The value picks a prefered target `t` that it wants to reach;
+        The value picks a preferred target `t` that it wants to reach;
         considers `values` for `t` and `survival` for the other successors.
         Chooses the best (minimum) among possible `t` from `a.succs`.
 

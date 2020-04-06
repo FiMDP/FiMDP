@@ -57,7 +57,7 @@ have an active conda environment on your computer. To use our tool with the help
 
 .. code-block:: python
 
-    conda install -f -y -q --name cmdp -c conda-forge --file requirements.txt
+    conda install --name cmdp -c conda-forge --file requirements.txt
 
 - Activate the environment using the following command 
 
