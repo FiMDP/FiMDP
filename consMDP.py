@@ -75,6 +75,11 @@ class ConsMDP:
         return self.names_dict.get(name)
 
     def new_state(self, reload=False, name=None):
+        """Add a new state into the CMDP.
+
+        Returns: the id of the created state
+        Raise `ValueError` if a state with the same name already exists.
+        """
 
         self.structure_change()
 
@@ -103,6 +108,7 @@ class ConsMDP:
         the names for the states.
 
         Return the list of states ids.
+        Raise `ValueError` if a state with the same name already exists.
         """
         if names is not None:
             if count != len(names):
@@ -111,8 +117,8 @@ class ConsMDP:
         self.structure_change()
         start = self.num_states
         for i in range(count):
-            l = None if names is None else names[i]
-            self.new_state(l)
+            name = None if names is None else names[i]
+            self.new_state(name)
         return range(start, start+count)
 
     def set_reload(self, sid, reload=True):
