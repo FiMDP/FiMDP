@@ -72,3 +72,10 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+HTML Test
+---------
+.. raw:: html
+
+    <iframe src="_static/strategy.html" height="845px" width="100%"></iframe>

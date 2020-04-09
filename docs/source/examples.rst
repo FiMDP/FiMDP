@@ -27,6 +27,15 @@ As the consumption MDP in this example is modeled by a real-world scale network,
 insights into the practicality of our tools. We also analyze how the computational time varies for different parameters while calculating strategies.
 Further details about the tests performed in this example are mentioned in the notebook.
 
+`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the *nyc_benchmark* notebook.
+
+nyc_visualization
+******************
+The *nyc_visualization* notebook hosts experiments related to calculating the computational time for different algorithms and objectives in our tool. 
+As the consumption MDP in this example is modeled by a real-world scale network, the computational times obtained in this analysis gives us 
+insights into the practicality of our tools. We also analyze how the computational time varies for different parameters while calculating strategies.
+Further details about the tests performed in this example are mentioned in the notebook.
+
 `Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the *nyc_benchmark* notebook.
 
 mars_benchmark
@@ -44,18 +53,6 @@ example that shows that |S| iteration is also incorrect when used for least fixe
 
 `Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/incorrect_least-bound.ipynb>`_ to preview the *incorrect_least-bound* notebook.
 
-kucera_example
-***************
-The *kucera_example* notebook hosts an example MDP with a function to visualize the energy levels required at states for different objectives. The results are
-visualized using GraphViz package.
-
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/kucera_example.ipynb>`_ to preview the *kucera_example* notebook.
-
-reachability_example
-********************
-The *reachability_example* notebook includes simple MDP examples to help distinguish between different objectives in an intuitive fashion.
-
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/reachability_example.ipynb>`_ to preview the *reachability_example* notebook.
 
 reachability_flower
 ********************

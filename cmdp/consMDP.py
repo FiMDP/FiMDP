@@ -3,9 +3,9 @@ Core module defining the class to model a consumption Markov Decision Process an
 the associated methods. 
 """
 
-from .dot import consMDP2dot, dot_to_svg
+from dot import consMDP2dot, dot_to_svg
 from IPython.display import SVG
-from .energy_solver import EnergySolver, EnergyLevels_least
+from energy_solver import EnergySolver, EnergyLevels_least
 import math
 
 def is_distribution(d):

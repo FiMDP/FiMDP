@@ -5,7 +5,7 @@ the motion of a rover and a helicopter operating on Martian surface with obstacl
 
 import numpy as np
 from numpy import linalg as LA
-from . import consMDP
+import consMDP
 from decimal import Decimal
 
 class MarsEnv:

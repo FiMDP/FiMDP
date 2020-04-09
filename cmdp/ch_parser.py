@@ -3,7 +3,7 @@ Example related module for parsing electric vehicle energy consumption data
 from a json file. 
 """
 
-from . import consMDP
+import consMDP
 import json
 from decimal import Decimal
 
