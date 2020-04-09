@@ -30,8 +30,7 @@ We assume that you have the default Python environment already configured on you
 If you want to create and work with Python virtual environments, please follow instructions on `virtual environments <https://docs.python.org/3/library/venv.html>`_.
 
 To get the latest version of CMDP, you can clone the `GitHub repository <https://github.com/pthangeda/consumption-MDP>`_ and install the dependencies with `pip3`:
-
-.. code-block:: python
+::
 
     git clone https://github.com/pthangeda/consumption-MDP
     cd consumption-MDP
@@ -47,21 +46,15 @@ Conda Installation
 We assume that you are familiar with the `Anaconda <https://www.anaconda.com/>`_ eco-system and the `conda <https://docs.conda.io/en/latest/>`_ environment and 
 have an active conda environment on your computer. To use our tool with the help of conda:
 
-- Create a new conda environment with the name `cmdp` using the following command
-
-.. code-block:: python
+- Create a new conda environment with the name `cmdp` using the following command::
 
     conda create -n cmdp python=3.7
 
-- Install the required packages in the newly created environment using the following command
-
-.. code-block:: python
+- Install the required packages in the newly created environment using the following command::
 
     conda install --name cmdp -c conda-forge --file requirements.txt
 
-- Activate the environment using the following command 
-
-.. code-block:: python
+- Activate the environment using the following command::
 
     conda activate cmdp
 

@@ -4,6 +4,8 @@
 
 [![Build Status](https://travis-ci.org/pthangeda/consumption-MDP.svg?branch=master)](https://travis-ci.org/pthangeda/consumption-MDP)
 
+[![Documentation Status](https://readthedocs.org/projects/cmdp/badge/?version=latest)](https://cmdp.readthedocs.io/en/latest/?badge=latest)
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master)
 
 Full overview of the tool, installation options, documentation, and interactive examples:
