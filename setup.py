@@ -10,7 +10,7 @@ setup(
     install_requires=[
         'numpy>=1.18.1',
         'ipython>=7.13.0',
-        'networkx>=2.4'
+        'networkx>=2.4',
         'matplotlib>=3.2.1',
         'jupyter>=1.0.0'
     ]
