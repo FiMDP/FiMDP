@@ -515,6 +515,7 @@ class EnergySolver:
         The first iteration (the first fixpoint achieved) is equal
         to positive reachability.
         """
+
         if not recompute and self.alsure_values is not None:
             return self.alsure_values
 
@@ -554,6 +555,7 @@ class EnergySolver:
         The first iteration (the first fixpoint achieved) is equal
         to positive reachability.
         """
+
         if not recompute and self.buchi_values is not None:
             return self.buchi_values
 
