@@ -2,6 +2,10 @@
 # CMDP
 **Python Package with Algorithms for Controller Synthesis in Consumption Markov Decision Processes**
 
+[![Build Status](https://travis-ci.org/pthangeda/consumption-MDP.svg?branch=master)](https://travis-ci.org/pthangeda/consumption-MDP)
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master)
+
 Full overview of the tool, installation options, documentation, and interactive examples:
 [CMDP readthedocs](https://cmdp.readthedocs.io/).
 
