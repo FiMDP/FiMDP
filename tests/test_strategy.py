@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys; sys.path.insert(0, '..')
 from reachability_examples import basic, ultimate
 from cmdp.energy_solver import *
