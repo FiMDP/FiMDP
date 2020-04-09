@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-i
-mport sys; sys.path.insert(0, '..')
+
+import sys; sys.path.insert(0, '..')
 from cmdp import consMDP
 from math import inf
 from cmdp.energy_solver import EnergySolver, EnergyLevels_least
