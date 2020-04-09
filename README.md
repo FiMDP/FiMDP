@@ -2,16 +2,18 @@
 # CMDP
 **Python Package with Algorithms for Controller Synthesis in Consumption Markov Decision Processes**
 
-[![Build Status](https://travis-ci.org/pthangeda/consumption-MDP.svg?branch=master)](https://travis-ci.org/pthangeda/consumption-MDP)
-
 [![Documentation Status](https://readthedocs.org/projects/cmdp/badge/?version=latest)](https://cmdp.readthedocs.io/en/latest/?badge=latest)
+
+[![Build Status](https://travis-ci.org/pthangeda/consumption-MDP.svg?branch=master)](https://travis-ci.org/pthangeda/consumption-MDP)
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master)
 
 Full overview of the tool, installation options, documentation, and interactive examples:
 [CMDP readthedocs](https://cmdp.readthedocs.io/).
 
-**Citation Info**: coming soon. 
+**Citation Info**: This work has been accepted to the 32nd International Conference on Computer-Aided Verification ([CAV 2020](http://i-cav.org/2020/)) scheduled to take place
+July 19-24, 2020. Citation info will be updated once the conference proceedings are available online. 
+
 
 ## Overview
 
@@ -20,7 +22,7 @@ resource-constrained problems modeled as consumption Markov decision processes. 
 detailed in the work titled 'Qualitative Controller Synthesis for Consumption Markov Decision Processes' by 
 František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu.
 
-## Installation
+## Installation and Usage
 
 **Binder**
 Use this [link](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master) to access the interactive Jupter notebooks on the web without any installation.
@@ -33,6 +35,13 @@ We provide a number of interactive examples as Jupyter notebooks to explore the 
 The two main examples model the problems of an autonomous electric vehicle with limited capacity navigating the streets of Manhattan, New York and 
 a Martian rover and aerial vehicle with limited capacity and different dynamics operating in a grid world of variable size. 
 The notebook can be found in the `examples` subdirectory.
+
+![The two case-studies considered: Electric Vehicle Routing and Multi-agent Grid World.](https://github.com/pthangeda/consumption-MDP/tree/master/docs/source/images/environments.png)
+. figure:: /images/environments.png
+   :alt: environments demo
+   :scale: 70%
+   :align: center 
+
 
 ## Documentation
 Documentation available at [readthedocs](https://cmdp.readthedocs.io/).

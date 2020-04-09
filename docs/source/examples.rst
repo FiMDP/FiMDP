@@ -17,10 +17,22 @@ model real-world problems and are used to demonstrate the utility and scalabilit
 Electric Vehicle Routing
 ************************
 
+.. figure:: /images/nycmap.png
+   :alt: AEV for NYC
+   :scale: 80%
+   :align: center 
+
+   Street Network Considered for Electric Vehicle Routing MDP.
+
 
 Multi-agent Grid world
 **********************
 
+.. only:: html
+
+   .. figure:: /images/marsenv.gif
+
+      Mars Multi-agent Grid World Example with Unreachable States. 
 
 Examples Description
 --------------------

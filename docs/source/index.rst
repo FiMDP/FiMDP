@@ -1,5 +1,5 @@
-CMDP - Consumption MDP Package
-===============================
+CMDP - Consumption MDP Tools
+=============================
 
 .. image:: https://travis-ci.org/pthangeda/consumption-MDP.svg?branch=master
     :target: https://travis-ci.org/pthangeda/consumption-MDP
@@ -7,34 +7,34 @@ CMDP - Consumption MDP Package
 Introduction
 ------------
 
-CMDP is a collection of Python modules that implement algorithms developed in our work on controller synthesis for 
-resource-constrained problems modeled as consumption Markov decision processes. Consumption Markov Decision 
-Processes are probabilistic decision-making models of resource-constrained systems and naturally model many 
-interesting real-world problems. This package includes examples based on two such realistic problems and also 
-includes additional examples that present specific nuisances of the algorithm. 
+CMDP is a Python package designed around a proof-of-concept tool implementing algorithms developed in our work on 
+controller synthesis for resource-constrained problems modeled as Consumption Markov Decision Processes (CMDPs). This package includes
+interactive Jupyter notebooks with examples modeling real-world problems as CMDPs integrated with our tool. The examples include tests
+designed to show the utility and scalability of our algorithms and interactive objects designed to visually evaluate the algorithms.
 
 Authors
 -------
+
 This package is based on the work titled `Qualitative Controller Synthesis for Consumption Markov Decision Processes`
-by František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu. Most of code is this 
-package is developed by František Blahoudek and is maintained by `František Blahoudek <mailto:fandikb@gmail.com>`_ and `Pranay Thangeda <mailto:contact@prny.me>`_.
+by `František Blahoudek <https://www.linkedin.com/in/fanda-blahoudek-392a6752>`_, `Tomáš Brázdil <https://cz.linkedin.com/in/tom%C3%A1%C5%A1-br%C3%A1zdil-23959766>`_, 
+`Petr Novotný <https://www.fi.muni.cz/~xnovot18/>`_, `Melkior Ornik <https://mornik.web.illinois.edu/>`_, `Pranay Thangeda <https://www.pranaythangeda.com/>`_,
+and `Ufuk Topcu <https://www.ae.utexas.edu/facultysites/topcu/wiki/index.php/Main_Page>`_. Most of code in this package is developed by František Blahoudek and is maintained by `František Blahoudek <mailto:fandikb@gmail.com>`_ and `Pranay Thangeda <mailto:contact@prny.me>`_.
 
 Overview
 ---------
 
-.. note:: This overview assumes no background in the problem of interest and hence is close to layman terms. For a more detailed read,
-         please go through our work titled *Qualitative Controller Synthesis for Consumption Markov Decision Processes* on which is package
-         is based. 
+.. note:: This overview assumes no background in the topic and tries to explains the problem in layman terms. For a detailed explanation of our work,
+          please go through our paper titled *Qualitative Controller Synthesis for Consumption Markov Decision Processes*.
 
-Several real-world problems are inherently stochastic and can be aptly modeled as consumption Markov Decision Processes (CMDPs). Describe
+Consumption Markov Decision Processes are probabilistic decision-making models of resource-constrained systems and naturally model many 
+interesting real-world problems. Several real-world problems are inherently stochastic and can be aptly modeled as consumption Markov Decision Processes (CMDPs). Describe
 the utility of such a model and the importance of our contributions. Use the example html file to clarify the relevance of such problems
 in real-world while providing a brief description of the case-study and providing link to detailed description in examples section.
 
 .. raw:: html
 
-    <iframe src="_static/strategy.html" allowfullscreen=true height="545px" width="100%"></iframe>
-     Interactive map visualizing the strategy for the electric vehicle routing MDP.
-
+    <iframe src="_static/strategy.html" allowfullscreen=true height="405px" width="100%"></iframe>
+    Interactive map visualizing the strategy for the electric vehicle routing MDP.
 
 Installation
 ------------
@@ -64,10 +64,17 @@ capacity navigating the streets of Manhattan, New York and a Martian rover and a
 capacity and different dynamics operating in a grid world of variable size. For detailed description of the 
 problems and the example notebooks, visit the examples section :ref:`examples`.
 
+.. figure:: /images/environments.png
+   :alt: environments demo
+   :scale: 70%
+   :align: center 
+
+   The two case-studies considered: Electric Vehicle Routing and Multi-agent Grid World.
+
 Citation Info
 -------------
-This work has been accepted to the 32nd International Conference on Computer-Aided Verification (`CAV 2020 <http://i-cav.org/2020/>`_) scheduled to take place
-July 19-24, 2020. Citation info will be updated once the conference proceedings are available online. 
+This package supplements our work that has been accepted to the 32nd International Conference on Computer-Aided Verification (`CAV 2020 <http://i-cav.org/2020/>`_) 
+scheduled to take place July 19-24, 2020. Citation info will be updated once the conference proceedings are available online. 
 
 Support
 -------
