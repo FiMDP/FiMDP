@@ -33,7 +33,7 @@ The two main examples model the problems of an autonomous electric vehicle with 
 a Martian rover and aerial vehicle with limited capacity and different dynamics operating in a grid world of variable size. 
 The notebook can be found in the `examples` subdirectory.
 
-![The two case-studies considered: Electric Vehicle Routing and Multi-agent Grid World.](https://raw.githubusercontent.com/pthangeda/consumption-MDP/master/docs/source/images/environments.png | width=80 )
+<img src="https://raw.githubusercontent.com/pthangeda/consumption-MDP/master/docs/source/images/environments.png" alt="The two case-studies considered: Electric Vehicle Routing and Multi-agent Grid World" align="center" height="259" width="570" >
 
 
 ## Documentation
