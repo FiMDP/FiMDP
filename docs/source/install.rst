@@ -21,7 +21,37 @@ cloud allowing access to interactive notebooks over any web browser. Use the fol
 
 Docker
 -------
-Docker support docs along with image will be updated soon.
+The docker image with CMDP is published on `Docker Hub <https://hub.docker.com/repository/docker/pthangeda/cmdp>`_. 
+To access the package using docker, download and install `docker <https://docs.docker.com/get-docker/>`_ on your machine.
+
+Access the Jupyter notebooks
+*****************************
+
+To open the interactive Jupyter notebooks with examples, open a CLI and run:
+::
+
+    docker run -it -p 8888:8888 pthangeda/cmdp:cav2020
+
+
+and then in a browser in your machine, access the following url:
+::
+
+    http://localhost:8888/tree/examples
+
+
+You will be asked for a token which is displayed as a part of a link in the terminal. 
+
+
+Run bash in this container
+**************************
+
+Open a CLI and run:
+::
+
+    docker run --rm -it pthangeda/cmdp:cav2020 /bin/bash
+
+
+and the directory contains the all the source files of the package.
 
 Conda Installation
 --------------------

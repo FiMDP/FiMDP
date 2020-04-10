@@ -14,17 +14,21 @@ July 19-24, 2020. Citation info will be updated once the conference proceedings 
 
 ## Overview
 
-**CMDP** CMDP is a Python package designed around a proof-of-concept tool implementing algorithms developed in our work on 
+**CMDP** is a Python package designed around a proof-of-concept tool implementing algorithms developed in our work on 
 controller synthesis for resource-constrained problems modeled as Consumption Markov Decision Processes (CMDPs). The algorithms
 are detailed in the work titled 'Qualitative Controller Synthesis for Consumption Markov Decision Processes' by 
 František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu.
 
 ## Installation and Usage
+Refer to the installation and usage section in the [documentation](https://cmdp.readthedocs.io/en/latest/install.html) for detailed instructions.
 
-**Binder**
+**Binder:**
 Use this [link](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master) to access the interactive Jupter notebooks on the web without any installation.
 
-**Local Installation**
+**Docker:**
+The docker image with CMDP is published on Docker Hub at this [link](https://hub.docker.com/repository/docker/pthangeda/cmdp). 
+
+**Local Installation:**
 Refer to the [installation documentation](https://cmdp.readthedocs.io/en/latest/install.html).
 
 ## Example Environments
@@ -35,10 +39,6 @@ Mars 2020 mission. The notebooks can be found in the `examples` subdirectory and
 detail [here](https://cmdp.readthedocs.io/en/latest/examples.html).
 
 <img src="https://raw.githubusercontent.com/pthangeda/consumption-MDP/master/docs/source/images/environments.png" alt="The two primary examples: electric vehicle routing and multi-agent grid world." align="center" height="259" width="570" >
-
-
-## Documentation
-Documentation available at [readthedocs](https://cmdp.readthedocs.io/).
 
 ## Contact
 If you have any trouble with the installation, or have any questions, raise an issue or email [František Blahoudek](fandikb@gmail.com) or [Pranay Thangeda](contact@prny.me).

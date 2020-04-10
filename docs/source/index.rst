@@ -55,9 +55,9 @@ and usage instructions at this page :ref:`install`.
 **Binder**: Directly access the Jupyter notebooks with examples in web browser without any explicit installation. 
 This is the quickest and easiest option to get started. 
 
-**Docker**: Provide link to the docker image and instructions on accessing the essential files.
+**Docker**: Run the docker image with the package published at Docker Hub and and access the Jupyter notebooks with examples on your local machine.
 
-**Conda Installation**: Use conda to creat   e a new conda virtual environment using the requirements.txt file and access
+**Conda Installation**: Use conda to create a new conda virtual environment using the requirements.txt file and access
 examples via Jupyter notebook server on your local machine.
 
 **Pip Installation**: Clone the repository and install the dependencies with pip3. Access notebooks via Jupyter notebook running
