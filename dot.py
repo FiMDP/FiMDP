@@ -112,7 +112,7 @@ class consMDP2dot:
         self.str += "}\n"
         
     def get_state_name(self, s):
-        name = s if self.mdp.state_names[s] is None else self.mdp.state_names[s]
+        name = s if self.mdp.names[s] is None else self.mdp.names[s]
         return name
     
     def process_state(self, s):

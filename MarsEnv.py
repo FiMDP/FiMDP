@@ -266,7 +266,7 @@ class MarsEnv:
         
         # randomly select states
         T = set()
-        state_list = mdp.state_names
+        state_list = mdp.names
         for state in state_list:
             if np.random.rand() <= target_prop:
                 T.add(mdp.state_with_name(state))
