@@ -77,7 +77,7 @@ The *nyc_visualization* notebook visually demonstrates strategies obtained for d
 electric vehicle routing in Manhattan, New York city. The strategy is visualized on an interactive map highlighting reload states, target states 
 and the dependency of the action taken on the energy levels. 
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the *nyc_benchmark* notebook.
+`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the *nyc_visualization* notebook.
 
 mars_benchmark
 ***************

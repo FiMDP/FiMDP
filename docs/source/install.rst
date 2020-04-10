@@ -62,7 +62,7 @@ have an active installation of Anaconda or Miniconda on your computer. To use ou
 
     conda create -n cmdp python=3.7
 
-- Clone our `git repository <https://github.com/pthangeda/consumption-MDP>`_ and install the required packages in the newly created environment using the following command::
+- Clone our `GitHub repository <https://github.com/pthangeda/consumption-MDP>`_ and install the required packages in the newly created environment using the following command::
 
     conda install --name cmdp -c conda-forge --file requirements.txt
 
