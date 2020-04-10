@@ -23,6 +23,32 @@ Docker
 -------
 Docker support docs along with image will be updated soon.
 
+Conda Installation
+--------------------
+We assume that you are familiar with the `Anaconda <https://www.anaconda.com/>`_ eco-system and the `conda <https://docs.conda.io/en/latest/>`_ environment and 
+have an active installation of Anaconda or Miniconda on your computer. To use our tool with the help of conda:
+
+- Create a new conda environment with the name `cmdp` using the following command::
+
+    conda create -n cmdp python=3.7
+
+- Install the required packages in the newly created environment using the following command::
+
+    conda install --name cmdp -c conda-forge --file requirements.txt
+
+- Activate the environment using the following command::
+
+    conda activate cmdp
+
+- Launch Jupyter notebook server using the following command::
+    
+    jupyter notebook
+
+- Clone the `CMDP repository <https://github.com/pthangeda/consumption-MDP>`_ and navigate local instance of Jupyter to access the examples subdirectory.
+
+Certain examples include visualizations that need the `GraphViz <https://www.graphviz.org/>`_ package installed and configured. Download and install the appropriate version
+of the package and add the `dot` file to the system PATH to successfully run certain examples. If you install `GraphViz` package using Anaconda, make sure that to add the PATH
+of the `dot` file from Anaconda library to your system PATH. 
 
 Pip Installation
 -----------------
@@ -41,28 +67,6 @@ of the package and add the `dot` file to the system PATH to successfully run cer
 
 After the installation, you can start a local instance of Jupyter notebook and access the examples. 
 
-Conda Installation
---------------------
-We assume that you are familiar with the `Anaconda <https://www.anaconda.com/>`_ eco-system and the `conda <https://docs.conda.io/en/latest/>`_ environment and 
-have an active conda environment on your computer. To use our tool with the help of conda:
-
-- Create a new conda environment with the name `cmdp` using the following command::
-
-    conda create -n cmdp python=3.7
-
-- Install the required packages in the newly created environment using the following command::
-
-    conda install --name cmdp -c conda-forge --file requirements.txt
-
-- Activate the environment using the following command::
-
-    conda activate cmdp
-
-- Clone the `CMDP repository <https://github.com/pthangeda/consumption-MDP>`_ and navigate local instance of Jupyter to access the examples.
-
-Certain examples include visualizations that need the `GraphViz <https://www.graphviz.org/>`_ package installed and configured. Download and install the appropriate version
-of the package and add the `dot` file to the system PATH to successfully run certain examples. If you install `GraphViz` package using Anaconda, make sure that to add the PATH
-of the `dot` file from Anaconda library to your system PATH. 
 
 
 

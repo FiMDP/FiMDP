@@ -32,13 +32,13 @@ We provide a number of examples in Interactive Jupyter notebooks to explore the 
 analyze its performance, and also to validate the results presented in our paper. The two primary examples are 
 the problems of an electric vehicle routing with limited capacity and a multi-agent grid world inspired by the 
 Mars 2020 mission. The notebooks can be found in the `examples` subdirectory and their contents and described in
-detail [here](https://cmdp.readthedocs.io/).
+detail [here](https://cmdp.readthedocs.io/en/latest/examples.html).
 
 <img src="https://raw.githubusercontent.com/pthangeda/consumption-MDP/master/docs/source/images/environments.png" alt="The two primary examples: electric vehicle routing and multi-agent grid world." align="center" height="259" width="570" >
 
 
 ## Documentation
-Documentation available at [readthedocs](https://cmdp.readthedocs.io/en/latest/examples.html).
+Documentation available at [readthedocs](https://cmdp.readthedocs.io/).
 
 ## Contact
 If you have any trouble with the installation, or have any questions, raise an issue or email [František Blahoudek](fandikb@gmail.com) or [Pranay Thangeda](contact@prny.me).
