@@ -95,8 +95,18 @@ result = m.get_safe(14)
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
+### If safe_values[r] = cap for a reload, it should get 0
+from reachability_examples import little_alsure
+m, T = little_alsure()
 
-### Reloads are not safe with EnergySolver.= ∞ even with cap = ∞
+result = m.get_safe(3)
+expected = [2, 1, 2, 0]
+
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n" +
+    "Perhaps some reload should be 0 and is not")
+
+### Reloads are not safe with EnergySolver,safe_values = ∞ even with cap = ∞
 m = consMDP.ConsMDP()
 m.new_states(4)
 m.set_reload(2)
