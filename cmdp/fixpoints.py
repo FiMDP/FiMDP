@@ -13,7 +13,9 @@ def argmin(iterable, func):
     """Compute argmin of func on iterable.
 
     Returns (i, v) such that v=func(i) is smallest in iterable.
+
     """
+
     res_item, res_val = None, inf
     for item in iterable:
         val = func(item)
@@ -33,7 +35,7 @@ def largest_fixpoint(mdp, values, action_value,
     using this function in one way or another.
 
     The value of a state `s` is a minimum over `action_value(a)`
-    among all posible actions `a` of `s`. Values should be
+    among all possible actions `a` of `s`. Values should be
     properly initialized (to ∞ or some other value) before calling.
 
     Parameters

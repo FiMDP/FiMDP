@@ -4,7 +4,7 @@ Installation and Usage
 =======================
 
 This section details the installation and usage steps for multiple modes of accessing the tool and the examples.
-CMDP requires Python 3.5 and above. The dependency on external packages is minimal and they are mainly used for 
+CMDP requires Python 3.7 or above. The dependency on external packages is minimal and they are mainly used for 
 illustrations. The examples presented in interactive Jupyter notebooks help in getting started with the tool and also 
 to analyze the performance for provided examples.
 

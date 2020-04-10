@@ -28,7 +28,7 @@ def is_distribution(d):
 
 class ConsMDP:
     """Represent Markov Decision Process with consumption on actions. The data describing 
-    the MDP are stored mainly in two vectors:
+       the MDP are stored mainly in two vectors:
          - `succ`
          - `actions`
     States are represented by integers and `succ[i]` stores the index to

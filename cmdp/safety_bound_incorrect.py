@@ -74,7 +74,7 @@ class minInitCons:
         reload has MI > cap, it is converted to ∞, and we no longer treat
         it as a reload state.
 
-        Currently, we perform at most |S| iterations.
+        Currently, we perform at most ``|S|`` iterations.
         """
         if self.values is None:
             raise RuntimeError("safe_reloads_fixpoint can be called " +

@@ -438,7 +438,7 @@ class EnergySolver:
 
         MinInitCons(s) is the maximal energy needed to reach reload.
         Computed by largest fixpoint that is reached within at most
-        |S| iterations.
+        ``|S|`` iterations.
 
         If self.cap is set than treat values > self.cap as ∞.
 
@@ -566,8 +566,8 @@ class EnergySolver:
     def get_minimal_levels(self, objective, recompute=False):
         """Return (and compute) minimal levels required to satisfy given objective
 
-        `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
-        `recompute` : if `True` forces all computations to be done again
+            `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
+            `recompute` : if `True` forces all computations to be done again
         """
         if objective == MIN_INIT_CONS:
             return self.get_minInitCons(recompute=recompute)
@@ -596,18 +596,13 @@ class EnergySolver:
 
 class EnergyLevels_least(EnergySolver):
     """Variant of EnergyLevels class that uses (almost)
-    least fixpoint to compute Safe values.
+        least fixpoint to compute Safe values.
 
-    The worst case number of iterations is c_max * |S|
-    and thus the worst case complexity is
-
-    ```
-    c_max * |S|^2
-    ```
-
-    steps. The worst case complexity of the largest
-    fixpoint version is |S|^2 iterations and thus
-    |S|^3 steps.
+        The worst case number of iterations is c_max * ``|S|``
+        and thus the worst case complexity is ``c_max * |S|^2``
+        steps. The worst case complexity of the largest
+        fixpoint version is ``|S|``^2 iterations and thus
+        ``|S|``^3 steps.
     """
 
     def get_safe(self, recompute=False):

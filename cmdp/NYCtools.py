@@ -133,8 +133,8 @@ def timeit_diffcaps(m, targets, cap_bound , num_samples = 20, num_tests=10, obj=
 def timeit_difftargetsizes(m, cap, size_bound , num_samples = 20, num_tests=10, obj=BUCHI):
 
     """Returns a list of tuples where each tuple consists of the target size
-    and its corresponding computational time for a given objective and capacity
-     in the NYC AEV problem.
+        and its corresponding computational time for a given objective and capacity
+        in the NYC AEV problem.
 
     Parameters
     ----------

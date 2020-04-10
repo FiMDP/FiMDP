@@ -14,9 +14,9 @@ July 19-24, 2020. Citation info will be updated once the conference proceedings 
 
 ## Overview
 
-**CMDP** is a Python package that implements algorithms developed in our work on controller synthesis for 
-resource-constrained problems modeled as consumption Markov decision processes. The algorithms are 
-detailed in the work titled 'Qualitative Controller Synthesis for Consumption Markov Decision Processes' by 
+**CMDP** CMDP is a Python package designed around a proof-of-concept tool implementing algorithms developed in our work on 
+controller synthesis for resource-constrained problems modeled as Consumption Markov Decision Processes (CMDPs). The algorithms
+are detailed in the work titled 'Qualitative Controller Synthesis for Consumption Markov Decision Processes' by 
 František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu.
 
 ## Installation and Usage
@@ -28,16 +28,17 @@ Use this [link](https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master) to 
 Refer to the [installation documentation](https://cmdp.readthedocs.io/en/latest/install.html).
 
 ## Example Environments
-We provide a number of interactive examples as Jupyter notebooks to explore the features of our tool and also to analyze its performance. 
-The two main examples model the problems of an autonomous electric vehicle with limited capacity navigating the streets of Manhattan, New York and 
-a Martian rover and aerial vehicle with limited capacity and different dynamics operating in a grid world of variable size. 
-The notebook can be found in the `examples` subdirectory.
+We provide a number of examples in Interactive Jupyter notebooks to explore the features of our tool, to 
+analyze its performance, and also to validate the results presented in our paper. The two primary examples are 
+the problems of an electric vehicle routing with limited capacity and a multi-agent grid world inspired by the 
+Mars 2020 mission. The notebooks can be found in the `examples` subdirectory and their contents and described in
+detail [here](https://cmdp.readthedocs.io/).
 
-<img src="https://raw.githubusercontent.com/pthangeda/consumption-MDP/master/docs/source/images/environments.png" alt="The two case-studies considered: Electric Vehicle Routing and Multi-agent Grid World" align="center" height="259" width="570" >
+<img src="https://raw.githubusercontent.com/pthangeda/consumption-MDP/master/docs/source/images/environments.png" alt="The two primary examples: electric vehicle routing and multi-agent grid world." align="center" height="259" width="570" >
 
 
 ## Documentation
-Documentation available at [readthedocs](https://cmdp.readthedocs.io/).
+Documentation available at [readthedocs](https://cmdp.readthedocs.io/en/latest/examples.html).
 
 ## Contact
 If you have any trouble with the installation, or have any questions, raise an issue or email [František Blahoudek](fandikb@gmail.com) or [Pranay Thangeda](contact@prny.me).

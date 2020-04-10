@@ -5,7 +5,7 @@ Examples
 
 .. note:: All the examples can be run offline on your machine using Jupyter notebook. 
     In this section, we provide links to the notebooks in the repository to view
-    precalculated results. You can access interactive versions of the notebooks using
+    pre-executed results. You can access interactive versions of the notebooks using
     Binder at this `link <https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master>`_. 
     It takes a few minutes for the Binder environment to load.
 
@@ -16,23 +16,45 @@ model real-world problems and are used to demonstrate the utility and scalabilit
 
 Electric Vehicle Routing
 ************************
+Routing of autonomous electric vehicles presents a significant challenge due to their limited driving range and 
+low availability of recharge stations. Further, the rate of energy consumption depends on several variables that are
+often stochastic. We consider an area in the middle of Manhattan, from 42nd to 116th Street, given in the figure below, 
+with the agent’s original state space consisting of street intersections. The agent’s actions — turns performed at these intersections — result
+in deterministic transitions to subsequent states, but with stochastic consumption of energy, depending on traffic. 
+We model the consumption on each edge by using data on distributions of vehicle travel times and velocity and converting them to discrete energy energy consumption values.
+Since the CMDP framework only allows for deterministic consumption, we introduce pseudo-states to create a CMDP from our MDP and energy consumption distributions.
+The states in the proximity of real-world fast charging stations in the area are considered as reload states in the CMDP. Creating a CMDP from the street network
+graph of the area shown in the figure below, we obtain a CMDP with 7378 states.
 
 .. figure:: /images/nycmap.png
    :alt: AEV for NYC
-   :scale: 80%
+   :scale: 70%
    :align: center 
 
-   Street Network Considered for Electric Vehicle Routing MDP.
+   Manhattan street network considered as the operating domain for electric vehicle routing MDP. Red dots indicate the reload states, i.e.,
+   electric-vehicle charging stations. Green edges indicate one-way roads.
 
 
 Multi-agent Grid world
 **********************
 
+This case-study explores a multi-agent scenario of a rover and a helicopter operating on Mars. The
+narrative of the case study is informed by realistic considerations of the Mars 2020 mission. 
+Namely, we consider a rover of infinite energy capacity and a helicopter of finite capacity that recharges 
+by returning to the rover. These two vehicle jointly operate on a mission where the helicopter needs to reach 
+areas inaccessible to the rover. We assume that the outcomes of all the actions of the helicopter are 
+deterministic while those of the rover — influenced by terrain dynamics — are stochastic. For the purpose
+of this experiment, we specify that every transition of the helicopter costs 1 energy unit. For a grid world of size :math:`n`, 
+this system can be naturally modeled as a CMDP with :math:`n^4` states (representing the x- and y-coordinates of the 
+rover and the helicopter). This case-study is primarily used to study the scalability limits of the proposed algorithms.
+
 .. only:: html
 
    .. figure:: /images/marsenv.gif
+      :scale: 90%
+      :align: center 
 
-      Mars Multi-agent Grid World Example with Unreachable States. 
+      Mars multi-agent grid world example with unreachable states. 
 
 Examples Description
 --------------------
@@ -93,8 +115,8 @@ notebook requires installation of GraphViz if you are running it on a local serv
 
 incorrect_least-bound
 **********************
-The *incorrect_least-bound** notebook provides example of incorrectness of a least fixed point algorithm bounded by ``|S|`` and also hosts an
-example that shows that ``|S|`` iteration bound is also incorrect when used for least fixed_point that computes survival levels.
+The *incorrect_least-bound** notebook provides example of incorrectness of a least fixed point algorithm bounded by :math:`|S|` and also hosts an
+example that shows that :math:`|S|` iteration bound is also incorrect when used for least fixed_point that computes survival levels.
 
 `Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/incorrect_least-bound.ipynb>`_ to preview the *incorrect_least-bound* notebook.
 
