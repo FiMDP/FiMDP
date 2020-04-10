@@ -62,7 +62,7 @@ have an active installation of Anaconda or Miniconda on your computer. To use ou
 
     conda create -n cmdp python=3.7
 
-- Install the required packages in the newly created environment using the following command::
+- Clone our `git repository <https://github.com/pthangeda/consumption-MDP>`_ and install the required packages in the newly created environment using the following command::
 
     conda install --name cmdp -c conda-forge --file requirements.txt
 
@@ -74,7 +74,7 @@ have an active installation of Anaconda or Miniconda on your computer. To use ou
     
     jupyter notebook
 
-- Clone the `CMDP repository <https://github.com/pthangeda/consumption-MDP>`_ and navigate local instance of Jupyter to access the examples subdirectory.
+- Navigate local instance of Jupyter to access the examples subdirectory and access the notebooks.
 
 Certain examples include visualizations that need the `GraphViz <https://www.graphviz.org/>`_ package installed and configured. Download and install the appropriate version
 of the package and add the `dot` file to the system PATH to successfully run certain examples. If you install `GraphViz` package using Anaconda, make sure that to add the PATH

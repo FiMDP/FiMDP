@@ -78,7 +78,7 @@ Mars 2020 mission. For detailed description of the problems and the example note
    :scale: 70%
    :align: center 
 
-   The two primary examples: electric vehicle routing and multi-agent grid world.
+   The two primary examples: multi-agent grid world (left) and electric vehicle routing (right).
 
 Citation Info
 -------------
