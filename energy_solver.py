@@ -200,9 +200,9 @@ class EnergySolver:
                         removed.add(s)
                         done = False
 
-        # Set reload values to 0
+        # Set reload values to 0, "< & +1"-trick to handle ∞
         for s in range(self.states):
-                if self.mdp.is_reload(s) and values[s] < self.cap:
+                if self.mdp.is_reload(s) and values[s] < self.cap+1:
                     values[s] = 0
 
     def _init_strategy(self, objective):
@@ -626,6 +626,6 @@ class EnergyLevels_least(EnergySolver):
 
             # Set the value of Safe to 0 for all good reloads
             for s in range(self.states):
-                if self.mdp.is_reload(s) and self.safe_values[s] < self.cap:
+                if self.mdp.is_reload(s) and self.safe_values[s] < self.cap+1:
                     self.safe_values[s] = 0
         return self.safe_values
