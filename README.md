@@ -2,7 +2,7 @@
 # FiMDP - Fuel in MDP
 **Python Package with Algorithms for Controller Synthesis in Resource-constrained Markov Decision Processes**
 
-[![Documentation Status](https://readthedocs.org/projects/fimdp/badge/?version=latest)](https://fimdp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xblahoud/FiMDP/master)) [![Build Status](https://travis-ci.org/xblahoud/FiMDP.svg?branch=master)](https://travis-ci.org/xblahoud/FiMDP)
+[![Documentation Status](https://readthedocs.org/projects/fimdp/badge/?version=latest)](https://fimdp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xblahoud/FiMDP/master)) [![Build Status](https://travis-ci.org/xblahoud/FiMDP.svg?branch=master](https://travis-ci.org/xblahoud/FiMDP)
 
 
 Full overview of the tool, installation options, documentation, and interactive examples:
