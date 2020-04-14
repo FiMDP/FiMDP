@@ -1,4 +1,5 @@
 from consMDP import ConsMDP
+from copy import deepcopy
 
 
 class LCMDP(ConsMDP):
@@ -26,9 +27,14 @@ class LCMDP(ConsMDP):
       * AP : list of names of atomic propositions
     """
 
-    def __init__(self, AP):
-        ConsMDP.__init__(self)
+    def __init__(self, AP, mdp=None):
+        if mdp is None:
+            ConsMDP.__init__(self)
+        else:
+            self._copy_mdp(mdp)
+        self._init_AP(AP)
 
+    def _init_AP(self, AP):
         # Mapping of AP to ints
         self.AP = AP
         self.AP2int = dict()
@@ -37,6 +43,9 @@ class LCMDP(ConsMDP):
 
         # Initialize labeling function
         self.state_labels = []
+
+    def _copy_mdp(self, other):
+        self.__dict__.update(deepcopy(other.__dict__))
 
     def new_state(self, reload=False, name=None, label=set()):
         """Create a new labeled state.
