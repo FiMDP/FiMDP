@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys; sys.path.insert(0, '..')
-from cmdp import consMDP
+from fimdp import consMDP
 from consMDP import ConsMDP
 from math import inf
 from reachability_examples import basic, little_alsure, little_alsure2

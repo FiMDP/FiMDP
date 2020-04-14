@@ -26,7 +26,7 @@ autodoc_mock_imports = [
 
 # -- Project information -----------------------------------------------------
 
-project = u'CMDP'
+project = u'FiMDP'
 copyright = u'2020, Frantisek Blahoudek, Tomás Brázdil, Petr Novotny, Melkior Ornik, Pranay Thangeda and Ufuk Topcu'
 author = u'Frantisek Blahoudek, Tomás Brázdil, Petr Novotny, Melkior Ornik, Pranay Thangeda and Ufuk Topcu'
 
@@ -114,7 +114,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CMDPdoc'
+htmlhelp_basename = 'FiMDPdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -141,7 +141,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CMDP.tex', u'CMDP Documentation',
+    (master_doc, 'FiMDP.tex', u'FiMDP Documentation',
      u'Frantisek Blahoudek, Tomás Brázdil, Petr Novotny, Melkior Ornik, Pranay Thangeda and Ufuk Topcu', 'manual'),
 ]
 
@@ -151,7 +151,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'cmdp', u'CMDP Documentation',
+    (master_doc, 'fimdp', u'FiMDP Documentation',
      [author], 1)
 ]
 
@@ -162,8 +162,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CMDP', u'CMDP Documentation',
-     author, 'CMDP', 'One line description of project.',
+    (master_doc, 'FiMDP', u'FiMDP Documentation',
+     author, 'FiMDP', 'One line description of project.',
      'Miscellaneous'),
 ]
 

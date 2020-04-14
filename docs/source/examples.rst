@@ -6,7 +6,7 @@ Examples
 .. note:: All the examples can be run offline on your machine using Jupyter notebook. 
     In this section, we provide links to the notebooks in the repository to view
     pre-executed results. You can access interactive versions of the notebooks using
-    Binder at this `link <https://mybinder.org/v2/gh/pthangeda/consumption-MDP/master>`_. 
+    Binder at this `link <https://mybinder.org/v2/gh/xblahoud/FiMDP/master>`_. 
     It takes a few minutes for the Binder environment to load.
 
 Case-studies Description
@@ -16,6 +16,10 @@ model real-world problems and are used to demonstrate the utility and scalabilit
 
 Electric Vehicle Routing
 ************************
+
+* `Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the notebook with tests for benchmarking this environment.
+* `Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the notebook that visualizes strategies on an interactive map.
+
 Routing of autonomous electric vehicles presents a significant challenge due to their limited driving range and 
 low availability of recharge stations. Further, the rate of energy consumption depends on several variables that are
 often stochastic. We consider an area in the middle of Manhattan, from 42nd to 116th Street, given in the figure below, 
@@ -37,6 +41,8 @@ graph of the area shown in the figure below, we obtain a CMDP with 7378 states.
 
 Multi-agent Grid world
 **********************
+
+* `Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb>`_ to preview the notebook with tests for benchmarking this environment.
 
 This case-study explores a multi-agent scenario of a rover and a helicopter operating on Mars. The
 narrative of the case study is informed by realistic considerations of the Mars 2020 mission. 
@@ -61,6 +67,17 @@ Examples Description
 In this section, we provide a short description of the tasks performed in each of the example notebook. We also 
 note that the notebooks themselves have detailed description of the objective and the modules utilized.
 
+This notebook contains the tests to reproduce the results presented in our paper titled 
+*Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also helps understand the package structure for ease of reusability.
+
+artifact_evaluation
+********************
+The *artifact_evaluation* notebook contains the tests to reproduce the results presented in our paper titled 
+*Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also helps understand the package structure for ease of reusability.
+This notebook is meant to aid in the evaluation of this artifact.
+
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the *artifact_evaluation* notebook.
+
 nyc_benchmark
 *************
 The *nyc_benchmark* notebook hosts experiments related to calculating the computation time for different algorithms and objectives in our tool. 
@@ -69,7 +86,7 @@ is modeled by a real-world scale network, the computation times obtained in this
 We analyze how the computation time varies for different parameters while calculating strategies. Further details about the tests performed in 
 this example are mentioned in the notebook.
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the *nyc_benchmark* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the *nyc_benchmark* notebook.
 
 nyc_visualization
 ******************
@@ -77,7 +94,7 @@ The *nyc_visualization* notebook visually demonstrates strategies obtained for d
 electric vehicle routing in Manhattan, New York city. The strategy is visualized on an interactive map highlighting reload states, target states 
 and the dependency of the action taken on the energy levels. 
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the *nyc_visualization* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the *nyc_visualization* notebook.
 
 mars_benchmark
 ***************
@@ -85,7 +102,7 @@ The *mars_benchmark* notebook hosts experiments depicting how our tool scales wi
 we have two agents interacting with each other on a 2D grid world. In this case, the number of states in the state-space grow sharply with the size of the
 grid. 
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/mars_benchmark.ipynb>`_ to preview the *mars_benchmark* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb>`_ to preview the *mars_benchmark* notebook.
 
 safe_variants
 **************
@@ -94,7 +111,7 @@ the level of energy need to survive with a given capacity. The notebook compares
 and Büchi objectives considering the MDP modeling AEV routing in Manhattan and another small MDP defined in the notebook. Users can modify
 the capacity and the MDP itself based the example MDP provided in the notebook and observe the variation in computation for both methods.
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/safe_variants.ipynb>`_ to preview the *safe_variants* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb>`_ to preview the *safe_variants* notebook.
 
 reach_buchi
 ************
@@ -102,7 +119,7 @@ The *reach_buchi* notebook hosts examples covering reachability and Büchi objec
 The notebook includes detailed plots of the example MDP states specifying the energy level needed for different objectives. Running the examples in this
 notebook requires installation of GraphViz if you are running it on a local server.
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/reach_buchi.ipynb>`_ to preview the *reach_buchi* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb>`_ to preview the *reach_buchi* notebook.
 
 reachability_flower
 ********************
@@ -111,14 +128,14 @@ on the positive reachability objective. It provides detailed plots of the MDP st
 to visualize the evolution of computation for a smaller double-flower shaped consumption MDP. Running the examples in this
 notebook requires installation of GraphViz if you are running it on a local server.
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/reachability_flower.ipynb>`_ to preview the *reachability_flower* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>`_ to preview the *reachability_flower* notebook.
 
 incorrect_least-bound
 **********************
 The *incorrect_least-bound** notebook provides example of incorrectness of a least fixed point algorithm bounded by :math:`|S|` and also hosts an
 example that shows that :math:`|S|` iteration bound is also incorrect when used for least fixed_point that computes survival levels.
 
-`Click here <https://github.com/pthangeda/consumption-MDP/blob/master/examples/incorrect_least-bound.ipynb>`_ to preview the *incorrect_least-bound* notebook.
+`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb>`_ to preview the *incorrect_least-bound* notebook.
 
 
 

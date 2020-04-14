@@ -2,7 +2,7 @@
 
 import sys; sys.path.insert(0, '..')
 from reachability_examples import basic, ultimate
-from cmdp.energy_solver import *
+from fimdp.energy_solver import *
 
 m, T = ultimate()
 solver = EnergySolver(m, 30, T)

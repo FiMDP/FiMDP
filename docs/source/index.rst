@@ -1,13 +1,13 @@
-CMDP - Consumption MDP Tools
-=============================
+FiMDP - Fuel in Markov Decision Process
+========================================
 
-.. image:: https://travis-ci.org/pthangeda/consumption-MDP.svg?branch=master
-    :target: https://travis-ci.org/pthangeda/consumption-MDP
+.. image:: https://travis-ci.org/xblahoud/FiMDP.svg?branch=master
+    :target: https://travis-ci.org/xblahoud/FiMDP
 
 Introduction
 ------------
 
-CMDP is a Python package designed around a proof-of-concept tool implementing algorithms developed in our work on 
+FiMDP is a Python package designed around a proof-of-concept tool implementing algorithms developed in our work on 
 controller synthesis for resource-constrained problems modeled as Consumption Markov Decision Processes (CMDPs). This package includes
 interactive Jupyter notebooks with examples modeling real-world problems as CMDPs integrated with our tool. The examples include tests
 designed to show the utility and scalability of our algorithms and interactive objects designed to visually evaluate the algorithms.
@@ -18,7 +18,7 @@ Authors
 This package is based on the work titled `Qualitative Controller Synthesis for Consumption Markov Decision Processes`
 by `František Blahoudek <https://www.linkedin.com/in/fanda-blahoudek-392a6752>`_, `Tomáš Brázdil <https://cz.linkedin.com/in/tom%C3%A1%C5%A1-br%C3%A1zdil-23959766>`_, 
 `Petr Novotný <https://www.fi.muni.cz/~xnovot18/>`_, `Melkior Ornik <https://mornik.web.illinois.edu/>`_, `Pranay Thangeda <https://www.pranaythangeda.com/>`_,
-and `Ufuk Topcu <https://www.ae.utexas.edu/facultysites/topcu/wiki/index.php/Main_Page>`_. Most of code in this package is developed by František Blahoudek and is maintained by `František Blahoudek <mailto:fandikb@gmail.com>`_ and `Pranay Thangeda <mailto:contact@prny.me>`_.
+and `Ufuk Topcu <https://www.ae.utexas.edu/facultysites/topcu/wiki/index.php/Main_Page>`_. This package is developed and maintained by `František Blahoudek <mailto:fandikb@gmail.com>`_ and `Pranay Thangeda <mailto:contact@prny.me>`_.
 
 Overview
 ---------
@@ -88,7 +88,7 @@ scheduled to take place July 19-24, 2020. Citation info will be updated once the
 Support
 -------
 Detailed documentation of the modules has been provided in the documentation section :ref:`docs`. If you have any trouble with the installation, 
-or have any questions, raise an issue in `GitHub <https://github.com/pthangeda/consumption-MDP>`_ or email `František Blahoudek <mailto:fandikb@gmail.com>`_ or `Pranay Thangeda <mailto:contact@prny.me>`_.
+or have any questions, raise an issue in `GitHub <https://github.com/xblahoud/FiMDP>`_ or email `František Blahoudek <mailto:fandikb@gmail.com>`_ or `Pranay Thangeda <mailto:contact@prny.me>`_.
 
 License
 -------
@@ -104,7 +104,7 @@ Detailed Contents
    install
    examples
    license
-   cmdp_autodoc   
+   fimdp_autodoc   
 
 Indices and Search
 -------------------

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys; sys.path.insert(0, '..')
-from cmdp import consMDP
-from cmdp import dot
+from fimdp import consMDP
+from fimdp import dot
 
 
 # ## Almost sure reachability example

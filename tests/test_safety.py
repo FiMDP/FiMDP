@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import sys; sys.path.insert(0, '..')
-from cmdp import consMDP
+from fimdp import consMDP
 from math import inf
-from cmdp.energy_solver import EnergySolver, EnergyLevels_least
+from fimdp.energy_solver import EnergySolver, EnergyLevels_least
 from sys import stderr
 
 m = consMDP.ConsMDP()
@@ -106,6 +106,18 @@ assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 print("Passed test 1 for EnergyLevels_least() in test_safety file.")
 
+### If safe_values[r] = cap for a reload, it should get 0
+from reachability_examples import little_alsure
+m, T = little_alsure()
+
+result = m.get_safe(3)
+expected = [2, 1, 2, 0]
+
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n" +
+    "Perhaps some reload should be 0 and is not")
+print("Passed test 6 for get_safe() in test_safety file.")
+
 ### Reloads are not safe with EnergySolver.= ∞ even with cap = ∞
 m = consMDP.ConsMDP()
 m.new_states(4)
@@ -171,11 +183,11 @@ expected = [0, 1000, 1001, inf]
 assert result == expected, ("EnergyLevels.get_safe() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 6 for get_safe() in test_safety file.")
+print("Passed test 7 for get_safe() in test_safety file.")
 
 # Test the version with LeastFixpoint
 m.energy_levels = EnergyLevels_least(m, 1005)
 result = m.get_safe()
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 7 for get_safe() in test_safety file.")
+print("Passed test 8 for get_safe() in test_safety file.")
