@@ -1,67 +1,55 @@
 # Examples
 
-All the examples can be run offline on your machine using Jupyter notebook. In this section, we provide links to the notebooks in the repository to view pre-executed results. You can access interactive versions of the notebooks using Binder at this [link](https://mybinder.org/v2/gh/xblahoud/FiMDP/master). It takes a few minutes for the Binder environment to load.
+This folder contains several notebooks; all of them can be run offline on your machine using [Jupyter] notebook or [Jupyter] lab environment. Alternatively, you can execute the notebooks using [Binder](https://mybinder.org) (no installation needed) online at https://mybinder.org/v2/gh/xblahoud/FiMDP/master. Please note that it takes a few minutes before Binder builds the environment. The notebooks contain pre-executed results that we measured on our hardware, and these can also be explored non-interactively using [nbviewer](https://nbviewer.jupyter.org/) using this [link](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/tree/master/examples/).
 
+## Notebooks' description
 
-## Example Notebooks Description
-In this section, we provide a short description of the tasks performed in each of the example notebook. We also 
-note that the notebooks themselves have detailed description of the objective and the modules utilized.
+The folder contains three types of notebooks:
+1. Notebook for CAV artifact evaluation that reproduces the results presented in our paper accepted for presentation at [CAV2020] (Computer-Aided Verification conference 2020).
+2. Notebooks that provide more in-depth experiments with two extensive case studies (_NY city traffic_ and _Mars 2020_) prepared for benchmark our algorithms.
+3. Notebooks with various examples used in the process of developing this package; the notebooks include tiny examples that explore various objectives, comparison of different approaches to solving the safety objective, discussion on an incorrect approach, and finally, an example that demonstrates the worst-case bound for our positive-reachability algorithm. These notebooks require you to have [GraphViz] installed which is used to render the produced MDPs and the computed values.
 
-### artifact_evaluation
-The *artifact_evaluation* notebook contains the tests to reproduce the results presented in our paper titled 
-*Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also helps understand the package structure for ease of reusability.
-This notebook is meant to aid in the evaluation of this artifact.
+### Artifact evaluation
+The *[artifact_evaluation](artifact_evaluation.ipynb)* notebook includes the benchmarks in our paper titled *Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also contains links to instructions on how to use this package. This notebook is meant to aid in the evaluation of this artifact and should be sufficient to reproduce (modulo hardware differences) the presented results.
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/artifact_evaluation.ipynb>) to preview the *nyc_benchmark* notebook.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/artifact_evaluation.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/artifact_evaluation.ipynb).
 
-### nyc_benchmark
-The *nyc_benchmark* notebook hosts experiments related to calculating the computation time for different algorithms and objectives in our tool. 
-In particular, we use the electric vehicle routing in NYC as the MDP for all the tests in this notebook. As the consumption MDP in this example 
-is modeled by a real-world scale network, the computation times obtained in this analysis gives us insights into the practicality of our tools. 
-We analyze how the computation time varies for different parameters while calculating strategies. Further details about the tests performed in 
-this example are mentioned in the notebook.
+### New York City traffic case study
+There are two notebooks that present the case study of an electric vehicle routing in NYC. In short, we have an MDP that model moving of the car with varying consumption based on real traffic and consumption data.
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>) to preview the *nyc_benchmark* notebook.
+1. The [nyc_benchmark](nyc_bechmark.ipynb) notebook experiments with the timing of computation for various objectives using our tool. As the consumption MDP in this example is modeled by a real-world scale network, the computation times obtained in this analysis gives us insights into the practicality of our tools. We analyze how the computation time varies for different parameters (capacity, targets) while calculating strategies.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb).
 
-### nyc_visualization
-The *nyc_visualization* notebook visually demonstrates strategies obtained for different objectives, using different solvers for the MDP modeling
-electric vehicle routing in Manhattan, New York city. The strategy is visualized on an interactive map highlighting reload states, target states 
-and the dependency of the action taken on the energy levels. 
+2. The [nyc_visualization](nyc_visualization.ipynb) notebook visually demonstrates strategies for given objectives on an interactive map of Manhattan. 
+If you want to preview the precomputed results locally, you must mark the notebook as trusted first.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb) (**does not** offer the interactive map) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb) (**does** show the interactive map).
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb>) to preview the *nyc_visualization* notebook.
+### Mars rover case study
+The [mars_benchmark](mars_benchmark.ipynb) presents a case study based on a Mars 2020 mission that features a rover and a quad moving in a grid-world. This case study was designed to reveal the scalability limits of our approach; it generates MDPs with huge state-spaces where the computations can take several minutes. The notebook generates grid-worlds of growing size and measures the computation times of our tool. 
 
-### mars_benchmark
-The *mars_benchmark* notebook hosts experiments depicting how our tool scales with the size of the state space. As mentioned earlier, in this model
-we have two agents interacting with each other on a 2D grid world. In this case, the number of states in the state-space grow sharply with the size of the
-grid. 
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb).
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb>) to preview the *mars_benchmark* notebook.
+### Reachability \& Büchi
+The [reach_buchi](reach_buchi.ipynb) notebook explains the available objectives and discusses them visually on an MDP in which we need different initial loads of energy for each objective.
 
-### safe_variants
-The *safe_variants* notebook helps in comparing the performance of the two variants of solvers for computing the safe vector which specifies
-the level of energy need to survive with a given capacity. The notebook compares the computation time of both variants for resource-safety 
-and Büchi objectives considering the MDP modeling AEV routing in Manhattan and another small MDP defined in the notebook. Users can modify
-the capacity and the MDP itself based the example MDP provided in the notebook and observe the variation in computation for both methods.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb).
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb>) to preview the *safe_variants* notebook.
+### 2 variants to compute the safety objective
+The [safe_variants](safe_variants.ipynb) notebook compares the performance of two algorithms that compute the safety objective with different worst-case complexity. Both variants are based on a fixed-point computation: one on the largets fixed-point and the other on least one. The notebook compares the computation time of both variants for the safety 
+objective, discusses the effect on the Büchi objective using the NY city traffic MDP.
 
-### reach_buchi
-The *reach_buchi* notebook hosts examples covering reachability and Büchi objectives while distinguishing positive reachability and almost-sure reachability.
-The notebook includes detailed plots of the example MDP states specifying the energy level needed for different objectives. Running the examples in this
-notebook requires installation of GraphViz if you are running it on a local server.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb) or  [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb).
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb>) to preview the *reach_buchi* notebook.
+### Incorrect least-bound approach
+The [incorrect_least-bound](incorrect_least-bound.ipynb) notebook provides an example of incorrectness of least fixed-point algorithms bounded by :math:`|S|` iterations for the safety objective.
 
-### reachability_flower
-The *reachability_flower* notebook considers the example of a double flower shaped consumption MDP. The tests in this notebook are primarily based
-on the positive reachability objective. It provides detailed plots of the MDP states and the energy levels and also displays step by step results 
-to visualize the evolution of computation for a smaller double-flower shaped consumption MDP. Running the examples in this
-notebook requires installation of GraphViz if you are running it on a local server.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb).
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>) to preview the *reachability_flower* notebook.
+### Worst-case for positive reachability
+The [reachability_flower](reachability_flower.ipynb) notebook presents a parametric MDP (shaped as two connected flowers) that reaches the worst-case complexity for our algorithm. It forces a quadratic number of iterations (each iteration has a linear running time) with respect to the number of states in the MDP. The notebook provides diagrams of the MDP states and the energy levels, and it also displays the computation step-by-step which uncovers where the complexity comes from.
 
-### incorrect_least-bound
-The *incorrect_least-bound** notebook provides example of incorrectness of a least fixed point algorithm bounded by :math:`|S|` and also hosts an
-example that shows that :math:`|S|` iteration bound is also incorrect when used for least fixed_point that computes survival levels.
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb).
 
-[Click here](https://github.com/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb>) to preview the *incorrect_least-bound* notebook.
+[jupyter]: https://jupyter.org
+[CAV2020]: http://i-cav.org/2020/
+[GraphViz]: https://graphviz.org/
