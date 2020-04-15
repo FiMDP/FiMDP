@@ -8,7 +8,7 @@ RUN conda config --set show_channel_urls true && \
 	conda config --set channel_priority strict && \
     conda config --prepend channels conda-forge && \
     conda update --yes -n base conda && \
-    conda install --update-all --force-reinstall --yes --file /tmp/requirements.txt && \
+    conda install --update-all --force-reinstall --yes --file /tmp/requirements-dev.txt && \
     conda clean --all --yes && \
     conda info --all && \
     conda list
