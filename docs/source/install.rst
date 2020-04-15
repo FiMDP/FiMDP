@@ -89,7 +89,7 @@ To get the latest version of FiMDP, you can clone the `GitHub repository <https:
 ::
 
     git clone https://github.com/xblahoud/FiMDP
-    cd consumption-MDP
+    cd FiMDP
     pip3 install -e .
     
 Further, certain examples include visualizations that need the `GraphViz <https://www.graphviz.org/>`_ package installed and configured. Download and install the appropriate version
