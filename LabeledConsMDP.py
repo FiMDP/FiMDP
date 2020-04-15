@@ -1,4 +1,6 @@
 from consMDP import ConsMDP
+from products import product_dba
+
 from copy import deepcopy
 
 
@@ -119,3 +121,22 @@ class LCMDP(ConsMDP):
         labels = self.state_labels
         states = self.num_states
         return [i for i in range(states) if labels[i] == label]
+
+    def product(self, aut, init_states=None):
+        """Product of a labeled CMDP and a deterministic Büchi automaton.
+
+        Parameters
+        ==========
+         * dba: Spot's object twa_graph representing a deterministic state-based
+                Büchi automaton
+         * init_states: iterable of ints, the set of initial states of the LCMDP `self`
+            The product will be started from these states. If `None`, all states are
+            considered initial. At least one state must be declared as initial.
+
+        Raise ValueError when empty init supplied
+        Raise ValueError if incorrect type of automaton was given
+        Raise ValueError if `dba` uses some AP not used by `self` (LCMDP)
+        """
+        return product_dba(self, aut, init_states)
+
+
