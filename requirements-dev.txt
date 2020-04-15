@@ -6,4 +6,3 @@ networkx>=2.4
 matplotlib>=3.2.1
 jupyter>=1.0.0
 sphinx==2.4.4
-jupyter-repo2docker>=0.11.0
