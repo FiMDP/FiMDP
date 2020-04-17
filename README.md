@@ -1,5 +1,5 @@
 
-# FiMDP - Fuel in MDP
+# FiMDP - Fuel in Markov Decision Processes
 **Python Package with Algorithms for Controller Synthesis in Resource-constrained Markov Decision Processes**
 
 [![Documentation Status](https://readthedocs.org/projects/fimdp/badge/?version=latest)](https://fimdp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xblahoud/FiMDP/master) [![Build Status](https://travis-ci.org/xblahoud/FiMDP.svg?branch=master)](https://travis-ci.org/xblahoud/FiMDP)
@@ -26,7 +26,7 @@ Refer to the installation and usage section in the [documentation](https://fimdp
 Use this [link](https://mybinder.org/v2/gh/xblahoud/FiMDP/master) to access the interactive Jupter notebooks on the web without any installation.
 
 **Docker:**
-The docker image with FiMDP is published on Docker Hub at this [link](https://hub.docker.com/repository/docker/xblahoud/FiMDP). 
+The docker image with FiMDP is published on Docker Hub at this [link](https://hub.docker.com/repository/docker/xblahoud/fimdp). 
 
 **Local Installation:**
 Refer to the [installation documentation](https://fimdp.readthedocs.io/en/latest/install.html).

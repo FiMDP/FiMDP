@@ -60,82 +60,63 @@ rover and the helicopter). This case-study is primarily used to study the scalab
       :scale: 90%
       :align: center 
 
-      Mars multi-agent grid world example with unreachable states. 
+      Mars multi-agent grid world example with states that are unreachable for the rover. 
 
 Examples Description
 --------------------
 In this section, we provide a short description of the tasks performed in each of the example notebook. We also 
-note that the notebooks themselves have detailed description of the objective and the modules utilized.
+note that the notebooks themselves have detailed description of the objective and the modules utilized. There are three types of notebooks:
 
-This notebook contains the tests to reproduce the results presented in our paper titled 
-*Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also helps understand the package structure for ease of reusability.
+1. Notebook for CAV artifact evaluation that reproduces the results presented in our paper accepted for presentation at `CAV2020 <http://i-cav.org/2020/>`_ (Computer-Aided Verification conference 2020).
+2. Notebooks that provide more in-depth experiments with two extensive case studies described above for benchmark our algorithms.
+3. Notebooks with various examples used in the process of developing this package; the notebooks include tiny examples that explore various objectives, comparison of different approaches to solving the safety objective, discussion on an incorrect approach, and finally, an example that demonstrates the worst-case bound for our positive-reachability algorithm. These notebooks require you to have [GraphViz] installed which is used to render the produced MDPs and the computed values.
 
-artifact_evaluation
-********************
-The *artifact_evaluation* notebook contains the tests to reproduce the results presented in our paper titled 
-*Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also helps understand the package structure for ease of reusability.
-This notebook is meant to aid in the evaluation of this artifact.
+Artifact evaluation
+*******************
+The artifact_evaluation notebook includes the benchmarks in our paper titled *Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also contains links to instructions on how to use this package. This notebook is meant to aid in the evaluation of this artifact and should be sufficient to reproduce (modulo hardware differences) the presented results.
 
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the *artifact_evaluation* notebook.
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/artifact_evaluation.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/artifact_evaluation.ipynb>`_.
 
-nyc_benchmark
-*************
-The *nyc_benchmark* notebook hosts experiments related to calculating the computation time for different algorithms and objectives in our tool. 
-In particular, we use the electric vehicle routing in NYC as the MDP for all the tests in this notebook. As the consumption MDP in this example 
-is modeled by a real-world scale network, the computation times obtained in this analysis gives us insights into the practicality of our tools. 
-We analyze how the computation time varies for different parameters while calculating strategies. Further details about the tests performed in 
-this example are mentioned in the notebook.
+New York City traffic case study
+********************************
+There are two notebooks that present the case study of an electric vehicle routing in NYC. In short, we have an MDP that model moving of the car with varying consumption based on real traffic and consumption data.
 
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_ to preview the *nyc_benchmark* notebook.
+1. The nyc_benchmark notebook experiments with the timing of computation for various objectives using our tool. As the consumption MDP in this example is modeled by a real-world scale network, the computation times obtained in this analysis gives us insights into the practicality of our tools. We analyze how the computation time varies for different parameters (capacity, targets) while calculating strategies.
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/nyc_benchmark.ipynb>`_.
 
-nyc_visualization
-******************
-The *nyc_visualization* notebook visually demonstrates strategies obtained for different objectives, using different solvers for the MDP modeling
-electric vehicle routing in Manhattan, New York city. The strategy is visualized on an interactive map highlighting reload states, target states 
-and the dependency of the action taken on the energy levels. 
+2. The nyc_visualization notebook visually demonstrates strategies for given objectives on an interactive map of Manhattan. 
+If you want to preview the precomputed results locally, you must mark the notebook as trusted first.
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb>`_ (**does not** offer the interactive map) or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb>`_ (**does** show the interactive map).
 
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/nyc_visualization.ipynb>`_ to preview the *nyc_visualization* notebook.
+Mars rover case study
+*********************
+The mars_benchmark presents a case study based on a Mars 2020 mission that features a rover and a quad moving in a grid-world. This case study was designed to reveal the scalability limits of our approach; it generates MDPs with huge state-spaces where the computations can take several minutes. The notebook generates grid-worlds of growing size and measures the computation times of our tool. 
 
-mars_benchmark
-***************
-The *mars_benchmark* notebook hosts experiments depicting how our tool scales with the size of the state space. As mentioned earlier, in this model
-we have two agents interacting with each other on a 2D grid world. In this case, the number of states in the state-space grow sharply with the size of the
-grid. 
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb>`_.
 
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/mars_benchmark.ipynb>`_ to preview the *mars_benchmark* notebook.
-
-safe_variants
-**************
-The *safe_variants* notebook helps in comparing the performance of the two variants of solvers for computing the safe vector which specifies
-the level of energy need to survive with a given capacity. The notebook compares the computation time of both variants for resource-safety 
-and Büchi objectives considering the MDP modeling AEV routing in Manhattan and another small MDP defined in the notebook. Users can modify
-the capacity and the MDP itself based the example MDP provided in the notebook and observe the variation in computation for both methods.
-
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb>`_ to preview the *safe_variants* notebook.
-
-reach_buchi
-************
-The *reach_buchi* notebook hosts examples covering reachability and Büchi objectives while distinguishing positive reachability and almost-sure reachability.
-The notebook includes detailed plots of the example MDP states specifying the energy level needed for different objectives. Running the examples in this
-notebook requires installation of GraphViz if you are running it on a local server.
-
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb>`_ to preview the *reach_buchi* notebook.
-
-reachability_flower
-********************
-The *reachability_flower* notebook considers the example of a double flower shaped consumption MDP. The tests in this notebook are primarily based
-on the positive reachability objective. It provides detailed plots of the MDP states and the energy levels and also displays step by step results 
-to visualize the evolution of computation for a smaller double-flower shaped consumption MDP. Running the examples in this
-notebook requires installation of GraphViz if you are running it on a local server.
-
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>`_ to preview the *reachability_flower* notebook.
-
-incorrect_least-bound
+Reachability \& Büchi
 **********************
-The *incorrect_least-bound** notebook provides example of incorrectness of a least fixed point algorithm bounded by :math:`|S|` and also hosts an
-example that shows that :math:`|S|` iteration bound is also incorrect when used for least fixed_point that computes survival levels.
+The reach_buchi notebook explains the available objectives and discusses them visually on an MDP in which we need different initial loads of energy for each objective.
 
-`Click here <https://github.com/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb>`_ to preview the *incorrect_least-bound* notebook.
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/reach_buchi.ipynb>`_.
 
+2 variants to compute the safety objective
+********************************************
+The safe_variants notebook compares the performance of two algorithms that compute the safety objective with different worst-case complexity. Both variants are based on a fixed-point computation: one on the largets fixed-point and the other on least one. The notebook compares the computation time of both variants for the safety 
+objective, discusses the effect on the Büchi objective using the NY city traffic MDP.
+
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb>`_ or  `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/safe_variants.ipynb>`_.
+
+Incorrect least-bound approach
+*******************************
+The incorrect_least-bound notebook provides an example of incorrectness of least fixed-point algorithms bounded by :math:`|S|` iterations for the safety objective.
+
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/incorrect_least-bound.ipynb>`_.
+
+Worst-case for positive reachability
+*************************************
+The reachability_flower notebook presents a parametric MDP (shaped as two connected flowers) that reaches the worst-case complexity for our algorithm. It forces a quadratic number of iterations (each iteration has a linear running time) with respect to the number of states in the MDP. The notebook provides diagrams of the MDP states and the energy levels, and it also displays the computation step-by-step which uncovers where the complexity comes from.
+
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>`_.
 
 
