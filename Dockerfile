@@ -3,6 +3,9 @@ LABEL url="https://github.com/xblahoud/FiMDP"
 
 COPY requirements-dev.txt /tmp/
 
+# install make for Sphings
+RUN apt-get install -y build-essential
+
 # configure conda and install packages
 RUN conda config --set show_channel_urls true && \
 	conda config --set channel_priority strict && \
