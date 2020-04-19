@@ -1,6 +1,7 @@
 FROM continuumio/miniconda3
 LABEL url="https://github.com/xblahoud/FiMDP"
 
+
 COPY requirements-dev.txt /tmp/
 
 # install make for Sphings
@@ -27,5 +28,7 @@ COPY cav2020/ .
 COPY docs/ ./docs
 RUN cd docs && make html
 
+ENV README_FILEPATH /home/cav2020/README.md
+
 # set default command to launch when container is run
-CMD ["jupyter", "notebook", "--ip='0.0.0.0'", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+CMD ["jupyter", "lab", "--ip='0.0.0.0'", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
