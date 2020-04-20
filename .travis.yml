@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.7"
+
+# command to install dependencies
+install:
+  - pip3 install -e .
+
+# command to run tests
+script:
+  - python ./tests/test_buchi.py
+  - python ./tests/test_reachability.py
+  - python ./tests/test_mecs.py
+  - python ./tests/test_safety.py
+  - python ./tests/test_strategy.py
+  
