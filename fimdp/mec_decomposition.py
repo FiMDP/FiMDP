@@ -1,8 +1,9 @@
-# Python program to find strongly connected components in a given
-# directed graph using Tarjan's algorithm (single DFS)
-# Complexity : O(V+E)
+# Decompose MDP into MECs. Ignores consumption.
 #
-# inspired: https://www.geeksforgeeks.org/tarjan-algorithm-find-strongly-connected-components/
+# The algorithm uses decomposition of directed graph using
+# Tarjan's algorithm (single DFS). The implementation of this
+# the Tarjan's algo is inspired from:
+# https://www.geeksforgeeks.org/tarjan-algorithm-find-strongly-connected-components/
 
 from collections import defaultdict
 
@@ -162,6 +163,11 @@ def mdp2graph(mdp):
 
 
 def get_MECs(mdp):
+    """Given an MDP (not necessarly consMDP), compute its
+    maximal-end-components decomposition.
+
+    Returns list of mecs (lists).
+    """
     g = mdp2graph(mdp)
     mecs = []
     removed = set()
