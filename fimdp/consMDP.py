@@ -228,6 +228,13 @@ class ConsMDP:
         it = Succ_iteraser(self, s)
         return it
 
+    def state_succs(self, s):
+        """Return successors of `s` over all actions"""
+        succs = set()
+        for e in self.actions_for_state(s):
+            succs = succs.union(e.distr.keys())
+        return succs
+
     def get_minInitCons(self,
                         capacity=None,
                         recompute=False,
@@ -345,8 +352,8 @@ class ActionData:
         self.label = label
         self.next_succ = next_succ
         
-    def get_all_succ(self):
-        return list(distr.keys())
+    def get_succs(self):
+        return set(self.distr.keys())
     
 
 class Succ_iter:
@@ -421,6 +428,7 @@ class Succ_iteraser(Succ_iter):
         self.prev = None
         self.s    = s
         self.succ = mdp.succ
+        self.mdp = mdp
 
     def __next__(self):
         self.prev = self.curr

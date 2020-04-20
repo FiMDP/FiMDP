@@ -10,6 +10,7 @@ install:
 script:
   - python ./tests/test_buchi.py
   - python ./tests/test_reachability.py
+  - python ./tests/test_mecs.py
   - python ./tests/test_safety.py
   - python ./tests/test_strategy.py
   
