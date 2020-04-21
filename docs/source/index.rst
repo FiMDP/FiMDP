@@ -1,5 +1,5 @@
-FiMDP - Fuel in Markov Decision Process
-========================================
+FiMDP - Fuel in Markov Decision Processes
+==========================================
 
 .. image:: https://travis-ci.org/xblahoud/FiMDP.svg?branch=master
     :target: https://travis-ci.org/xblahoud/FiMDP
@@ -43,8 +43,9 @@ visits some target states infinitely often. If such a strategy exists, we provid
     <iframe src="_static/strategy.html" allowfullscreen=true height="405px" width="100%"></iframe>
 
 The interactive map above visualizes an example CMDP and the strategy obtained from our algorithm. **Zoom in** to see
-the action choices at different states (intersections) for different energy levels. The green nodes indicate reload states and
-the blue nodes indicate target states. A detailed description of this example is provided in the examples section :ref:`examples`.
+the action choices at different states (intersections) for different energy levels. The green nodes indicate reload states, 
+the blue nodes indicate target states, and the red nodes are states where no particular action is specified by the
+strategy. A detailed description of this example is provided in the examples section :ref:`examples`.
 
 Installation
 ------------
