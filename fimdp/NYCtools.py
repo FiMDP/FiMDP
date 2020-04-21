@@ -122,7 +122,7 @@ def timeit_diffcaps(m, targets, cap_bound , num_samples = 20, num_tests=10, obj=
 
     comptime = []
 
-    cap_list = np.linspace(1,cap_bound, num_samples)
+    cap_list = np.linspace(1,cap_bound, num_samples,dtype = int)
     for i in range(num_samples):
         def calc_time():
             s = energy_solver.EnergySolver(m, cap=cap_list[i], targets=targets)
@@ -181,7 +181,7 @@ def timeit_difftargetsizes(m, cap, size_bound , num_samples = 20, num_tests=10, 
 
     comptime = []
 
-    targetsize_list = np.linspace(20,size_bound, num_samples)
+    targetsize_list = np.linspace(20,size_bound, num_samples, dtype = int)
     targetsize_list = targetsize_list.astype(np.int64)
     for i in range(num_samples):
         def calc_time():
