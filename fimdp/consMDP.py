@@ -37,7 +37,7 @@ class ConsMDP:
     use `actions_for_state(s)`. If you wish to remove actions, use
     `out_iteraser(s)` instead.
 
-    States can be labeled using the list `labels`. Reload states are stored
+    States can have names using the list `names`. Reload states are stored
     in the set `reload_states`.
     
     Computation of Safe vector
@@ -78,8 +78,8 @@ class ConsMDP:
         self.succ = []
         self.actions = [0]
 
-        self.state_labels = []
-        self.label_dict = dict()
+        self.names = []
+        self.names_dict = dict()
         self.reloads = []
 
         self.num_states = 0
@@ -91,50 +91,55 @@ class ConsMDP:
         """Reset `energy_levels` to None after structure change."""
         self.energy_levels = None
 
-    def state_with_label(self, label):
-        """Return id of state with label `label` or `None` if not exists."""
-        return self.label_dict.get(label)
+    def state_with_name(self, name):
+        '''Return id of state with name `name` or `None` if not exists.'''
+        return self.names_dict.get(name)
 
-    def new_state(self, reload=False, label=None):
-        """Add state to the consMDP object."""
+    def new_state(self, reload=False, name=None):
+        """Add a new state into the CMDP.
+
+        Returns: the id of the created state
+        Raise `ValueError` if a state with the same name already exists.
+        """
 
         self.structure_change()
 
-        # check for existing label
-        if label is not None:
-            s = self.state_with_label(label)
+        # check for existing name
+        if name is not None:
+            s = self.state_with_name(name)
             if s is not None:
-                raise ValueError("State with label \"{}\" already exists (id={})".
-                                    format(label, s))
+                raise ValueError("State with name \"{}\" already exists (id={})".
+                                 format(name, s))
         
         sid = self.num_states
         
         self.succ.append(0)
         self.reloads.append(reload)
-        self.state_labels.append(label)
-        if label is not None:
-            self.label_dict[label] = sid
+        self.names.append(name)
+        if name is not None:
+            self.names_dict[name] = sid
         self.num_states+=1
         return sid
     
-    def new_states(self, count, labels = None):
+    def new_states(self, count, names=None):
         #TODO add reload list
         """Create multiple (`count`) states.
 
-        The list lables must have length `count` if supplied. These will be
-        the labels for the states.
+        The list names must have length `count` if supplied. These will be
+        the names for the states.
 
         Return the list of states ids.
+        Raise `ValueError` if a state with the same name already exists.
         """
-        if labels is not None:
-            if count != len(labels):
-                raise ValueError("Length of labels must be equal to count.")
+        if names is not None:
+            if count != len(names):
+                raise ValueError("Length of names must be equal to count.")
 
         self.structure_change()
         start = self.num_states
         for i in range(count):
-            l = None if labels is None else labels[i]
-            self.new_state(l)
+            name = None if names is None else names[i]
+            self.new_state(name)
         return range(start, start+count)
 
     def set_reload(self, sid, reload=True):

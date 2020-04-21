@@ -106,18 +106,6 @@ assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 print("Passed test 1 for EnergyLevels_least() in test_safety file.")
 
-### If safe_values[r] = cap for a reload, it should get 0
-from reachability_examples import little_alsure
-m, T = little_alsure()
-
-result = m.get_safe(3)
-expected = [2, 1, 2, 0]
-
-assert result == expected, ("Safe reloads are wrong.\n" +
-    f"  expected: {expected}\n  returns:  {result}\n" +
-    "Perhaps some reload should be 0 and is not")
-print("Passed test 6 for get_safe() in test_safety file.")
-
 ### Reloads are not safe with EnergySolver,safe_values = ∞ even with cap = ∞
 m = consMDP.ConsMDP()
 m.new_states(4)
@@ -143,6 +131,18 @@ result = m.get_safe()
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 print("Passed test 5 for get_safe() in test_safety file.")
+
+### If safe_values[r] = cap for a reload, it should get 0
+from reachability_examples import little_alsure
+m, T = little_alsure()
+
+result = m.get_safe(3)
+expected = [2, 1, 2, 0]
+
+assert result == expected, ("Safe reloads are wrong.\n" +
+    f"  expected: {expected}\n  returns:  {result}\n" +
+    "Perhaps some reload should be 0 and is not")
+print("Passed test 6 for get_safe() in test_safety file.")
 
 ## Example of incorrectness of the least fixpoint algorithm bounded by $|S|$ steps
 

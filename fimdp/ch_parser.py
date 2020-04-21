@@ -34,13 +34,13 @@ def convert(g):
             actions[to]["cons"] = edge["consumption"]
         else:
             dist = actions[fr].get("dist")
-            to = mdp.state_with_label(to)
+            to = mdp.state_with_name(to)
             if dist is None:
                 actions[fr]["dist"] = dict()
             actions[fr]["dist"][to] = Decimal(f'{edge["probability"]}')
 
     for label, a in actions.items():
-        fr = mdp.state_with_label(a["from"])
+        fr = mdp.state_with_name(a["from"])
         mdp.add_action(fr, a["dist"], label, a["cons"])
 
     return mdp
@@ -49,7 +49,7 @@ def convert(g):
 def get_target_set(g, mdp):
     T = set()
     for t in g["T"]:
-        T.add(mdp.state_with_label(t["label"]))
+        T.add(mdp.state_with_name(t["label"]))
     return T
 
 def parse(filename):

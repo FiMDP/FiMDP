@@ -286,10 +286,10 @@ class MarsEnv:
         
         # randomly select states
         T = set()
-        state_list = mdp.state_labels
+        state_list = mdp.names
         for state in state_list:
             if np.random.rand() <= target_prop:
-                T.add(mdp.state_with_label(state))
+                T.add(mdp.state_with_name(state))
         return T
         
         
@@ -311,7 +311,7 @@ class MarsEnv:
             for j in list(rover_posstates[0]):
                 state = str((i,j))
                 prob = agent_dist[i]*rover_dist[j]
-                sid = mdp.state_with_label(str(state))
+                sid = mdp.state_with_name(str(state))
                 dist[sid] = prob
     
         # Normalize to ensure probabilities add up exactly to 1
@@ -333,9 +333,9 @@ class MarsEnv:
         for i in range(self.num_cells):
             for j in range(self.num_cells):
                 if i == j:
-                    mdp.new_state(True, str((i,j))) # (reload, label)
+                    mdp.new_state(True, str((i, j)))  # (reload, label)
                 else:
-                    mdp.new_state(False, str((i,j)))
+                    mdp.new_state(False, str((i, j)))
                 
         # List all possible states and actions
         states_list = []
@@ -360,7 +360,7 @@ class MarsEnv:
                     actions[action_label] = {"from":str(state), "cons":self.agent_actioncost, "dist":dist}
                 
         for label, act in actions.items():
-            fr = mdp.state_with_label(act["from"])
+            fr = mdp.state_with_name(act["from"])
             mdp.add_action(fr, act["dist"], label, act["cons"])
 
         # Get targets

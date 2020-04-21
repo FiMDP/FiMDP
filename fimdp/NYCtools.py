@@ -239,7 +239,7 @@ def visualize_strategy(strategy, m, targets):
     states_reload = [] 
     states_target = []
     strategy_updated = {}
-    map_statelabels = m.state_labels
+    map_statelabels = m.names
     
     # Map states to original labels
     for index in range(m.num_states):
