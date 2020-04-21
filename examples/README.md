@@ -4,10 +4,12 @@ This folder contains several notebooks; all of them can be run offline on your m
 
 ## Notebooks' description
 
-The folder contains three types of notebooks:
+The folder contains four types of notebooks:
 1. Notebook for CAV artifact evaluation that reproduces the results presented in our paper accepted for presentation at [CAV2020] (Computer-Aided Verification conference 2020).
 2. Notebooks that provide more in-depth experiments with two extensive case studies (_NY city traffic_ and _Mars 2020_) prepared for benchmark our algorithms.
 3. Notebooks with various examples used in the process of developing this package; the notebooks include tiny examples that explore various objectives, comparison of different approaches to solving the safety objective, discussion on an incorrect approach, and finally, an example that demonstrates the worst-case bound for our positive-reachability algorithm. These notebooks require you to have [GraphViz] installed which is used to render the produced MDPs and the computed values.
+4. Notebook explaining explicit encoding of energy into state-space and show computation times for decomposition of such MDP into maximal end-components.
+
 
 ### Artifact evaluation
 The *[artifact_evaluation](artifact_evaluation.ipynb)* notebook includes the benchmarks in our paper titled *Qualitative Controller Synthesis for Consumption Markov Decision Processes*. It also contains links to instructions on how to use this package. This notebook is meant to aid in the evaluation of this artifact and should be sufficient to reproduce (modulo hardware differences) the presented results.
@@ -49,6 +51,11 @@ You can preview the non-interactive version at [GitHub](https://github.com/xblah
 The [reachability_flower](reachability_flower.ipynb) notebook presents a parametric MDP (shaped as two connected flowers) that reaches the worst-case complexity for our algorithm. It forces a quadratic number of iterations (each iteration has a linear running time) with respect to the number of states in the MDP. The notebook provides diagrams of the MDP states and the energy levels, and it also displays the computation step-by-step which uncovers where the complexity comes from.
 
 You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb).
+
+### Explicit encoding of energy into state-space
+The [explicit_energy](explicit_energy.ipynb) notebook discusses how can we encode the energy explicitly into the state-space of classical (non-consumption) MDP. It also compares our approach to this explicit one.
+
+You can preview the non-interactive version at [GitHub](https://github.com/xblahoud/FiMDP/blob/master/examples/explicit_energy.ipynb) or [nbviewer](https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/explicit_energy.ipynb).
 
 [jupyter]: https://jupyter.org
 [CAV2020]: http://i-cav.org/2020/

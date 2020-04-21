@@ -65,11 +65,12 @@ rover and the helicopter). This case-study is primarily used to study the scalab
 Examples Description
 --------------------
 In this section, we provide a short description of the tasks performed in each of the example notebook. We also 
-note that the notebooks themselves have detailed description of the objective and the modules utilized. There are three types of notebooks:
+note that the notebooks themselves have detailed description of the objective and the modules utilized. There are four types of notebooks:
 
 1. Notebook for CAV artifact evaluation that reproduces the results presented in our paper accepted for presentation at `CAV2020 <http://i-cav.org/2020/>`_ (Computer-Aided Verification conference 2020).
 2. Notebooks that provide more in-depth experiments with two extensive case studies described above for benchmark our algorithms.
 3. Notebooks with various examples used in the process of developing this package; the notebooks include tiny examples that explore various objectives, comparison of different approaches to solving the safety objective, discussion on an incorrect approach, and finally, an example that demonstrates the worst-case bound for our positive-reachability algorithm. These notebooks require you to have [GraphViz] installed which is used to render the produced MDPs and the computed values.
+4. Notebook explaining explicit encoding of energy into state-space and show computation times for decomposition of such MDP into maximal end-components.
 
 Artifact evaluation
 *******************
@@ -119,4 +120,8 @@ The reachability_flower notebook presents a parametric MDP (shaped as two connec
 
 You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/reachability_flower.ipynb>`_.
 
+Explicit encoding of energy into state-space
+********************************************
+The explicit_energy notebook discusses how can we encode the energy explicitly into the state-space of classical (non-consumption) MDP. It also compares our approach to this explicit one.
 
+You can preview the non-interactive version at `GitHub <https://github.com/xblahoud/FiMDP/blob/master/examples/explicit_energy.ipynb>`_ or `nbviewer <https://nbviewer.jupyter.org/github/xblahoud/FiMDP/blob/master/examples/explicit_energy.ipynb>`_.
