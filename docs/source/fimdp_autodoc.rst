@@ -46,7 +46,7 @@ fimdp.safety_bound_incorrect module
 
 fimdp.ch_parser module
 -----------------------
-.. automodule:: fimdp.ch_parser
+.. automodule:: fimdp.nyc_parser
     :members:
     :undoc-members:
     :show-inheritance:
