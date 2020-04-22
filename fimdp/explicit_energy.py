@@ -30,7 +30,7 @@ def product(cmdp, capacity, targets=[]):
         pair = (s, e)
         p = sdict.get(pair)
         if p is None:
-            p = result.new_state(label=f"{s},{e}",
+            p = result.new_state(name=f"{s},{e}",
                                  reload=cmdp.is_reload(s))
             sdict[pair] = p
             if s in targets and e >= 0:
@@ -50,7 +50,7 @@ def product(cmdp, capacity, targets=[]):
             # negative goes to sink
             if e - a.cons < 0:
                 if not sink_created:
-                    sink = result.new_state(label="sink, -∞")
+                    sink = result.new_state(name="sink, -∞")
                     result.add_action(sink, {sink: 1}, "σ", 1)
                     sink_created = True
                 result.add_action(p, {sink: 1}, a.label, a.cons)
