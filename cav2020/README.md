@@ -38,6 +38,6 @@ sudo docker run -it xblahoud/fimdp:cav2020 /bin/bash
 
 [CAV2020]: http://i-cav.org/2020/
 [FiMDP]: https://github.com/xblahoud/FiMDP
-[readthedocs.org]: https://fimdp.readthedocs.io/en/latest/
+[readthedocs]: https://fimdp.readthedocs.io/en/latest/
 [Jupyter]: https://jupyter.org
 [Binder]: https://mybinder.org
