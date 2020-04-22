@@ -23,24 +23,27 @@ Docker
 -------
 The docker image with FiMDP is published on `Docker Hub <https://hub.docker.com/repository/docker/xblahoud/fimdp>`_. 
 To access the package using docker, download and install `docker <https://docs.docker.com/get-docker/>`_ on your machine.
+The default behavior of this image is to run Jupyter lab, and that is also the intended usage. 
+To open the Jupyter lab environment in your browser, you need the following two steps.
 
 Access the Jupyter notebooks
 *****************************
 
-To open the interactive Jupyter notebooks with examples, open a CLI and run:
+To open the interactive Jupyter notebooks with examples via Jupyter lab, open a CLI and run:
 ::
 
-    docker run -it -p 8888:8888 xblahoud/fimdp:cav2020
+    sudo docker run --rm=true -p 7777:8888 xblahoud/fimdp:cav2020
 
-
-and then in a browser in your machine, access the following url:
+Note that the `-p 7777:8888` redirects the port 8888 of the container to the port 7777 of your computer. 
+If the latter is already used on your computer, use another number. After running the above command, access the following url 
+in a browser in your machine:
 ::
 
-    http://localhost:8888/tree/examples
+    http://localhost:7777/lab
 
 
-You will be asked for a token which is displayed as a part of a link in the terminal. 
-
+To get started, right-click on the README.md file in the left panel and select *open with > Markdown preview*. If you prefer 
+the classic Jupyter notebook environment to Jupyter lab, type `tree` instead of `lab`.
 
 Run bash in this container
 **************************
@@ -48,7 +51,7 @@ Run bash in this container
 Open a CLI and run:
 ::
 
-    docker run --rm -it xblahoud/fimdp:cav2020 /bin/bash
+    sudo docker run -it xblahoud/fimdp:cav2020 /bin/bash
 
 
 and the directory contains the all the source files of the package.
