@@ -3,8 +3,7 @@ Core module defining the two variants of solvers for computing the safe vector.
 """
 
 from math import inf
-
-from .fixpoints import largest_fixpoint, least_fixpoint
+from .fixpoints import largest_fixpoint, least_fixpoint, pick_best_action
 
 # objectives
 MIN_INIT_CONS = 0
@@ -142,6 +141,53 @@ class EnergySolver:
                 candidate = t_v
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons
+
+    def _action_value_T_with_probs(self, a, values, survival_val=None):
+        """Compute value of action with preference and survival. It also returns
+        the probability with which the action can lead to the picked successor.
+
+        The value picks a preferred target `t` that it wants to reach;
+        considers `values` for `t` and `survival` for the other successors.
+        Chooses the best (minimum) among possible `t` from `a.succs`.
+
+        The value is cost of the action plus minimum of `v(t)` over
+        t ∈ a.succs where `v(t)` is:
+        ```
+        max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
+        ```
+        where survival is given by `survival_val` vector. It's
+        `self.safe_values` as default.
+
+        Parameters
+        ==========
+        `a` : action_data, action for which the value is computed.
+        `values` = vector with current values.
+        `survival_val` = Function: `state` -> `value` interpreted as "what is
+                         the level of energy I need to have in order to survive
+                         if I reach `state`". Returns `self.safe_values[state]`
+                         by default.
+        """
+        if survival_val is None:
+            survival_val = lambda s: self.safe_values[s]
+
+        # Initialization
+        candidate = inf
+        prob = 0
+        succs = a.distr.keys()
+
+        for t in succs:
+            # Compute value for t
+            survivals = [survival_val(s) for s in succs if s != t]
+            current_v = values[t]
+            t_v = max([current_v] + survivals)
+            t_p = a.distr[t]
+
+            # Choose minimum
+            if t_v < candidate or (t_v == candidate and t_p > prob):
+                candidate = t_v
+                prob = t_p
+            #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
+        return candidate + a.cons, prob
 
     def _sufficient_levels(self, values=None,
                            removed=None,
@@ -306,11 +352,12 @@ class EnergySolver:
             self.pos_reach_values[t] = self.safe_values[t]
 
         largest_fixpoint(self.mdp, self.pos_reach_values,
-                         self._action_value_T,
+                         self._action_value_T_with_probs,
                          value_adj=self._reload_capper,
                          # Target states are always safe_values[t]
                          skip_state=lambda x: x in self.targets,
-                         on_update=self._update_function(objective))
+                         on_update=self._update_function(objective),
+                         argmin=pick_best_action)
 
         if self.compute_strategy:
             self._copy_strategy(SAFE, objective, self.targets)
@@ -348,7 +395,7 @@ class EnergySolver:
             ### 2.1.3 Compute PosReach on sub-MDP
             # Mitigate reload removal (use Safe_M for survival)
             rem_survival_val = lambda s: self.reach_safe[s]
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+            rem_action_value = lambda a, v: self._action_value_T_with_probs(a, v, rem_survival_val)
 
             # Avoid unnecesarry computations
             is_removed = lambda x: x in removed  # always ∞
@@ -360,7 +407,8 @@ class EnergySolver:
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
-                             on_update=self._update_function(objective))
+                             on_update=self._update_function(objective),
+                             argmin=pick_best_action)
 
             ### 2.2. & 2.3. Detect bad reloads and remove them
             done = True

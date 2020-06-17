@@ -10,7 +10,7 @@ from energy_solver import *
 
 # input variables
 grid_size = (20,20) # size of the grid (required)
-agent_capacity = 150 # maximum energy capacity of the agent (required)
+agent_capacity = 50 # maximum energy capacity of the agent (required)
 init_state = 5*grid_size[0]+2 # Initial state of the agent
 reload_list = [10*grid_size[0]+4, 12*grid_size[0] - 5] # list of reload states in the MDP
 target_list = [grid_size[0]*grid_size[1] - 3*grid_size[0] - 8] # list of target states in the MDP
