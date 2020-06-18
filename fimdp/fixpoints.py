@@ -76,6 +76,8 @@ def largest_fixpoint(mdp, values, action_value,
                       If True, stave will be skipped and its value
                       not changed.
 
+       - argmin : function that chooses which action to pick
+
      * on_upadate : function called when new value for state is found.
                     Arguments are: state × value × action
                     The meaning is for `s` we found new value `v` using
