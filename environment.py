@@ -34,18 +34,21 @@ def env(agent_capacity=200, heading_sd=0.524):
     
     return env
 
-data = None
 target_reached = 0
     
 def get_anim_data(env):
     data = 0*np.ones([env.grid_size[0],env.grid_size[1]])
+    # History
     for cell in env.states_history:
         data[cell//env.grid_size[0], cell%env.grid_size[1]] = 3
-    data[env.position//env.grid_size[0], env.position%env.grid_size[1]] = 1
+    # Targets
     for cell in env.target_list:
         data[cell//env.grid_size[0], cell%env.grid_size[1]] = 4
+    # Reloads
     for cell in env.reload_list:
         data[cell//env.grid_size[0], cell%env.grid_size[1]] = 2
+    # Current position
+    data[env.position // env.grid_size[0], env.position % env.grid_size[1]] = 1
         
     return data
 
