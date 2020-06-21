@@ -8,10 +8,10 @@ from matplotlib import animation
 from matplotlib.colors import ListedColormap
 
 myColors = [
-    '#A9A9A9',            # backgroung light gray
+    (0.66, 0.66, 0.66, 1.0), # backgroung light gray
     (0.7, 0.0, 0.0, 1.0), # current position red
     (0.0, 0.3, 0.7, 1.0), # reload blue
-    '#5C5959',            # history dark gray
+    (0.3, 0.3, 0.3, 1.0), # history dark gray
     (0.0, 0.8, 0.0, 1.0)  # targets green
 ]
 cmap = ListedColormap(myColors, 5)
