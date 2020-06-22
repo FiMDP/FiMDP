@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-
-import sys; sys.path.insert(0, '..')
 from fimdp import consMDP
 from math import inf
 from fimdp.energy_solver import EnergySolver, EnergyLevels_least
