@@ -16,6 +16,12 @@ def product_dba(lmdp, aut, init_states=None):
         The product will be started from these states. If `None`, all states are
         considered initial. At least one state must be declared as initial.
 
+    Returns
+    =======
+     * (product, targets)
+     * product: CMDP object with the product-CMDP
+     * targets: target states in the product (accepting states of the Büchi automaton)
+
     Raise ValueError when empty init supplied
     Raise ValueError if incorrect type of automaton was given
     Raise ValueError if `dba` uses some AP not used by `lcmdp`
