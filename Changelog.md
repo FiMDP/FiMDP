@@ -1,6 +1,6 @@
 # ChangeLog for [FiMDP](https://github.com/xblahoud/FiMDP) (Fuel in MDP) project
 
-## [1.0]
+## [1.0.2]
 
 ### Added
  * data structures for *consumption Markov Decision Processes (CMDP)*
@@ -9,4 +9,5 @@
  * Algorithm for explicit representation of energy + MEC decomposition of this explicit MDP
  * example notebooks
 
-[Unpublished]: https://github.com/xblahoud/FiMDP/tree/master/
+[Unpublished]: https://github.com/xblahoud/FiMDP/tree/compare/pre1.0.2..HEAD
+[1.0.2]: https://github.com/xblahoud/FiMDP/tree/pre1.0.2
