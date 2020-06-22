@@ -663,6 +663,18 @@ class EnergySolver_GoalLeaning(EnergySolver):
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons, prob
 
+class EnergySolver_TresholdGoalLeaning(EnergySolver):
+    """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
+       by heuristics that make the strategies more useful for control. The main
+       goal of this class is to create strategies that go to targets quickly.
+
+       In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
+       for computing (positive) reachability"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.argmin = pick_best_action
+
 
 class EnergyLevels_least(EnergySolver):
     """Variant of EnergyLevels class that uses (almost)
