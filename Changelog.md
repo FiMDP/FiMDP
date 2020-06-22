@@ -9,5 +9,5 @@
  * Algorithm for explicit representation of energy + MEC decomposition of this explicit MDP
  * example notebooks
 
-[Unpublished]: https://github.com/xblahoud/FiMDP/tree/compare/pre1.0.2..HEAD
-[1.0.2]: https://github.com/xblahoud/FiMDP/tree/pre1.0.2
+[Unpublished]: https://github.com/xblahoud/FiMDP/compare/v1.0.2..HEAD
+[1.0.2]: https://github.com/xblahoud/FiMDP/tree/v1.0.2
