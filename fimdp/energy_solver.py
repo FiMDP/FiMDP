@@ -4,7 +4,7 @@ Core module defining the two variants of solvers for computing the safe vector.
 
 from math import inf
 
-from .fixpoints import largest_fixpoint, least_fixpoint
+from .fixpoints import largest_fixpoint, least_fixpoint, argmin
 
 # objectives
 MIN_INIT_CONS = 0
