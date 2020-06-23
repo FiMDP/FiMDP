@@ -1,4 +1,4 @@
-from consMDP import ConsMDP
+from .consMDP import ConsMDP
 
 def product(cmdp, capacity, targets=[]):
     """Explicit encoding of energy into state-space

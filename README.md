@@ -20,7 +20,11 @@ are detailed in the work titled 'Qualitative Controller Synthesis for Consumptio
 František Blahoudek, Tomáš Brázdil, Petr Novotný, Melkior Ornik, Pranay Thangeda and Ufuk Topcu.
 
 ## Installation and Usage
-Refer to the installation and usage section in the [documentation](https://fimdp.readthedocs.io/en/latest/install.html) for detailed instructions.
+**pip:**
+FiMDP can be installed using pip from PyPI
+```
+pip install -U fimdp
+```
 
 **Binder:**
 Use this [link](https://mybinder.org/v2/gh/xblahoud/FiMDP/master) to access the interactive Jupter notebooks on the web without any installation.
@@ -28,7 +32,7 @@ Use this [link](https://mybinder.org/v2/gh/xblahoud/FiMDP/master) to access the 
 **Docker:**
 The docker image with FiMDP is published on Docker Hub at this [link](https://hub.docker.com/repository/docker/xblahoud/fimdp). 
 
-**Local Installation:**
+**Local Installation (for development):**
 Refer to the [installation documentation](https://fimdp.readthedocs.io/en/latest/install.html).
 
 ## Example Environments
