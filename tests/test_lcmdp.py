@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import sys; sys.path.insert(0, '..')
-from fimdp import labeledConsMDP
-from labeledConsMDP import LCMDP
+from fimdp.labeledConsMDP import LCMDP
 from math import inf
 
 # Test simple assigment of APs
