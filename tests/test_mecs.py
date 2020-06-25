@@ -4,6 +4,7 @@ import fimdp.mec_decomposition as mec
 mdp = ultimate()[0]
 result = mec.get_MECs(mdp)
 expected = [[2, 1], [9], [8, 6, 4, 5, 3]]
+mdp.show()
 
 assert result == expected, ("get_MECs() returns" +
     " wrong values:\n" +
