@@ -4,7 +4,7 @@ Core module defining the two variants of solvers for computing the safe vector.
 
 from math import inf
 
-from .fixpoints import largest_fixpoint, least_fixpoint, argmin
+from .fixpoints import largest_fixpoint, least_fixpoint, argmin, pick_best_action
 
 # objectives
 MIN_INIT_CONS = 0
@@ -66,10 +66,15 @@ class EnergySolver:
         else:
             self.strategy = None
 
+        # HOOKS
+        # Hooks that enable creation of heuristic-based child classes.
+        # IMPORTANT: these are only used in reachability objectives,
+        # not safety.
+        #
         # Initialization of argmin function for fixpoint computations.
-        # This is a hook that enables the creation of heuristic-based
-        # EnergySolver_GoalLeaning.
         self.argmin = argmin
+        self.largest_fixpoint = largest_fixpoint
+
 
     ### Helper functions ###
     # * reload_capper     : [v]^cap
@@ -310,7 +315,7 @@ class EnergySolver:
         for t in self.targets:
             self.pos_reach_values[t] = self.safe_values[t]
 
-        largest_fixpoint(self.mdp, self.pos_reach_values,
+        self.largest_fixpoint(self.mdp, self.pos_reach_values,
                          self._action_value_T,
                          value_adj=self._reload_capper,
                          # Target states are always safe_values[t]
@@ -354,7 +359,7 @@ class EnergySolver:
             ### 2.1.3 Compute PosReach on sub-MDP
             # Mitigate reload removal (use Safe_M for survival)
             rem_survival_val = lambda s: self.reach_safe[s]
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+            rem_action_value = lambda a, v: self._action_value_T(a, v, survival_val=rem_survival_val)
 
             # Avoid unnecesarry computations
             is_removed = lambda x: x in removed  # always ∞
@@ -362,7 +367,7 @@ class EnergySolver:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            largest_fixpoint(self.mdp, self.alsure_values,
+            self.largest_fixpoint(self.mdp, self.alsure_values,
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
@@ -408,7 +413,7 @@ class EnergySolver:
             # Use Safe_m (stored in buchi_safe) as value needed for survival
             rem_survival_val = lambda s: self.buchi_safe[s]
             # Navigate towards T and survive with Safe_m
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+            rem_action_value = lambda a, v: self._action_value_T(a, v, survival_val=rem_survival_val)
 
             ## Avoid unnecessary computations
             is_removed = lambda x: x in removed  # always ∞
@@ -416,7 +421,7 @@ class EnergySolver:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            largest_fixpoint(self.mdp, self.buchi_values,
+            self.largest_fixpoint(self.mdp, self.buchi_values,
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
@@ -664,17 +669,101 @@ class EnergySolver_GoalLeaning(EnergySolver):
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons, prob
 
-class EnergySolver_TresholdGoalLeaning(EnergySolver):
+
+class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
     """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
        by heuristics that make the strategies more useful for control. The main
        goal of this class is to create strategies that go to targets quickly.
 
        In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
-       for computing (positive) reachability"""
+       for computing (positive) reachability. The first fixpoint ignores actions
+       that would lead towards the target with probability below the given
+       treshold.
+
+       Parameters
+       ==========
+       treshold: (float) a probability treshold. Actions below this treshold
+                 will be ignored as much as we can.
+    """
 
     def __init__(self, *args, **kwargs):
+        threshold = kwargs.pop("threshold")
         super().__init__(*args, **kwargs)
+        self.threshold = threshold
         self.argmin = pick_best_action
+        self.largest_fixpoint = self.double_fixpoint
+
+    def _action_value_T(self, a, values, survival_val=None, threshold=None):
+        """Compute value of action with preference and survival.
+
+        Return also the probability with which the action can lead to the
+        picked successor. Disregards successors whose probability of being
+        chosen is below the given threshold. Among successors with the same
+        value pick the largest probability.
+
+        The value picks a preferred target `t` that it wants to reach;
+        considers `values` for `t` and `survival` for the other successors.
+        Chooses the best (minimum) among possible `t` from `a.succs`.
+
+        The value is cost of the action plus minimum of `v(t)` over
+        t ∈ a.succs where `v(t)` is:
+        ```
+        max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
+        ```
+        where survival is given by `survival_val` vector. It's
+        `self.safe_values` as default.
+
+        Parameters
+        ==========
+        `a` : action_data, action for which the value is computed.
+        `values` = vector with current values.
+        `survival_val` = Function: `state` -> `value` interpreted as "what is
+                         the level of energy I need to have in order to survive
+                         if I reach `state`". Returns `self.safe_values[state]`
+                         by default.
+
+        Returns
+        =======
+        `(action_value, prob)` where `action_value` is the value of the action
+                        and `prob` is the probability that the action would
+                        go to the picked successor that enables this value.
+        """
+        if threshold is None:
+            threshold = self.threshold
+        if survival_val is None:
+            survival_val = lambda s: self.safe_values[s]
+
+        # Initialization
+        candidate = inf
+        prob = 0
+        succs = a.distr.keys()
+
+        for t in succs:
+            t_p = a.distr[t] # Likelihood of t being the outcome
+
+            if t_p < threshold:
+                continue
+            # Compute value for t
+            survivals = [survival_val(s) for s in succs if s != t]
+            current_v = values[t]
+            t_v = max([current_v] + survivals)
+
+            # Choose minimum
+            if t_v < candidate or (t_v == candidate and t_p > prob):
+                candidate = t_v
+                prob = t_p
+            # print(f"{a.src} -- {a.label} -> {t}:{t_v}")
+        return candidate + a.cons, prob
+
+    def _action_value_T_thresh(self, a, values, survival_val=None):
+        return self._action_value_T(a, values, survival_val, self.threshold)
+
+    def double_fixpoint(self, *args, **kwargs):
+        largest_fixpoint(*args, **kwargs)
+        threshold = self.threshold
+        self.threshold = 0
+        largest_fixpoint(*args, **kwargs)
+        self.threshold = threshold
 
 
 class EnergyLevels_least(EnergySolver):

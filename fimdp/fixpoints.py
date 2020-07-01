@@ -26,9 +26,13 @@ def argmin(iterable, func):
 
 
 def pick_best_action(actions_iterable, func):
-    """Given `func` of type `action → value × prob`, choose action
+    """Compositional argmin and argmax.
+
+    Given `func` of type `action → value × prob`, choose action
     that achieves the lowest `value` with the highest probability
-    over actions with the same value.
+    over actions with the same value. Which is, choose action
+    with the lowest d=(`value`, 1-`prob`) using lexicographic
+    order.
     """
     res_item, res_val, res_prob = None, inf, 0
     for item in actions_iterable:
@@ -36,24 +40,6 @@ def pick_best_action(actions_iterable, func):
         if val < res_val or (val == res_val and prob > res_prob):
             res_item, res_val, res_prob = item, val, prob
 
-    return res_item, res_val
-
-
-def pick_best_action_with_tresh(actions_iterable, func, treshold = 0.01):
-    """Given `func` of type `action → value × prob`, choose action
-    that achieves the lowest `value` with the highest probability
-    over actions with the same value.
-    """
-    res_item, res_val, res_prob = None, inf, 0
-    for item in actions_iterable:
-        val, prob = func(item)
-        if prob < treshold:
-            continue
-        # print(item.label, val, prob, item.cons)
-        if val < res_val or (val == res_val and prob > res_prob):
-            res_item, res_val, res_prob = item, val, prob
-
-    # print("Return", res_item.label, res_val, res_prob)
     return res_item, res_val
 
 
