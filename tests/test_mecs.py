@@ -1,6 +1,4 @@
-import sys; sys.path.insert(0, '..')
 from reachability_examples import ultimate
-
 import fimdp.mec_decomposition as mec
 
 mdp = ultimate()[0]

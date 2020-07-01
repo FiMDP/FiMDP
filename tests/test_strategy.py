@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-
-import sys; sys.path.insert(0, '..')
-from reachability_examples import basic, ultimate
+from reachability_examples import ultimate
 from fimdp.energy_solver import *
 
 m, T = ultimate()

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-
-import sys; sys.path.insert(0, '..')
-from fimdp.consMDP import ConsMDP
 from math import inf
 from reachability_examples import ultimate
 
