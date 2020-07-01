@@ -88,9 +88,9 @@ def next_step_anim(frame, env, strategy, reset=True):
     else:
         energy = env.agent_energy
         state = env.position
-        info = env.step(policy(strategy,state,energy)) # take action
+        env.step(policy(strategy,state,energy)) # take action
     
-    if env.position in target_list:
+    if env.position in target_list and frame > 0:
         target_reached += 1
     
     data = get_anim_data(env)       
@@ -129,4 +129,5 @@ def animate_strategy(strategy, environment, steps=100, reset=True):
     return animation.FuncAnimation(plt.gcf(), next_step_anim,
                                    fargs=(environment, strategy, reset),
                                    frames=steps,
-                                   repeat=False, blit=True)
+                                   save_count=1,
+                                   repeat=False, blit=False)

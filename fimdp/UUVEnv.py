@@ -7,7 +7,6 @@ with ocean currents.
 # import required packages
 import time
 import numpy as np
-import consMDP
 import random
 from decimal import Decimal
 from matplotlib import pyplot as plt
@@ -15,6 +14,8 @@ from matplotlib.colors import ListedColormap
 from scipy.stats import norm
 import seaborn as sns
 from IPython import display
+
+from fimdp import consMDP
 
 
 class Env:
