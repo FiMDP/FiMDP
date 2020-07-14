@@ -3,6 +3,7 @@ Core module defining the two variants of solvers for computing the safe vector.
 """
 
 from math import inf
+
 from .fixpoints import largest_fixpoint, least_fixpoint, argmin, pick_best_action
 
 # objectives
