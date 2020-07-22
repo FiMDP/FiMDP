@@ -1,5 +1,10 @@
 # ChangeLog for [FiMDP](https://github.com/xblahoud/FiMDP) (Fuel in MDP) project
 
+## [Unpublished]
+
+### Added
+ * Binary search for detection of minimal capacity needed for a task (function `mincap.bin_search`).
+ 
 ## [1.0.2]
 
 ### Added
