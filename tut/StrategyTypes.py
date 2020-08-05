@@ -132,15 +132,23 @@ basic = EnergySolver(m, cap=35, targets=t)
 goal = EnergySolver_GoalLeaning(m, cap=35, targets=t)
 threshold = EnergySolver_ThresholdGoalLeaning(m, cap=35, targets=t, threshold=0.1)
 
-assert basic.get_Buchi() == goal.get_Buchi()
-assert basic.get_Buchi() == threshold.get_Buchi()
-print("Passed test 1 for goal-leaning strategies in file ")
+assert basic.get_Buchi() == goal.get_Buchi(), ("The basic and goal-leaning strategy "+
+                                              "do not reach the same values of "+
+                                              "initial load for the same task.")
+print("Passed test 1 for values of goal-leaning strategies in file tut/StrategyTypes.ipynb")
+assert basic.get_Buchi() == threshold.get_Buchi(), ("The basic and the threshold strategy "+
+                                              "do not reach the same values of "+
+                                              "initial load for the same task.")
+print("Passed test 2 for values of goal-leaning strategies in file tut/StrategyTypes.ipynb")
 
 # ## Interesting cases
-
-# All actions having consumption 1, not-listed probabilities are also 1, rel are reload states.
+#
+# ### Sure path with 2 steps better than unlikely 1-step path.
 
 # ![threshold example](threshold_example.svg)
+# All actions having consumption 1, not-listed probabilities are also 1, rel are reload states.
+#
+# Now let's create the CMDP using the FiMDP package.
 
 from fimdp import dot
 dot.dotpr = "neato"
@@ -174,3 +182,94 @@ basic.get_strategy(BUCHI)
 goal.get_strategy(BUCHI)
 
 threshold.get_strategy(BUCHI)
+
+result = threshold.get_strategy(BUCHI)[0]
+expected = {2: 'long', 1: 'direct'}
+assert result == expected, ("The threshold strategy should return\n" +
+                           f"{expected} in state 0.\n" +
+                           f"{result} returned in 0.")
+print("Passed test 3 for the threshold strategy in file tut/StrategyTypes.ipynb")
+
+# ### Simple goal-leaning example
+
+# +
+goal_leaning = fimdp.consMDP.ConsMDP()
+
+goal_leaning.new_states(4)
+goal_leaning.set_reload(1)
+goal_leaning.set_reload(3)
+goal_leaning.add_action(0, {1: .99, 3: .01}, "direct", 1)
+goal_leaning.add_action(1, {0: 1}, "", 1)
+goal_leaning.add_action(0, {2: 1}, "long", 1)
+goal_leaning.add_action(2, {3: 1}, "long", 1)
+goal_leaning.add_action(3, {3: 1}, "rel", 1);
+
+goal_leaning
+
+
+# +
+def goal_leaning():
+    dot.dotpr = "dot"
+    m = fimdp.consMDP.ConsMDP()
+    m.new_states(3)
+    for r in [0, 2]:
+        m.set_reload(r)
+    m.add_action(0, {1:.5, 0:.5}, "top", 1)
+    m.add_action(0,{1:.7, 0:.3},"bottom",1)
+    m.add_action(1,{2:1}, "r", 1)
+    m.add_action(2,{2:1}, "r", 2)
+
+    targets=set([2])
+    return m, targets
+
+gl, T = goal_leaning()
+gl.get_Buchi(T)
+gl
+# -
+
+basic = EnergySolver(gl, targets=T)
+goal = EnergySolver_GoalLeaning(gl, targets=T)
+
+# In state 0, the standard solver (`basic`) chooses the `top` action because it is processed first and `bottom` does not yield any better value. You can change the order of the actions in the function that creates the CMDP and see that the result for `basic` changes.
+#
+# The goal-leaning solver, however, chooses `bottom` as it yields a higher probability of reaching the state 1, which is the successor that has good promise to reach a target.
+
+print(basic.get_strategy(BUCHI), goal.get_strategy(BUCHI), sep="\n")
+
+result = goal.get_strategy(BUCHI)[0][0]
+expected = 'bottom'
+assert result == expected, (
+    f"The goal-leaning strategy should prefer the action `{expected}` " +
+    f"in state 0. It chooses `{result}` instead."
+)
+print("Passed test 4 for goal-leaning solver in file tut/StrategyTypes.ipynb")
+
+
+# ### Goal-leaning is just a heuristic
+# We slightly modify the previous example by adding a new state (3), which is a copy of state 1. The `top` action, now named `sure`, does not loop back to 0, instead it goes either to 1 or 2. This results in a situation where picking the `sure` action surely leads to the targets. But when deciding which action to choose, the solvers always consider only 1 successor. The best the action `sure` can achieve in this view is `0.5` reaching a promising successor. Therefore, the goal-leaning solver still prefers the bottom action, now called `cycle`. The `basic` solver still chooses the action that comes first as they both can achieve the same value.
+
+# +
+def goal_leaning_2():
+    dot.dotpr = "dot"
+    m = fimdp.consMDP.ConsMDP()
+    m.new_states(4)
+    for r in [0, 2]:
+        m.set_reload(r)
+    m.add_action(0, {1:.5, 3:.5}, "sure", 1)
+    m.add_action(0,{1:.7, 0:.3},"cycle",1)
+    m.add_action(1,{2:1}, "r", 1)
+    m.add_action(3,{2:1}, "r", 1)
+    m.add_action(2,{2:1}, "r", 3)   
+
+    targets=set([2])
+    return m, targets
+
+gl2, T = goal_leaning_2()
+gl2.get_Buchi(T)
+gl2
+# -
+
+basic2 = EnergySolver(gl2, targets=T)
+goal2 = EnergySolver_GoalLeaning(gl2, targets=T)
+
+print(basic2.get_strategy(BUCHI), goal2.get_strategy(BUCHI), sep="\n")
