@@ -134,32 +134,13 @@ threshold = EnergySolver_ThresholdGoalLeaning(m, cap=35, targets=t, threshold=0.
 
 assert basic.get_Buchi() == goal.get_Buchi()
 assert basic.get_Buchi() == threshold.get_Buchi()
-print("Passed test for heuristic strategies")
+print("Passed test 1 for goal-leaning strategies in file ")
 
 # ## Interesting cases
 
 # All actions having consumption 1, not-listed probabilities are also 1, rel are reload states.
 
-import itikz
-# %load_ext itikz
-
-# +
-# %%itikz --implicit-pic --temp-dir --tikz-libraries=automata
-\begin{scope}[thick, every node/.style={state}]
-\node[] (s0) at (0,0) {0};
-\node[] (s1) at (2,-1.5) {rel};
-\node[] (s2) at (2,1.5) {2};
-\node[accepting] (s3) at (4, 0) {rel};
-\end{scope}
-
-\path[->,thick]
-(s0.-20) edge[gray] node[above, pos=.8]{0.01} (s3.200)
-(s0.-20) edge[bend left] node[right, pos=.7, outer sep=2pt] {0.99} (s1)
-(s1) edge[bend left] (s0)
-(s0) edge (s2)
-(s2) edge (s3)
-;
-# -
+# ![threshold example](threshold_example.svg)
 
 from fimdp import dot
 dot.dotpr = "neato"
