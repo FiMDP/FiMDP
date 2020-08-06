@@ -5,5 +5,4 @@ python3 test_mecs.py
 python3 test_reachability.py
 python3 test_safety.py
 python3 test_strategy.py
-jupyter nbconvert --execute ../tut/StrategyTypes.ipynb 
-
+jupyter nbconvert --execute ../tut/StrategyTypes.ipynb

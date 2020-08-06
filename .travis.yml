@@ -6,7 +6,6 @@ addons:
   apt:
     packages:
       - graphviz
-      - ffmpeg
 
 # command to install dependencies
 install:
@@ -20,5 +19,4 @@ script:
   - python ./tests/test_reachability.py
   - python ./tests/test_safety.py
   - python ./tests/test_strategy.py
-  - jupyter nbconvert --execute ./tut/StrategyTypes.ipynb
-  
+  - python ./tut/StrategyTypes.py
