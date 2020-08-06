@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.0
+#       jupytext_version: 1.5.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -27,7 +27,8 @@
 # [FiMDP]: https://github.com/xblahoud/FiMDP
 # [FiMDPEnv]: https://github.com/pthangeda/FiMDPEnv
 
-# %matplotlib widget
+from matplotlib import animation, rc
+rc('animation', html='jshtml')
 from fimdpenv import UUVEnv
 from env import create_env
 
@@ -53,7 +54,7 @@ def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     m, t = gw.create_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
-    gw.animate_strategy(strategy, num_steps=steps)
+    return gw.animate_strategy(strategy, num_steps=steps)
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
