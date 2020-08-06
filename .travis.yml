@@ -9,7 +9,7 @@ addons:
 
 # command to install dependencies
 install:
-  - pip3 install jupyter matplotlib ipympl
+  - pip3 install jupyter matplotlib ipympl fimdpenv
   - pip3 install -e .
 
 # command to run tests
