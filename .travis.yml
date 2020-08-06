@@ -6,6 +6,7 @@ addons:
   apt:
     packages:
       - graphviz
+      - ffmpeg
 
 # command to install dependencies
 install:
