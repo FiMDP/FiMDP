@@ -1,5 +1,22 @@
-"""
-Core module defining the two variants of solvers for computing the safe vector.
+"""Module with energy-aware qualitative solvers for Consumption MDPs
+
+Currently, the supported objectives are:
+ * minInitCons: reaching a reload state within >0 steps
+ * safe       : survive from `s` forever
+ * positiveReachability(T)  : survive and the probability of reaching
+         some target from T is positive (>0)
+ * almostSureReachability(T): survive and the probability of reaching
+         some target from T is 1
+ * Büchi(T) : survive and keep visiting T forever (with prob. 1).
+
+The results of a solver for an objective `o` are twofolds:
+ 1. For each state `s` we provide value `o[s]` which is the minimal initial
+    load of energy needed to satisfy the objective `o` from `s`.
+ 2. Corresponding strategy that, given at least `o[s]` in `s` guarantees that
+    `o` is satisfied. [setting `compute_strategy=False disables this]
+
+The computed values `o[s]` from 1. can be visualized in the `mdp` object by
+setting `mdp.EL=solver` and then calling `mdp.show()`.
 """
 
 from math import inf
@@ -17,23 +34,17 @@ OBJ_COUNT = 6
 
 
 class EnergySolver:
-    """Compute minimum levels of energy needed to fulfill objectives
-    with given capacity (and target set).
+    """Solve qualitative objectives for Consumption MDPs.
 
-    For each objective `o` and each state `s`, compute a value `o[s]
-    which guaranteed that there exists a strategy with fiven capacity
-    that fulfills `o` from `s` and it needs `o[s]` to start with in `s`.
+    This implements the algorithms as described in the paper
+    Qualitative Controller Synthesis for Consumption Markov Decision Processes
 
-    If `compute_strategy` is `True`, compute also corresponding strategy.
-    
-    Currently, the supported objectives are:
-     * minInitCons: reaching a reload state within >0 steps
-     * safe       : survive from `s` forever
-     * positiveReachability(T)  : survive and the probability of reaching
-             some target from T is positive (>0)
-     * almostSureReachability(T): survive and the probability of reaching
-             some target from T is 1
-     * Büchi(T) : survive and keep visiting T forever (with prob. 1).
+    Parameters
+    ==========
+     * mdp: `ConsMDP` object
+     * cap: `int`; energy capacity for given objective
+     * targets: `iterable`; states of `mdp` that are targets for the objectives.
+     * compute_strategy: `bool`; if False, don't compute the strategy.
     """
 
     def __init__(self, mdp, cap=inf, targets=None, compute_strategy=True):
@@ -607,9 +618,22 @@ class EnergySolver:
 
 
 class EnergySolver_GoalLeaning(EnergySolver):
-    """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
-    by heuristics that make the strategies more useful for control. The main
+    """Solver that prefers actions leading to target with higher probability.
+
+    This class extends `EnergySolver` (implementation of CAV'2020 algorithms)
+    by a heuristic that make the strategies more useful for control. The main
     goal of this class is to create strategies that go to targets quickly.
+
+    The solver modifies only the computation of positive reachability computation.
+
+    Among action that achieves the minimal _action_value_T, choose the one with
+    the highest probability of hitting the picked successor. The modification is
+    twofold:
+     1. redefine _action_value_T
+     2. instead of classical argmin, use pick_best_action that works on tuples
+        (value, probability of hitting good successor).
+
+    See more technical description in docstring for _action_value_T.
     """
 
     def __init__(self, *args, **kwargs):
@@ -686,19 +710,23 @@ class EnergySolver_GoalLeaning(EnergySolver):
 
 
 class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
-    """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
-       by heuristics that make the strategies more useful for control. The main
-       goal of this class is to create strategies that go to targets quickly.
+    """Solver that disregards unlikely outcomes.
 
-       In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
-       for computing (positive) reachability. The first fixpoint ignores actions
-       that would lead towards the target with probability below the given
-       treshold.
+    In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
+    for computing (positive) reachability. The first fixpoint ignores actions
+    that would lead towards the target with probability below the given
+    treshold. The other fixpoint is run with threshold=0 to cover the cases
+    where the below-threshold outcomes only would lead to higher initial
+    loads.
 
-       Parameters
-       ==========
-       treshold: (float) a probability treshold. Actions below this treshold
-                 will be ignored as much as we can.
+    Parameters
+    ==========
+     * mdp: `ConsMDP` object
+     * cap: `int`; energy capacity for given objective
+     * targets: `iterable`; states of `mdp` that are targets for the objectives.
+     * compute_strategy: `bool`; if False, don't compute the strategy.
+    * treshold: (float) a probability treshold. Actions below this treshold
+              will be ignored as much as we can. MUST BE GIVEN as keyword argument
     """
 
     def __init__(self, *args, **kwargs):
