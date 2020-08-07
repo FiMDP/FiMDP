@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from fimdp import consMDP
 from math import inf
-from fimdp.energy_solver import EnergySolver, EnergyLevels_least
+from fimdp.energy_solver import BasicES, LeastFixpointES
 from sys import stderr
 
 # ## Simple example
@@ -29,7 +29,7 @@ m.add_action(0, {0:1}, "r", 0)
 m.add_action(9, {9:1}, "r", 0)
 m.add_action(11, {11:1}, "a", 1)
 
-MI = EnergySolver(m)
+MI = BasicES(m)
 m.energy_levels = MI
 # -
 
@@ -37,10 +37,10 @@ result   = MI.get_minInitCons()
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, 5, 1, 1]
 m.show()
 
-assert result == expected, ("EnergySolver.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 1 for EnergySolver.get_minInitCons() in test_safety file.")
+print("Passed test 1 for BasicES.get_minInitCons() in test_safety file.")
 
 # If state 11 is not a reload state, we cannot reach reload from 10 for sure.
 
@@ -53,12 +53,12 @@ m.energy_levels = MI
 m.show()
 # -
 
-assert result == expected, ("EnergySolver.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 2 for EnergySolver.get_minInitCons() in test_safety file.")
+print("Passed test 2 for BasicES.get_minInitCons() in test_safety file.")
 
-# ### Test EnergySolver with capacity
+# ### Test BasicES with capacity
 
 MI.cap=14
 result = MI.get_minInitCons(recompute=True)
@@ -69,12 +69,12 @@ m.show()
 assert result == result2, ("result and result2 should be the same\n" +
     f"  result  : {result}\n" +
     f"  result2 : {result2}\n")
-print("Passed test 3 for EnergySolver.get_minInitCons() in test_safety file.")
+print("Passed test 3 for BasicES.get_minInitCons() in test_safety file.")
 
-assert result == expected, ("EnergySolver.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 4 for EnergySolver.get_minInitCons() in test_safety file.")
+print("Passed test 4 for BasicES.get_minInitCons() in test_safety file.")
 
 # Decreasing capacity should "kill" state 6
 
@@ -82,10 +82,10 @@ result = m.get_minInitCons(capacity=13)
 expected = [0, 3, 2, 1, 3, 9, inf, 1, 1, 0, inf, inf, 1]
 m.show()
 
-assert result == expected, ("EnergySolver get_minInitCons() returns" +
+assert result == expected, ("BasicES get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 5 for EnergySolver.get_minInitCons() in test_safety file.")
+print("Passed test 5 for BasicES.get_minInitCons() in test_safety file.")
 
 # ## Test safe reloads
 # Reloads should have red 0, otherwise the red and orange should be the same in this case.
@@ -100,7 +100,7 @@ print("Passed test 1 for get_safe() in test_safety file.")
 
 # ### version with LeastFixpoint
 
-m.energy_levels = EnergyLevels_least(m, 14)
+m.energy_levels = LeastFixpointES(m, 14)
 result = m.get_safe(14)
 m.show()
 
@@ -126,11 +126,11 @@ assert result == expected, ("Safe reloads are wrong.\n" +
 print("Passed test 3 for get_safe() in test_safety file.")
 
 # Test the version with LeastFixpoint
-m.energy_levels = EnergyLevels_least(m, 14)
+m.energy_levels = LeastFixpointES(m, 14)
 result = m.get_safe(14)
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 1 for EnergyLevels_least() in test_safety file.")
+print("Passed test 1 for LeastFixpointES() in test_safety file.")
 
 # ## Reload that is never safe
 # safe_values = ∞ even with cap = ∞, which is different from minInitCons (orange)
@@ -155,7 +155,7 @@ assert result == expected, ("Safe reloads are wrong.\n" +
 print("Passed test 4 for get_safe() in test_safety file.")
 
 # Test the version with LeastFixpoint
-m.energy_levels = EnergyLevels_least(m)
+m.energy_levels = LeastFixpointES(m)
 result = m.get_safe()
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
@@ -187,17 +187,17 @@ m.add_action(0, {0:1}, "", 0)
 m.add_action(1, {0:1}, "a", 1000)
 m.add_action(1, {2:1}, "b", 1)
 m.add_action(2, {1:1}, "b", 1)
-MI = EnergySolver(m)
+MI = BasicES(m)
 m.energy_levels = MI
 
 result = MI.get_minInitCons()
 expected = [0,1000,1001]
 m.show()
 
-assert result == expected, ("EnergySolver.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_minInitCons() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 6 for EnergySolver.get_minInitCons() in test_safety file.")
+print("Passed test 6 for BasicES.get_minInitCons() in test_safety file.")
 
 # # Example of the incorrectness of bounding SafeReloads by $|S|$ iterations
 # The original idea that we can bound the number of iterations by $|S|$ is incorrect. The following example used to give value 1 for state 2.
@@ -226,7 +226,7 @@ assert result == expected, ("EnergyLevels.get_safe() returns" +
 print("Passed test 7 for get_safe() in test_safety file.")
 
 # Test the version with LeastFixpoint
-m.energy_levels = EnergyLevels_least(m, 1005)
+m.energy_levels = LeastFixpointES(m, 1005)
 result = m.get_safe()
 m.show()
 

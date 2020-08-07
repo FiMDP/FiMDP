@@ -26,7 +26,7 @@ env = Env(grid_size, agent_velocity, heading_sd, agent_capacity, weakaction_cost
 m, targets = env.create_consmdp()
 
 
-s = EnergySolver(m, cap=agent_capacity, targets=targets)
+s = BasicES(m, cap=agent_capacity, targets=targets)
 strategy = s.get_strategy(AS_REACH, recompute=True)
 
 

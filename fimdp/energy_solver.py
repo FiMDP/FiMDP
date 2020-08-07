@@ -33,7 +33,7 @@ HELPER = 5
 OBJ_COUNT = 6
 
 
-class EnergySolver:
+class BasicES:
     """Solve qualitative objectives for Consumption MDPs.
 
     This implements the algorithms as described in the paper
@@ -602,10 +602,10 @@ class EnergySolver:
         return self.strategy[objective]
 
 
-class EnergySolver_GoalLeaning(EnergySolver):
+class GoalLeaningES(BasicES):
     """Solver that prefers actions leading to target with higher probability.
 
-    This class extends `EnergySolver` (implementation of CAV'2020 algorithms)
+    This class extends `BasicES` (implementation of CAV'2020 algorithms)
     by a heuristic that make the strategies more useful for control. The main
     goal of this class is to create strategies that go to targets quickly.
 
@@ -720,15 +720,14 @@ class EnergySolver_GoalLeaning(EnergySolver):
             self.threshold = threshold
 
 
-class EnergyLevels_least(EnergySolver):
-    """Variant of EnergyLevels class that uses (almost)
-        least fixpoint to compute Safe values.
+class LeastFixpointES(BasicES):
+    """Solver that uses (almost) least fixpoint to compute Safe values.
 
-        The worst case number of iterations is c_max * ``|S|``
-        and thus the worst case complexity is ``c_max * |S|^2``
-        steps. The worst case complexity of the largest
-        fixpoint version is ``|S|``^2 iterations and thus
-        ``|S|``^3 steps.
+    The worst case number of iterations is c_max * ``|S|``
+    and thus the worst case complexity is ``c_max * |S|^2``
+    steps. The worst case complexity of the largest
+    fixpoint version is ``|S|``^2 iterations and thus
+    ``|S|``^3 steps.
     """
 
     def get_safe(self, recompute=False):
