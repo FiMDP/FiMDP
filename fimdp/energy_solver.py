@@ -609,89 +609,18 @@ class EnergySolver:
 class EnergySolver_GoalLeaning(EnergySolver):
     """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
     by heuristics that make the strategies more useful for control. The main
-    goal of this class is to create strategies that go to targets quickly."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.argmin = pick_best_action
-
-    def _action_value_T(self, a, values, survival_val=None):
-        """Compute value of action with preference and survival. It also returns
-        the probability with which the action can lead to the picked successor.
-        Among successors with the same value pick the largest probability.
-
-        The value picks a preferred target `t` that it wants to reach;
-        considers `values` for `t` and `survival` for the other successors.
-        Chooses the best (minimum) among possible `t` from `a.succs`.
-
-        The value is cost of the action plus minimum of `v(t)` over
-        t ∈ a.succs where `v(t)` is:
-        ```
-        max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
-        ```
-        where survival is given by `survival_val` vector. It's
-        `self.safe_values` as default.
-
-        Parameters
-        ==========
-        `a` : action_data, action for which the value is computed.
-        `values` = vector with current values.
-        `survival_val` = Function: `state` -> `value` interpreted as "what is
-                         the level of energy I need to have in order to survive
-                         if I reach `state`". Returns `self.safe_values[state]`
-                         by default.
-
-        Returns
-        =======
-        `(action_value, prob)` where `action_value` is the value of the action
-                        and `prob` is the probability that the action would
-                        go to the picked successor that enables this value.
-        """
-        if survival_val is None:
-            survival_val = lambda s: self.safe_values[s]
-
-        # Initialization
-        candidate = inf
-        prob = 0
-        succs = a.distr.keys()
-
-        for t in succs:
-            # Compute value for t
-            survivals = [survival_val(s) for s in succs if s != t]
-            current_v = values[t]
-            t_v = max([current_v] + survivals)
-            t_p = a.distr[t]
-
-            # Choose minimum
-            if t_v < candidate or (t_v == candidate and t_p > prob):
-                candidate = t_v
-                prob = t_p
-            #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
-        return candidate + a.cons, prob
-
-
-class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
-    """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
-       by heuristics that make the strategies more useful for control. The main
-       goal of this class is to create strategies that go to targets quickly.
-
-       In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
-       for computing (positive) reachability. The first fixpoint ignores actions
-       that would lead towards the target with probability below the given
-       treshold.
-
-       Parameters
-       ==========
-       treshold: (float) a probability treshold. Actions below this treshold
-                 will be ignored as much as we can.
+    goal of this class is to create strategies that go to targets quickly.
     """
 
     def __init__(self, *args, **kwargs):
-        threshold = kwargs.pop("threshold")
         super().__init__(*args, **kwargs)
-        self.threshold = threshold
         self.argmin = pick_best_action
-        self.largest_fixpoint = self.double_fixpoint
+
+        # This allows to use threshold-aware action_value_T
+        # Do not modify, the results might give un-optimal results. The
+        # results will be correct, but would never allow to use actions
+        # with success likelihood below the threshold
+        self.threshold = 0
 
     def _action_value_T(self, a, values, survival_val=None, threshold=None):
         """Compute value of action with preference and survival.
@@ -755,12 +684,36 @@ class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
             # print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons, prob
 
-    def _action_value_T_thresh(self, a, values, survival_val=None):
-        return self._action_value_T(a, values, survival_val, self.threshold)
+
+class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
+    """This class extends `EnergeSolver` (implementation of CAV'2020 algorithms)
+       by heuristics that make the strategies more useful for control. The main
+       goal of this class is to create strategies that go to targets quickly.
+
+       In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
+       for computing (positive) reachability. The first fixpoint ignores actions
+       that would lead towards the target with probability below the given
+       treshold.
+
+       Parameters
+       ==========
+       treshold: (float) a probability treshold. Actions below this treshold
+                 will be ignored as much as we can.
+    """
+
+    def __init__(self, *args, **kwargs):
+        threshold = kwargs.pop("threshold")
+        super().__init__(*args, **kwargs)
+        self.threshold = threshold
+        self.argmin = pick_best_action
+        self.largest_fixpoint = self.double_fixpoint
 
     def double_fixpoint(self, *args, **kwargs):
+        # First fixpoint using threshold
         largest_fixpoint(*args, **kwargs)
-        threshold = self.threshold
+
+        # Second fixpoint without threshold
+        threshold = self.threshold # remember original value
         self.threshold = 0
         largest_fixpoint(*args, **kwargs)
         self.threshold = threshold
