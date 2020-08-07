@@ -243,8 +243,7 @@ class ConsMDP:
 
     def get_minInitCons(self,
                         capacity=None,
-                        recompute=False,
-                        compute_strategy=True):
+                        recompute=False):
         """Return (and store) the energy levels needed to reach some
         target within > 0 steps.
         

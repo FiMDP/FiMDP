@@ -47,7 +47,7 @@ class EnergySolver:
      * compute_strategy: `bool`; if False, don't compute the strategy.
     """
 
-    def __init__(self, mdp, cap=inf, targets=None, compute_strategy=True):
+    def __init__(self, mdp, cap=inf, targets=None):
         # cap has to be defined
         if cap is None:
             cap = inf
@@ -71,13 +71,9 @@ class EnergySolver:
         # reloads
         self.is_reload  = lambda x: self.mdp.is_reload(x)
 
-        self.compute_strategy = compute_strategy
-        if compute_strategy:
-            self.strategy = {}
-        else:
-            self.strategy = None
+        self.strategy = {}
 
-        # HOOKS
+	# HOOKS
         # Hooks that enable creation of heuristic-based child classes.
         # IMPORTANT: these are only used in reachability objectives,
         # not safety.
@@ -85,7 +81,6 @@ class EnergySolver:
         # Initialization of argmin function for fixpoint computations.
         self.argmin = argmin
         self.largest_fixpoint = largest_fixpoint
-
 
     ### Helper functions ###
     # * reload_capper     : [v]^cap
@@ -237,8 +232,7 @@ class EnergySolver:
         """
         if objective not in range(OBJ_COUNT):
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
-        if self.compute_strategy:
-            self.strategy[objective] = [{} for s in range(self.states)]
+        self.strategy[objective] = [{} for s in range(self.states)]
 
     def _copy_strategy(self, source, to, state_set=None):
         """Copy strategy for objective `source` to objective `to` for states in `states_set`
@@ -269,14 +263,9 @@ class EnergySolver:
 
         Returns function that should be passed to `largest_fixpoint` to
         update strategy for given objective.
-
-        If `self.compute_strategy` is `False`, return empty function.
         """
         if objective not in range(OBJ_COUNT):
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
-
-        if not self.compute_strategy:
-            return lambda s, v, a: None
 
         def update(s, v, a):
             self.strategy[objective][s][v] = a.label
@@ -334,8 +323,7 @@ class EnergySolver:
                          on_update=self._update_function(objective),
                          argmin=self.argmin)
 
-        if self.compute_strategy:
-            self._copy_strategy(SAFE, objective, self.targets)
+        self._copy_strategy(SAFE, objective, self.targets)
 
     def _compute_almost_sure_reachability(self):
         objective = AS_REACH
@@ -611,8 +599,6 @@ class EnergySolver:
         `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
         `recompute` : if `True` forces all computations to be done again
         """
-        recompute = recompute or not self.compute_strategy
-        self.compute_strategy = True
         self.get_minimal_levels(objective, recompute=recompute)
         return self.strategy[objective]
 
