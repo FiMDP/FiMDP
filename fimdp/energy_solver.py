@@ -72,7 +72,7 @@ class EnergySolver:
 
         self.strategy = {}
 
-	# HOOKS
+        # HOOKS
         # Hooks that enable creation of heuristic-based child classes.
         # IMPORTANT: these are only used in reachability objectives,
         # not safety.
@@ -619,17 +619,32 @@ class EnergySolver_GoalLeaning(EnergySolver):
         (value, probability of hitting good successor).
 
     See more technical description in docstring for _action_value_T.
+
+    If threshold is set to value > 0, then we also modify how fixpoint works:
+     3. Use 2-shot fixpoint computations for positive reachability; the first
+        run ignores successors that can be reached with probability < threshold.
+        The second fixpoint is run with threshold=0 to cover the cases where the
+        below-threshold outcomes only would lead to higher initial loads.
+
+    Parameters
+    ==========
+     * mdp: `ConsMDP` object
+     * cap: `int`; energy capacity for given objective
+     * targets: `iterable`; states of `mdp` that are targets for the objectives.
+     * threshold: `float`, default 0; a probability treshold.
+                  Successor less likely then `treshold` will be ignored
+                  in the first fixpoint.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, mdp, cap=inf, targets=None, threshold=0):
+        super().__init__(
+            mdp=mdp,
+            cap=cap,
+            targets=targets
+        )
+        self.threshold = threshold
         self.argmin = pick_best_action
-
-        # This allows to use threshold-aware action_value_T
-        # Do not modify, the results might give un-optimal results. The
-        # results will be correct, but would never allow to use actions
-        # with success likelihood below the threshold
-        self.threshold = 0
+        self.largest_fixpoint = self.double_fixpoint
 
     def _action_value_T(self, a, values, survival_val=None, threshold=None):
         """Compute value of action with preference and survival.
@@ -693,46 +708,16 @@ class EnergySolver_GoalLeaning(EnergySolver):
             # print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons, prob
 
-
-class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
-    """Solver that disregards unlikely outcomes.
-
-    In addition to `EnergySolver_GoalLeaning`, this class uses 2 fixpoints
-    for computing (positive) reachability. The first fixpoint ignores actions
-    that would lead towards the target with probability below the given
-    treshold. The other fixpoint is run with threshold=0 to cover the cases
-    where the below-threshold outcomes only would lead to higher initial
-    loads.
-
-    Parameters
-    ==========
-     * mdp: `ConsMDP` object
-     * cap: `int`; energy capacity for given objective
-     * targets: `iterable`; states of `mdp` that are targets for the objectives.
-     * threshold: (float) a probability treshold.
-                  Successor less likely then `treshold` will be ignored
-                  in the first fixpoint.
-    """
-
-    def __init__(self, mdp, cap=inf, targets=None, threshold=0):
-        super().__init__(
-            mdp=mdp,
-            cap=cap,
-            targets=targets
-        )
-        self.threshold = threshold
-        self.argmin = pick_best_action
-        self.largest_fixpoint = self.double_fixpoint
-
     def double_fixpoint(self, *args, **kwargs):
         # First fixpoint using threshold
         largest_fixpoint(*args, **kwargs)
 
-        # Second fixpoint without threshold
-        threshold = self.threshold # remember original value
-        self.threshold = 0
-        largest_fixpoint(*args, **kwargs)
-        self.threshold = threshold
+        # Second fixpoint with threshold=0
+        if self.threshold > 0:
+            threshold = self.threshold # remember original value
+            self.threshold = 0
+            largest_fixpoint(*args, **kwargs)
+            self.threshold = threshold
 
 
 class EnergyLevels_least(EnergySolver):
