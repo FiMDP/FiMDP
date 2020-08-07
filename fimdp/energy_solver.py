@@ -13,7 +13,7 @@ The results of a solver for an objective `o` are twofolds:
  1. For each state `s` we provide value `o[s]` which is the minimal initial
     load of energy needed to satisfy the objective `o` from `s`.
  2. Corresponding strategy that, given at least `o[s]` in `s` guarantees that
-    `o` is satisfied. [setting `compute_strategy=False disables this]
+    `o` is satisfied.
 
 The computed values `o[s]` from 1. can be visualized in the `mdp` object by
 setting `mdp.EL=solver` and then calling `mdp.show()`.
@@ -44,7 +44,6 @@ class EnergySolver:
      * mdp: `ConsMDP` object
      * cap: `int`; energy capacity for given objective
      * targets: `iterable`; states of `mdp` that are targets for the objectives.
-     * compute_strategy: `bool`; if False, don't compute the strategy.
     """
 
     def __init__(self, mdp, cap=inf, targets=None):
@@ -710,14 +709,17 @@ class EnergySolver_ThresholdGoalLeaning(EnergySolver_GoalLeaning):
      * mdp: `ConsMDP` object
      * cap: `int`; energy capacity for given objective
      * targets: `iterable`; states of `mdp` that are targets for the objectives.
-     * compute_strategy: `bool`; if False, don't compute the strategy.
-    * treshold: (float) a probability treshold. Actions below this treshold
-              will be ignored as much as we can. MUST BE GIVEN as keyword argument
+     * threshold: (float) a probability treshold.
+                  Successor less likely then `treshold` will be ignored
+                  in the first fixpoint.
     """
 
-    def __init__(self, *args, **kwargs):
-        threshold = kwargs.pop("threshold")
-        super().__init__(*args, **kwargs)
+    def __init__(self, mdp, cap=inf, targets=None, threshold=0):
+        super().__init__(
+            mdp=mdp,
+            cap=cap,
+            targets=targets
+        )
         self.threshold = threshold
         self.argmin = pick_best_action
         self.largest_fixpoint = self.double_fixpoint
