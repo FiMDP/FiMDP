@@ -1,0 +1,14 @@
+\begin{scope}[thick, every node/.style={state}]
+\node[] (s0) at (0,0) {0};
+\node[] (s1) at (2,-1.5) {rel};
+\node[] (s2) at (2,1.5) {2};
+\node[accepting] (s3) at (4, 0) {rel};
+\end{scope}
+
+\path[->,thick]
+(s0.-20) edge[gray] node[above, pos=.8]{0.01} (s3.200)
+(s0.-20) edge[bend left] node[right, pos=.7, outer sep=2pt] {0.99} (s1)
+(s1) edge[bend left] (s0)
+(s0) edge (s2)
+(s2) edge (s3)
+;

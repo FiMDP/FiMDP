@@ -3,11 +3,7 @@ Find minimal capacity needed for given starting location
 and target location.
 """
 
-from .energy_solver import BUCHI, AS_REACH, EnergySolver #EnergySolver_ThresholdGoalLeaning
-
-
-#threshold_solver = lambda cmdp, cap, target: EnergySolver_ThresholdGoalLeaning(cmdp, cap, target, threshold=0.2)
-
+from .energy_solver import BUCHI, AS_REACH, BasicES
 
 def bin_search(mdp, init_loc, target_locs,
                starting_capacity=100,
@@ -44,7 +40,7 @@ def bin_search(mdp, init_loc, target_locs,
 
     while low < high:
         current_cap = (high + low) // 2
-        solver = EnergySolver(mdp, current_cap, target_locs)
+        solver = BasicES(mdp, current_cap, target_locs)
         # Get the results
         if objective == BUCHI:
             result = solver.get_Buchi()

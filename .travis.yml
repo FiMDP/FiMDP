@@ -6,9 +6,11 @@ addons:
   apt:
     packages:
       - graphviz
+      - ffmpeg
 
 # command to install dependencies
 install:
+  - pip3 install jupyter matplotlib ipympl fimdpenv
   - pip3 install -e .
 
 # command to run tests
@@ -19,3 +21,4 @@ script:
   - python ./tests/test_reachability.py
   - python ./tests/test_safety.py
   - python ./tests/test_strategy.py
+  - python ./tut/StrategyTypes.py

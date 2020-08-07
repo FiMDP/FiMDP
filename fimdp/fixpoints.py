@@ -25,10 +25,29 @@ def argmin(iterable, func):
     return res_item, res_val
 
 
+def pick_best_action(actions_iterable, func):
+    """Compositional argmin and argmax.
+
+    Given `func` of type `action → value × prob`, choose action
+    that achieves the lowest `value` with the highest probability
+    over actions with the same value. Which is, choose action
+    with the lowest d=(`value`, 1-`prob`) using lexicographic
+    order.
+    """
+    res_item, res_val, res_prob = None, inf, 0
+    for item in actions_iterable:
+        val, prob = func(item)
+        if val < res_val or (val == res_val and prob > res_prob):
+            res_item, res_val, res_prob = item, val, prob
+
+    return res_item, res_val
+
+
 def largest_fixpoint(mdp, values, action_value,
                      value_adj=lambda s, v: v,
                      skip_state=lambda x: False,
-                     on_update=lambda s, v, a: None):
+                     on_update=lambda s, v, a: None,
+                     argmin=argmin):
     """Largest fixpoint on list of values indexed by states.
     
     Most of the computations of energy levels are, in the end,
@@ -60,6 +79,8 @@ def largest_fixpoint(mdp, values, action_value,
        - skip_state : `state -> Bool` (default `lambda x: False`)
                       If True, stave will be skipped and its value
                       not changed.
+
+       - argmin : function that chooses which action to pick
 
      * on_upadate : function called when new value for state is found.
                     Arguments are: state × value × action
