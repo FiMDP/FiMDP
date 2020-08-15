@@ -27,12 +27,12 @@
 # [FiMDP]: https://github.com/xblahoud/FiMDP
 # [FiMDPEnv]: https://github.com/pthangeda/FiMDPEnv
 
-from matplotlib import animation, rc
-rc('animation', html='jshtml')
-from fimdpenv import UUVEnv
+import fimdpenv
+fimdpenv.setup()
 from env import create_env
 
 e = create_env('2R-1T-simple', heading_sd=0.32, agent_capacity=40)
+e.create_consmdp()
 e
 
 # The colors of the gridworld cells have the following semantics:
@@ -50,19 +50,21 @@ import fimdp
 
 def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
-    m, t = gw.create_consmdp()
+    gw.create_consmdp()
+    m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
     return gw.animate_strategy(strategy, num_steps=steps)
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
-    m, t = gw.create_consmdp()
+    gw.create_consmdp()
+    m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
     return strategy[state]
 
-reload = e.create_consmdp()[0].reloads.index(True)
+reload = e.consmdp.reloads.index(True)
 # -
 
 # ## Basic solver
@@ -126,7 +128,7 @@ strategy_at(threshold_class, problematic, capacity=35)
 
 # In this section, we show that the new solvers are actually improving the Basic solver while maintaining the same minimal energy levels needed to fulfill the objectives. These values can be obtained by calling the `get_Buchi` on the solvers.
 
-m, t = e.create_consmdp()
+m, t = e.get_consmdp()
 basic = BasicES(m, cap=35, targets=t)
 goal = GoalLeaningES(m, cap=35, targets=t)
 threshold = GoalLeaningES(m, cap=35, targets=t, threshold=0.1)
