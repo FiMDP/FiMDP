@@ -32,7 +32,6 @@ fimdpenv.setup()
 from env import create_env
 
 e = create_env('2R-1T-simple', heading_sd=0.32, agent_capacity=40)
-e.create_consmdp()
 e
 
 # The colors of the gridworld cells have the following semantics:
@@ -50,7 +49,6 @@ import fimdp
 
 def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
-    gw.create_consmdp()
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
@@ -58,13 +56,12 @@ def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
-    gw.create_consmdp()
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
     return strategy[state]
 
-reload = e.consmdp.reloads.index(True)
+
 # -
 
 # ## Basic solver
@@ -80,6 +77,7 @@ showcase_solver(BasicES, capacity=40)
 
 # While the generated strategy guarantees that the agent eventually reaches the target with probability 1, it might take an enourmous number of steps before it really happens. As the basic solver does ignore probabilities of action-outcomes complete, all actions with `WEST` as a possible outcome to `WEST` are equally good. The order of actions processed by the algorithm starts with `NORTH`, and thus `NORTH` is often chosen instead of `EAST`. But the agent only moves to `EAST` on rare events.
 
+reload = e.consmdp.reloads.index(True)
 strategy_at(BasicES, reload, capacity=40)
 
 # Above, we can see that for all values of energy, the strategy chooses action labeled `[45, 0]` in the reload state. The `45` is the id of the reload state, and `0` stands for `NORTH`.
