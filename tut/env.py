@@ -58,11 +58,11 @@ def create_env(env_name, agent_capacity=200, heading_sd=0.524, reload_input=None
         raise Exception("No configuration with that name. Please check the name again")
 
     if reload_input is None:
-        env = UUVEnv.Env(grid_size, agent_capacity, 
+        env = UUVEnv.SingleAgentEnv(grid_size, agent_capacity, 
                   reload_list, target_list,
                   init_state=init_state,
                   heading_sd=heading_sd
                   )
     else:
-        env = UUVEnv.Env(grid_size, agent_capacity, reload_input, target_list, init_state=init_state, heading_sd=heading_sd)
+        env = UUVEnv.SingelAgentEnv(grid_size, agent_capacity, reload_input, target_list, init_state=init_state, heading_sd=heading_sd)
     return env
