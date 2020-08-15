@@ -8,8 +8,7 @@
 Full overview of the tool, installation options, documentation, and interactive examples:
 [FiMDP readthedocs](https://fimdp.readthedocs.io/).
 
-**Citation Info**: This work has been accepted to the 32nd International Conference on Computer-Aided Verification ([CAV 2020](http://i-cav.org/2020/)) scheduled to take place
-July 19-24, 2020. Citation info will be updated once the conference proceedings are available online. 
+**Citation Info**: Blahoudek F., Brázdil T., Novotný P., Ornik M., Thangeda P., Topcu U. (2020) Qualitative Controller Synthesis for Consumption Markov Decision Processes. In: Lahiri S., Wang C. (eds) Computer Aided Verification. CAV 2020. Lecture Notes in Computer Science, vol 12225. Springer, Cham. https://doi.org/10.1007/978-3-030-53291-8_22 
 
 
 ## Overview
