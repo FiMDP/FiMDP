@@ -4,10 +4,12 @@ from fimdp.energy_solver import *
 
 m, T = ultimate()
 solver = EnergySolver(m, 30, T)
+m.energy_levels = solver # for visualization
 safe = solver.get_strategy(SAFE)
 pr = solver.get_strategy(POS_REACH)
 asr = solver.get_strategy(AS_REACH)
 buchi = solver.get_strategy(BUCHI)
+m.show()
 
 safe_expected = [
     {2: 'a'},
