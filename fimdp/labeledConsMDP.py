@@ -1,7 +1,7 @@
-from copy import deepcopy
+from consMDP import ConsMDP
+from products import product_dba
 
-from .consMDP import ConsMDP
-from .products import product_dba
+from copy import deepcopy
 
 
 class LCMDP(ConsMDP):

@@ -1,7 +1,7 @@
 import spot
 import buddy
 
-from .consMDP import ConsMDP
+from consMDP import ConsMDP
 
 
 def product_dba(lmdp, aut, init_states=None):

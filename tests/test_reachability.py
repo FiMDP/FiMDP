@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from fimdp.consMDP import ConsMDP
+from fimdp import consMDP
+from consMDP import ConsMDP
 from math import inf
 from reachability_examples import basic, little_alsure, little_alsure2
 
@@ -55,7 +56,7 @@ print("Passed test 2 for get_positive_reachability() in test_reachability file."
 
 ## kuchera_example
 
-m = ConsMDP()
+m = consMDP.ConsMDP()
 m.new_states(13)
 for sid in [0,3,4,9,11]:
     m.set_reload(sid)
