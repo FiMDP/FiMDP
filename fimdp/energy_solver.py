@@ -1,10 +1,27 @@
-"""
-Core module defining the two variants of solvers for computing the safe vector.
+"""Module with energy-aware qualitative solvers for Consumption MDPs
+
+Currently, the supported objectives are:
+ * minInitCons: reaching a reload state within >0 steps
+ * safe       : survive from `s` forever
+ * positiveReachability(T)  : survive and the probability of reaching
+         some target from T is positive (>0)
+ * almostSureReachability(T): survive and the probability of reaching
+         some target from T is 1
+ * Büchi(T) : survive and keep visiting T forever (with prob. 1).
+
+The results of a solver for an objective `o` are twofolds:
+ 1. For each state `s` we provide value `o[s]` which is the minimal initial
+    load of energy needed to satisfy the objective `o` from `s`.
+ 2. Corresponding strategy that, given at least `o[s]` in `s` guarantees that
+    `o` is satisfied.
+
+The computed values `o[s]` from 1. can be visualized in the `mdp` object by
+setting `mdp.EL=solver` and then calling `mdp.show()`.
 """
 
 from math import inf
 
-from .fixpoints import largest_fixpoint, least_fixpoint
+from .fixpoints import largest_fixpoint, least_fixpoint, argmin, pick_best_action
 
 # objectives
 MIN_INIT_CONS = 0
@@ -16,22 +33,17 @@ HELPER = 5
 OBJ_COUNT = 6
 
 
-class EnergySolver:
-    """Compute minimum levels of energy needed to fulfill objectives
-    with given capacity (and target set).
+class BasicES:
+    """Solve qualitative objectives for Consumption MDPs.
 
-    For each objective `o` and each state `s`, compute a value `o[s]
-    which guaranteed that there exists a strategy with fiven capacity
-    that fulfills `o` from `s` and it needs `o[s]` to start with in `s`.
-    
-    Currently, the supported objectives are:
-     * minInitCons: reaching a reload state within >0 steps
-     * safe       : survive from `s` forever
-     * positiveReachability(T)  : survive and the probability of reaching
-             some target from T is positive (>0)
-     * almostSureReachability(T): survive and the probability of reaching
-             some target from T is 1
-     * Büchi(T) : survive and keep visiting T forever (with prob. 1).
+    This implements the algorithms as described in the paper
+    Qualitative Controller Synthesis for Consumption Markov Decision Processes
+
+    Parameters
+    ==========
+     * mdp: `ConsMDP` object
+     * cap: `int`; energy capacity for given objective
+     * targets: `iterable`; states of `mdp` that are targets for the objectives.
     """
 
     def __init__(self, mdp, cap=inf, targets=None):
@@ -59,6 +71,15 @@ class EnergySolver:
         self.is_reload  = lambda x: self.mdp.is_reload(x)
 
         self.strategy = {}
+
+        # HOOKS
+        # Hooks that enable creation of heuristic-based child classes.
+        # IMPORTANT: these are only used in reachability objectives,
+        # not safety.
+        #
+        # Initialization of argmin function for fixpoint computations.
+        self.argmin = argmin
+        self.largest_fixpoint = largest_fixpoint
 
     ### Helper functions ###
     # * reload_capper     : [v]^cap
@@ -293,12 +314,13 @@ class EnergySolver:
         for t in self.targets:
             self.pos_reach_values[t] = self.safe_values[t]
 
-        largest_fixpoint(self.mdp, self.pos_reach_values,
+        self.largest_fixpoint(self.mdp, self.pos_reach_values,
                          self._action_value_T,
                          value_adj=self._reload_capper,
                          # Target states are always safe_values[t]
                          skip_state=lambda x: x in self.targets,
-                         on_update=self._update_function(objective))
+                         on_update=self._update_function(objective),
+                         argmin=self.argmin)
 
         self._copy_strategy(SAFE, objective, self.targets)
 
@@ -335,7 +357,7 @@ class EnergySolver:
             ### 2.1.3 Compute PosReach on sub-MDP
             # Mitigate reload removal (use Safe_M for survival)
             rem_survival_val = lambda s: self.reach_safe[s]
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+            rem_action_value = lambda a, v: self._action_value_T(a, v, survival_val=rem_survival_val)
 
             # Avoid unnecesarry computations
             is_removed = lambda x: x in removed  # always ∞
@@ -343,11 +365,12 @@ class EnergySolver:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            largest_fixpoint(self.mdp, self.alsure_values,
+            self.largest_fixpoint(self.mdp, self.alsure_values,
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
-                             on_update=self._update_function(objective))
+                             on_update=self._update_function(objective),
+                             argmin=self.argmin)
 
             ### 2.2. & 2.3. Detect bad reloads and remove them
             done = True
@@ -388,7 +411,7 @@ class EnergySolver:
             # Use Safe_m (stored in buchi_safe) as value needed for survival
             rem_survival_val = lambda s: self.buchi_safe[s]
             # Navigate towards T and survive with Safe_m
-            rem_action_value = lambda a, v: self._action_value_T(a, v, rem_survival_val)
+            rem_action_value = lambda a, v: self._action_value_T(a, v, survival_val=rem_survival_val)
 
             ## Avoid unnecessary computations
             is_removed = lambda x: x in removed  # always ∞
@@ -396,11 +419,12 @@ class EnergySolver:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            largest_fixpoint(self.mdp, self.buchi_values,
+            self.largest_fixpoint(self.mdp, self.buchi_values,
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
-                             on_update=self._update_function(objective))
+                             on_update=self._update_function(objective),
+                             argmin=self.argmin)
 
             ### 2. & 3. Detect bad reloads and remove them
             done = True
@@ -578,15 +602,132 @@ class EnergySolver:
         return self.strategy[objective]
 
 
-class EnergyLevels_least(EnergySolver):
-    """Variant of EnergyLevels class that uses (almost)
-        least fixpoint to compute Safe values.
+class GoalLeaningES(BasicES):
+    """Solver that prefers actions leading to target with higher probability.
 
-        The worst case number of iterations is c_max * ``|S|``
-        and thus the worst case complexity is ``c_max * |S|^2``
-        steps. The worst case complexity of the largest
-        fixpoint version is ``|S|``^2 iterations and thus
-        ``|S|``^3 steps.
+    This class extends `BasicES` (implementation of CAV'2020 algorithms)
+    by a heuristic that make the strategies more useful for control. The main
+    goal of this class is to create strategies that go to targets quickly.
+
+    The solver modifies only the computation of positive reachability computation.
+
+    Among action that achieves the minimal _action_value_T, choose the one with
+    the highest probability of hitting the picked successor. The modification is
+    twofold:
+     1. redefine _action_value_T
+     2. instead of classical argmin, use pick_best_action that works on tuples
+        (value, probability of hitting good successor).
+
+    See more technical description in docstring for _action_value_T.
+
+    If threshold is set to value > 0, then we also modify how fixpoint works:
+     3. Use 2-shot fixpoint computations for positive reachability; the first
+        run ignores successors that can be reached with probability < threshold.
+        The second fixpoint is run with threshold=0 to cover the cases where the
+        below-threshold outcomes only would lead to higher initial loads.
+
+    Parameters
+    ==========
+     * mdp: `ConsMDP` object
+     * cap: `int`; energy capacity for given objective
+     * targets: `iterable`; states of `mdp` that are targets for the objectives.
+     * threshold: `float`, default 0; a probability treshold.
+                  Successor less likely then `treshold` will be ignored
+                  in the first fixpoint.
+    """
+
+    def __init__(self, mdp, cap=inf, targets=None, threshold=0):
+        super().__init__(
+            mdp=mdp,
+            cap=cap,
+            targets=targets
+        )
+        self.threshold = threshold
+        self.argmin = pick_best_action
+        self.largest_fixpoint = self.double_fixpoint
+
+    def _action_value_T(self, a, values, survival_val=None, threshold=None):
+        """Compute value of action with preference and survival.
+
+        Return also the probability with which the action can lead to the
+        picked successor. Disregards successors whose probability of being
+        chosen is below the given threshold. Among successors with the same
+        value pick the largest probability.
+
+        The value picks a preferred target `t` that it wants to reach;
+        considers `values` for `t` and `survival` for the other successors.
+        Chooses the best (minimum) among possible `t` from `a.succs`.
+
+        The value is cost of the action plus minimum of `v(t)` over
+        t ∈ a.succs where `v(t)` is:
+        ```
+        max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
+        ```
+        where survival is given by `survival_val` vector. It's
+        `self.safe_values` as default.
+
+        Parameters
+        ==========
+        `a` : action_data, action for which the value is computed.
+        `values` = vector with current values.
+        `survival_val` = Function: `state` -> `value` interpreted as "what is
+                         the level of energy I need to have in order to survive
+                         if I reach `state`". Returns `self.safe_values[state]`
+                         by default.
+
+        Returns
+        =======
+        `(action_value, prob)` where `action_value` is the value of the action
+                        and `prob` is the probability that the action would
+                        go to the picked successor that enables this value.
+        """
+        if threshold is None:
+            threshold = self.threshold
+        if survival_val is None:
+            survival_val = lambda s: self.safe_values[s]
+
+        # Initialization
+        candidate = inf
+        prob = 0
+        succs = a.distr.keys()
+
+        for t in succs:
+            t_p = a.distr[t] # Likelihood of t being the outcome
+
+            if t_p < threshold:
+                continue
+            # Compute value for t
+            survivals = [survival_val(s) for s in succs if s != t]
+            current_v = values[t]
+            t_v = max([current_v] + survivals)
+
+            # Choose minimum
+            if t_v < candidate or (t_v == candidate and t_p > prob):
+                candidate = t_v
+                prob = t_p
+            # print(f"{a.src} -- {a.label} -> {t}:{t_v}")
+        return candidate + a.cons, prob
+
+    def double_fixpoint(self, *args, **kwargs):
+        # First fixpoint using threshold
+        largest_fixpoint(*args, **kwargs)
+
+        # Second fixpoint with threshold=0
+        if self.threshold > 0:
+            threshold = self.threshold # remember original value
+            self.threshold = 0
+            largest_fixpoint(*args, **kwargs)
+            self.threshold = threshold
+
+
+class LeastFixpointES(BasicES):
+    """Solver that uses (almost) least fixpoint to compute Safe values.
+
+    The worst case number of iterations is c_max * ``|S|``
+    and thus the worst case complexity is ``c_max * |S|^2``
+    steps. The worst case complexity of the largest
+    fixpoint version is ``|S|``^2 iterations and thus
+    ``|S|``^3 steps.
     """
 
     def get_safe(self, recompute=False):

@@ -7,7 +7,7 @@ import math
 from IPython.display import SVG
 
 from .dot import consMDP2dot, dot_to_svg
-from .energy_solver import EnergySolver, EnergyLevels_least
+from .energy_solver import BasicES
 
 def is_distribution(d):
 
@@ -48,15 +48,15 @@ class ConsMDP:
     The variant used by default in consMDP can be controlled by def_EL_class.
     Currently, the default is 
     ```
-    self.def_EL_class = EnergySolver
+    self.def_EL_class = BasicES
     ```
-    The other option is `EnergyLevels_least`.
+    The other option is `LeastFixpointES`.
     
     The running times between the 2 variants can vary a lot, it hugely
     depends on the MDP and its structure. See notebook 
     [Safe-variants](Safe-variants.ipynb) for more details and comparison.
     
-    Basically, EnergyLevels_least is faster on models where the maximal
+    Basically, LeastFixpointES is faster on models where the maximal
     consumption on an action is strictly smaller than the number of states,
     and the other way.
 
@@ -86,7 +86,7 @@ class ConsMDP:
         self.num_states = 0
 
         self.energy_levels = None
-        self.def_EL_class = EnergySolver
+        self.def_EL_class = BasicES
 
     def structure_change(self):
         """Reset `energy_levels` to None after structure change."""

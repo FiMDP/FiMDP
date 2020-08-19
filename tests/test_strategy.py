@@ -3,7 +3,7 @@ from reachability_examples import ultimate
 from fimdp.energy_solver import *
 
 m, T = ultimate()
-solver = EnergySolver(m, 30, T)
+solver = BasicES(m, 30, T)
 m.energy_levels = solver # for visualization
 safe = solver.get_strategy(SAFE)
 pr = solver.get_strategy(POS_REACH)
