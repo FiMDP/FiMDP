@@ -27,9 +27,8 @@
 # [FiMDP]: https://github.com/xblahoud/FiMDP
 # [FiMDPEnv]: https://github.com/pthangeda/FiMDPEnv
 
-from matplotlib import animation, rc
-rc('animation', html='jshtml')
-from fimdpenv import UUVEnv
+import fimdpenv
+fimdpenv.setup()
 from env import create_env
 
 e = create_env('2R-1T-simple', heading_sd=0.32, agent_capacity=40)
@@ -50,19 +49,19 @@ import fimdp
 
 def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
-    m, t = gw.create_consmdp()
+    m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
     return gw.animate_strategy(strategy, num_steps=steps)
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
-    m, t = gw.create_consmdp()
+    m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
     return strategy[state]
 
-reload = e.create_consmdp()[0].reloads.index(True)
+
 # -
 
 # ## Basic solver
@@ -78,6 +77,7 @@ showcase_solver(BasicES, capacity=40)
 
 # While the generated strategy guarantees that the agent eventually reaches the target with probability 1, it might take an enourmous number of steps before it really happens. As the basic solver does ignore probabilities of action-outcomes complete, all actions with `WEST` as a possible outcome to `WEST` are equally good. The order of actions processed by the algorithm starts with `NORTH`, and thus `NORTH` is often chosen instead of `EAST`. But the agent only moves to `EAST` on rare events.
 
+reload = e.consmdp.reloads.index(True)
 strategy_at(BasicES, reload, capacity=40)
 
 # Above, we can see that for all values of energy, the strategy chooses action labeled `[45, 0]` in the reload state. The `45` is the id of the reload state, and `0` stands for `NORTH`.
@@ -126,7 +126,7 @@ strategy_at(threshold_class, problematic, capacity=35)
 
 # In this section, we show that the new solvers are actually improving the Basic solver while maintaining the same minimal energy levels needed to fulfill the objectives. These values can be obtained by calling the `get_Buchi` on the solvers.
 
-m, t = e.create_consmdp()
+m, t = e.get_consmdp()
 basic = BasicES(m, cap=35, targets=t)
 goal = GoalLeaningES(m, cap=35, targets=t)
 threshold = GoalLeaningES(m, cap=35, targets=t, threshold=0.1)
