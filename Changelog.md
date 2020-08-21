@@ -25,9 +25,14 @@
      translation of lower bounds to intervals.
  
 ### Changed
- * BW. INCOMPATIBLE: The update function of energy solvers now stores pointer to the whole ActionData object instead of 
+
+#### Backward incompatible changes
+ * The update function of energy solvers now stores pointer to the whole ActionData object instead of
    just label. Add `.label` to every access to actions stored in the current representations
    of strategies.
+
+#### Backward compatible changes
+ * `EnergySolvers.get_strategy` returns `CounterSelector` objects instead of `list` of `dict`s
  * `ActionData.__repr__` now prints full information about the action (source state, consumption, label, and successor distribution).
 
 ## [1.0.2]

@@ -22,6 +22,7 @@ setting `mdp.EL=solver` and then calling `mdp.show()`.
 from math import inf
 
 from .fixpoints import largest_fixpoint, least_fixpoint, argmin, pick_best_action
+from .strategy import CounterSelector, SelectionRule
 
 # objectives
 MIN_INIT_CONS = 0
@@ -231,7 +232,7 @@ class BasicES:
         """
         if objective not in range(OBJ_COUNT):
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
-        self.strategy[objective] = [{} for s in range(self.states)]
+        self.strategy[objective] = CounterSelector(self.mdp)
 
     def _copy_strategy(self, source, to, state_set=None):
         """Copy strategy for objective `source` to objective `to` for states in `states_set`
@@ -252,10 +253,7 @@ class BasicES:
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {to} was given!")
 
         for s in state_set:
-            self.strategy[to][s] = self.strategy[source][s].copy()
-
-
-
+            self.strategy[to][s] = SelectionRule(self.strategy[source][s])
 
     def _update_function(self, objective):
         """Return update function for given objective.
@@ -266,8 +264,8 @@ class BasicES:
         if objective not in range(OBJ_COUNT):
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
 
-        def update(s, v, a):
-            self.strategy[objective][s][v] = a
+        def update(s, e, a):
+            self.strategy[objective][s][e] = a
 
         return update
 

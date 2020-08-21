@@ -89,7 +89,7 @@ assert len(selector) == m.num_states
 # +
 m.get_almostSureReachability(T)
 
-s = m.energy_levels.get_strategy(AS_REACH)
+s = list(m.energy_levels.get_strategy(AS_REACH))
 
 selector = CounterSelector(m, s)
 assert selector == s
@@ -228,8 +228,7 @@ from fimdp.strategy import CounterStrategy
 
 # +
 m.get_almostSureReachability(T, 30)
-values = m.energy_levels.get_strategy(AS_REACH)
-selector = CounterSelector(m, values)
+selector = m.energy_levels.get_strategy(AS_REACH)
 s = CounterStrategy(m, selector=selector,
                     capacity=30, 
                     init_energy=15, init_state=6)
@@ -263,18 +262,3 @@ try:
     assert False
 except NoFeasibleActionError:
     print("Passed test 2 for CounterStrategy in file strategy.py")
-
-
-
-m.get_Buchi(T, 30)
-m
-
-
-
-selector
-
-
-
-
-
-m.actions
