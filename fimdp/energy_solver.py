@@ -267,7 +267,7 @@ class BasicES:
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
 
         def update(s, v, a):
-            self.strategy[objective][s][v] = a.label
+            self.strategy[objective][s][v] = a
 
         return update
 

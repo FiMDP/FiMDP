@@ -9,6 +9,19 @@ safe = solver.get_strategy(SAFE)
 pr = solver.get_strategy(POS_REACH)
 asr = solver.get_strategy(AS_REACH)
 buchi = solver.get_strategy(BUCHI)
+
+
+def convert_actions_to_labels(selector):
+    for rules in selector:
+        for key in rules:
+            rules[key] = rules[key].label
+
+
+convert_actions_to_labels(safe)
+convert_actions_to_labels(pr)
+convert_actions_to_labels(asr)
+convert_actions_to_labels(buchi)
+
 m.show()
 
 safe_expected = [

@@ -9,6 +9,11 @@
    to run the notebook locally; it renders the animations correctly.
  * Binary search for detection of minimal capacity needed for a task (function `mincap.bin_search`).
  
+### Changed
+ * BW. INCOMPATIBLE: The update function of energy solvers now stores pointer to the whole ActionData object instead of 
+   just label. Add `.label` to every access to actions stored in the current representations
+   of strategies.
+
 ## [1.0.2]
 
 ### Added

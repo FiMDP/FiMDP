@@ -182,7 +182,7 @@ goal.get_strategy(BUCHI)
 
 threshold.get_strategy(BUCHI)
 
-result = threshold.get_strategy(BUCHI)[0]
+result = {k: v.label for k, v in threshold.get_strategy(BUCHI)[0].items()}
 expected = {2: 'long', 1: 'direct'}
 assert result == expected, ("The threshold strategy should return\n" +
                            f"{expected} in state 0.\n" +
@@ -235,7 +235,7 @@ goal = GoalLeaningES(gl, targets=T)
 
 print(basic.get_strategy(BUCHI), goal.get_strategy(BUCHI), sep="\n")
 
-result = goal.get_strategy(BUCHI)[0][0]
+result = goal.get_strategy(BUCHI)[0][0].label
 expected = 'bottom'
 assert result == expected, (
     f"The goal-leaning strategy should prefer the action `{expected}` " +
