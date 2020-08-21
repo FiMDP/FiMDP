@@ -8,11 +8,27 @@
    notebook for more details. Use nbviewer.jupyter.org/ for the rendered notebook if you don't want
    to run the notebook locally; it renders the animations correctly.
  * Binary search for detection of minimal capacity needed for a task (function `mincap.bin_search`).
+ * Support for full-featured strategies that resolve the next action to play based on the history. See `Strategy`
+   for the interface.
+     - `CounterStrategy` implements strategies with a limited memory. The class only
+     maintains the energy level of the play and can use it for the selection of next
+     actions. The class only implements the memory and relies on `selector` objects
+     to choose the next action. Any object implementing `select_action(state, energy)`
+     can be used as selector.
+     - `CounterSelector` is an enriched variant of what was called "strategy" in
+     versions up to 1.2. This is the class intended to be used by the
+     `CounterStrategy` instances.
+     - `SelectionRule` is a helper class that stores the selection rules for one
+     state. It is basically a `dict` enriched with `select_action` (and `update`)
+     function. The keys in this `dict` are lower bounds of intervals that are
+     mapped to the corresponding values. `select_action` takes care of the
+     translation of lower bounds to intervals.
  
 ### Changed
  * BW. INCOMPATIBLE: The update function of energy solvers now stores pointer to the whole ActionData object instead of 
    just label. Add `.label` to every access to actions stored in the current representations
    of strategies.
+ * `ActionData.__repr__` now prints full information about the action (source state, consumption, label, and successor distribution).
 
 ## [1.0.2]
 
