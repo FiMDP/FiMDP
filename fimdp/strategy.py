@@ -161,8 +161,9 @@ class CounterSelector(list):
                 self.append(SelectionRule())
         else:
             assert len(values) == num_states
-            for d in range(num_states):
-                self.append(SelectionRule(values[d]))
+            assert len(self) == 0
+            for rule in values:
+                self.append(SelectionRule(rule))
 
     def update(self, state, energy_level, action):
         """
@@ -181,6 +182,18 @@ class CounterSelector(list):
         Return action selected for `state` and `energy`
         """
         return self[state].select_action(energy)
+
+    def __copy__(self):
+        """Return a shallow copy of the CounterSelector"""
+        res = CounterSelector(self.mdp)
+        for rule in self:
+            res.append(rule)
+        return res
+
+    def __deepcopy__(self, memodict={}):
+        """Return a deep copy of the CounterSelector"""
+        return CounterSelector(self.mdp, values=self)
+
 
 
 class SelectionRule(dict):
@@ -212,6 +225,12 @@ class SelectionRule(dict):
             raise NoFeasibleActionError(f"No action is feasible for energy "
                                         f"level {energy}")
         return candidate_action
+
+    def copy(self):
+        return self.__copy__()
+
+    def __copy__(self):
+        return SelectionRule(self)
 
     def __str__(self):
         """
