@@ -156,7 +156,7 @@ from fimdp.strategy import Strategy, WrongCallOrderError
 class FirstStrategy(Strategy):
     def _next_action(self):
         actions = self.mdp.actions
-        a_id = self.mdp.actions_for_state(self.current_state).next
+        a_id = self.mdp.actions_for_state(self._current_state).next
         return actions[a_id]
 
 
@@ -175,6 +175,18 @@ assert result == expected
 print("Passed test 1 for Strategy in file test_strategy.py")
 # -
 
+s.reset(0)
+s.next_action()
+s.update_state(1)
+s.next_action()
+s.update_state(0)
+s.next_action()
+s.update_state(1)
+result = s.next_action()
+expected = m.actions[2]
+assert result == expected
+print("Passed test 2 for Strategy in file test_strategy.py")
+
 # Now let's test the `next_action(outcome)` calls
 
 # +
@@ -183,7 +195,7 @@ s = FirstStrategy(m)
 s.next_action(0)
 result = s.next_action(1)
 assert result == expected
-print("Passed test 2 for Strategy in file test_strategy.py")
+print("Passed test 3 for Strategy in file test_strategy.py")
 # -
 
 # #### Test checks for order of calls and maintaining history
@@ -193,7 +205,7 @@ try:
     s.next_action(0)
     assert False
 except WrongCallOrderError:
-    print("Passed test 3 for Strategy in file test_strategy.py")
+    print("Passed test 4 for Strategy in file test_strategy.py")
 
 try:
     s = FirstStrategy(m, 0)
@@ -201,7 +213,7 @@ try:
     s.next_action()
     assert False
 except WrongCallOrderError:
-    print("Passed test 4 for Strategy in file test_strategy.py")
+    print("Passed test 5 for Strategy in file test_strategy.py")
 
 try:
     s = FirstStrategy(m)
@@ -210,7 +222,7 @@ try:
     s.next_action(1)
     assert False
 except WrongCallOrderError:
-    print("Passed test 5 for Strategy in file test_strategy.py")
+    print("Passed test 6 for Strategy in file test_strategy.py")
 
 # #### Test outcome check
 
@@ -220,7 +232,7 @@ try:
     s.update_state(3)
     assert False
 except ValueError:
-    print("Passed test 6 for Strategy in file test_strategy.py")
+    print("Passed test 7 for Strategy in file test_strategy.py")
 
 # # Test CounterStrategy
 
@@ -254,6 +266,27 @@ assert s.energy == 10
 print("Passed test 1 for CounterStrategy in file strategy.py")
 # -
 
+s.reset(6, 15)
+s.next_action()
+s.update_state(7)
+assert s.energy == 14
+s.next_action()
+s.update_state(6)
+assert s.energy == 27
+s.next_action()
+s.update_state(3)
+assert s.energy == 21
+s.next_action()
+s.next_action(6)
+s.next_action(7)
+assert s.energy == 10
+s.next_action(6)
+s.next_action(3)
+s.next_action(4)
+s.next_action(5)
+assert s.energy == 10
+print("Passed test 2 for CounterStrategy in file strategy.py")
+
 # Test start in a loosing reagion
 
 s = CounterStrategy(m, selector=selector, capacity=30, init_energy=15, init_state=1)
@@ -261,4 +294,4 @@ try:
     s.next_action()
     assert False
 except NoFeasibleActionError:
-    print("Passed test 2 for CounterStrategy in file strategy.py")
+    print("Passed test 3 for CounterStrategy in file strategy.py")

@@ -45,8 +45,8 @@ class Strategy:
 
     def __init__(self, mdp, init_state=None):
         self.mdp = mdp
-        self.current_state = init_state
-        self.current_action = None
+        self._current_state = init_state
+        self._current_action = None
 
     def next_action(self, outcome=None):
         """
@@ -60,13 +60,13 @@ class Strategy:
         """
         if outcome is not None:
             self.update_state(outcome)
-        if self.current_action is not None:
+        if self._current_action is not None:
             raise WrongCallOrderError("The outcome of the last action is not "
                                       "known. Supply it using the `outcome` "
                                       "parameter or using the function"
                                       "`strategy.update_state(outcome)`.")
-        self.current_action = self._next_action()
-        return self.current_action
+        self._current_action = self._next_action()
+        return self._current_action
 
     def update_state(self, outcome):
         """
@@ -79,18 +79,22 @@ class Strategy:
         """
         # Only run checks if this is not the first call to update_state
         # The first call basically sets the initial state
-        if self.current_state is not None:
-            if self.current_action is None:
+        if self._current_state is not None:
+            if self._current_action is None:
                 raise WrongCallOrderError("`strategy.update_state()` must be called"
                                           " after `strategy.next_action()`.")
-            if outcome not in self.current_action.distr:
+            if outcome not in self._current_action.distr:
                 raise ValueError(f"The outcome {outcome} is not a valid successor "
                                  f"for the last action picked by this strategy. "
                                  f"The list of possible outcomes is "
-                                 f"{list(self.current_action.distr.keys())}.")
+                                 f"{list(self._current_action.distr.keys())}.")
         self._update(outcome)
-        self.current_action = None
-        self.current_state = outcome
+        self._current_action = None
+        self._current_state = outcome
+
+    def reset(self, init_state=None, *args, **kwargs):
+        self._current_action = None
+        self._current_state = init_state
 
     def _next_action(self):
         raise NotImplementedError()
@@ -119,20 +123,31 @@ class CounterStrategy(Strategy):
         self.selector = selector
 
     def _next_action(self):
-        return self.selector.select_action(self.current_state, self.energy)
+        return self.selector.select_action(self._current_state, self.energy)
 
     def _update(self, outcome):
         """
         Unless called to set the initial state, update energy by substracting
-        the consumption of the `current_action`. If `current_state` is a reload
+        the consumption of the `_current_action`. If `_current_state` is a reload
         state, recharge to full capacity before the substraction.
         """
-        if self.mdp.is_reload(self.current_state):
+        if self.mdp.is_reload(self._current_state):
             self.energy = self.capacity
 
         # Don't update energy on the first call
-        if self.current_action is not None:
-            self.energy -= self.current_action.cons
+        if self._current_action is not None:
+            self.energy -= self._current_action.cons
+
+    def reset(self, init_state=None, init_energy=None, *args, **kwargs):
+        """Reset the strategy to a new init_state with init_energy.
+
+        Throws away the previous history.
+
+        *args and **kwargs are ignored.
+        """
+        super(CounterStrategy, self).reset(init_state)
+        if init_energy is not None:
+            self.energy = init_energy
 
 
 class CounterSelector(list):
