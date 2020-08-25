@@ -4,8 +4,8 @@
 
 ### Added
  * Solvers that use heuristics for strategies usable in control. This is implemented in class
-   `GoalLeaningES` of the `energy_solver.py` module. See [tut/StrategyTypes](tut/StrategyTypes.ipynb)
-   notebook for more details. Use nbviewer.jupyter.org/ for the rendered notebook if you don't want
+   `GoalLeaningES` of the `energy_solver.py` module. See [tut/Solvers](tut/Solvers.ipynb)
+   notebook for more details. Use [nbviewer] for the rendered notebook if you don't want
    to run the notebook locally; it renders the animations correctly.
  * Binary search for detection of minimal capacity needed for a task (function `mincap.bin_search`).
  * Support for full-featured strategies that resolve the next action to play based on the history. See `Strategy`
@@ -46,3 +46,5 @@
 
 [Unpublished]: https://github.com/xblahoud/FiMDP/compare/v1.0.2..HEAD
 [1.0.2]: https://github.com/xblahoud/FiMDP/tree/v1.0.2
+
+[nbviewer]: https://nbviewer.jupyter.org/

@@ -21,4 +21,4 @@ script:
   - python ./tests/test_reachability.py
   - python ./tests/test_safety.py
   - python ./tests/test_strategy_old.py
-  - python ./tut/StrategyTypes.py
+  - python ./tut/Solvers.py
