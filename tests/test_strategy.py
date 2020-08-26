@@ -152,16 +152,10 @@ except NoFeasibleActionError:
 # ## Test Strategy interface
 # We first create a simple strategy that always chooses the first action for the current state.
 
-from fimdp.strategy import Strategy, WrongCallOrderError
-class FirstStrategy(Strategy):
-    def _next_action(self):
-        actions = self.mdp.actions
-        a_id = self.mdp.actions_for_state(self._current_state).next
-        return actions[a_id]
-
+from fimdp.strategy import WrongCallOrderError, PickFirstStrategy
 
 # +
-s = FirstStrategy(m, 0)
+s = PickFirstStrategy(m, 0)
 
 s.next_action()
 s.update_state(1)
@@ -190,7 +184,7 @@ print("Passed test 2 for Strategy in file test_strategy.py")
 # Now let's test the `next_action(outcome)` calls
 
 # +
-s = FirstStrategy(m)
+s = PickFirstStrategy(m)
 
 s.next_action(0)
 result = s.next_action(1)
@@ -201,14 +195,14 @@ print("Passed test 3 for Strategy in file test_strategy.py")
 # #### Test checks for order of calls and maintaining history
 
 try:
-    s = FirstStrategy(m, 0)
+    s = PickFirstStrategy(m, 0)
     s.next_action(0)
     assert False
 except WrongCallOrderError:
     print("Passed test 4 for Strategy in file test_strategy.py")
 
 try:
-    s = FirstStrategy(m, 0)
+    s = PickFirstStrategy(m, 0)
     s.next_action()
     s.next_action()
     assert False
@@ -216,7 +210,7 @@ except WrongCallOrderError:
     print("Passed test 5 for Strategy in file test_strategy.py")
 
 try:
-    s = FirstStrategy(m)
+    s = PickFirstStrategy(m)
     s.next_action(0)
     s.update_state(1)
     s.next_action(1)
@@ -227,7 +221,7 @@ except WrongCallOrderError:
 # #### Test outcome check
 
 try:
-    s = FirstStrategy(m, 0)
+    s = PickFirstStrategy(m, 0)
     s.next_action()
     s.update_state(3)
     assert False

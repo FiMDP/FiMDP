@@ -29,6 +29,9 @@ The function `update_state(outcome)` raises a `ValueError` if `outcome` is
 not a valid successor for the last action returned by `next_action()`. Based
 on the `outcome`, the strategy can update its memory.
 
+The strategy can be used in a new play using `strategy.reset()` which allows
+new initialization of initial state and memory.
+
 [CAV paper]: https://link.springer.com/chapter/10.1007/978-3-030-53291-8_22
 """
 
@@ -67,6 +70,12 @@ class Strategy:
         self._current_action = self._next_action()
         return self._current_action
 
+    def reset(self, init_state=None, *args, **kwargs):
+        """Reset the memory and initial state for a new play."""
+        self._current_action = None
+        self._current_state = init_state
+        self._reset(*args, **kwargs)
+
     def update_state(self, outcome):
         """
         Tells the strategy that the last action picked by `next_action` was
@@ -91,12 +100,11 @@ class Strategy:
         self._current_action = None
         self._current_state = outcome
 
-    def reset(self, init_state=None, *args, **kwargs):
-        self._current_action = None
-        self._current_state = init_state
-
     def _next_action(self):
         raise NotImplementedError()
+
+    def _reset(self, *args, **kwargs):
+        pass
 
     def _update(self, outcome):
         pass
@@ -131,32 +139,31 @@ class CounterStrategy(Strategy):
         the consumption of the `_current_action`. If `_current_state` is a reload
         state, recharge to full capacity before the substraction.
         """
-        if self.mdp.is_reload(self._current_state):
-            self.energy = self.capacity
-
         # Don't update energy on the first call
         if self._current_action is not None:
+            if self.mdp.is_reload(self._current_state):
+                self.energy = self.capacity
+
             self.energy -= self._current_action.cons
 
-    def reset(self, init_state=None, init_energy=None, *args, **kwargs):
-        """Reset the strategy to a new init_state with init_energy.
+    def _reset(self, init_energy=None, *args, **kwargs):
+        """Reset the memory to `init_energy`.
 
         Throws away the previous history.
 
         *args and **kwargs are ignored.
         """
-        super(CounterStrategy, self).reset(init_state)
         if init_energy is not None:
             self.energy = init_energy
 
 
 class CounterSelector(list):
     """
-    CounterSelector can select actions based on current state and energy.
+    CounterSelector selects actions based on given state and energy level.
 
     Counter selector is a list of SelectionRules extended by:
-     * pointer to the corresponding mdp
-     * and 2 functions for updating and accessing actions to be taken:
+     * pointer to the corresponding mdp, and
+     * 2 functions for updating and accessing actions to be taken:
         - update(state, energy_level, action)
         - select_action(state, energy)
     """
@@ -274,3 +281,16 @@ class NoFeasibleActionError(Exception):
 
 class WrongCallOrderError(Exception):
     pass
+
+
+class PickFirstStrategy(Strategy):
+    """Class for testing and presentation purposes.
+
+    Always picks the first available action of the CMDP. Does not track energy
+    and does not give any guarantees.
+    """
+
+    def _next_action(self):
+        actions = self.mdp.actions
+        a_id = self.mdp.actions_for_state(self._current_state).next
+        return actions[a_id]

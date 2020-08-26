@@ -9,7 +9,7 @@
    to run the notebook locally; it renders the animations correctly.
  * Binary search for detection of minimal capacity needed for a task (function `mincap.bin_search`).
  * Support for full-featured strategies that resolve the next action to play based on the history. See `Strategy`
-   for the interface.
+   for the interface. See [tut/Strategies](tut/Strategies.ipynb) for more details.
      - `CounterStrategy` implements strategies with a limited memory. The class only
      maintains the energy level of the play and can use it for the selection of next
      actions. The class only implements the memory and relies on `selector` objects
