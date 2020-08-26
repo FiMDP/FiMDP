@@ -43,10 +43,9 @@ class Strategy:
     unless `next_action(outcome)` are used exclusively.
     """
 
-    def __init__(self, mdp, init_state=None):
+    def __init__(self, mdp, init_state=None, *args, **kwargs):
         self.mdp = mdp
-        self._current_state = init_state
-        self._current_action = None
+        self.reset(init_state, *args, **kwargs)
 
     def next_action(self, outcome=None):
         """
@@ -117,9 +116,10 @@ class CounterStrategy(Strategy):
     """
 
     def __init__(self, mdp, selector, capacity, init_energy, init_state=None):
-        super(CounterStrategy, self).__init__(mdp, init_state)
+        super(CounterStrategy, self).__init__(mdp,
+                                              init_state,
+                                              init_energy=init_energy)
         self.capacity = capacity
-        self.energy = init_energy
         self.selector = selector
 
     def _next_action(self):
