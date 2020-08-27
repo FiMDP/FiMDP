@@ -359,7 +359,10 @@ class ActionData:
         
     def get_succs(self):
         return set(self.distr.keys())
-    
+
+    def __repr__(self):
+        return f"{self.src}——{self.label}[{self.cons}]——>{self.distr}"
+
 
 class Succ_iter:
     """Iterate over linked list nested in a given List.

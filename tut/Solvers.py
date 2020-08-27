@@ -134,11 +134,11 @@ threshold = GoalLeaningES(m, cap=35, targets=t, threshold=0.1)
 assert basic.get_Buchi() == goal.get_Buchi(), ("The basic and goal-leaning strategy "+
                                               "do not reach the same values of "+
                                               "initial load for the same task.")
-print("Passed test 1 for values of goal-leaning strategies in file tut/StrategyTypes.ipynb")
+print("Passed test 1 for values of goal-leaning strategies in file tut/Solvers.ipynb")
 assert basic.get_Buchi() == threshold.get_Buchi(), ("The basic and the threshold strategy "+
                                               "do not reach the same values of "+
                                               "initial load for the same task.")
-print("Passed test 2 for values of goal-leaning strategies in file tut/StrategyTypes.ipynb")
+print("Passed test 2 for values of goal-leaning strategies in file tut/Solvers.ipynb")
 
 # ## Interesting cases
 #
@@ -182,12 +182,12 @@ goal.get_strategy(BUCHI)
 
 threshold.get_strategy(BUCHI)
 
-result = threshold.get_strategy(BUCHI)[0]
+result = {k: v.label for k, v in threshold.get_strategy(BUCHI)[0].items()}
 expected = {2: 'long', 1: 'direct'}
 assert result == expected, ("The threshold strategy should return\n" +
                            f"{expected} in state 0.\n" +
                            f"{result} returned in 0.")
-print("Passed test 3 for the threshold strategy in file tut/StrategyTypes.ipynb")
+print("Passed test 3 for the threshold strategy in file tut/Solvers.ipynb")
 
 # ### Simple goal-leaning example
 
@@ -235,13 +235,13 @@ goal = GoalLeaningES(gl, targets=T)
 
 print(basic.get_strategy(BUCHI), goal.get_strategy(BUCHI), sep="\n")
 
-result = goal.get_strategy(BUCHI)[0][0]
+result = goal.get_strategy(BUCHI)[0][0].label
 expected = 'bottom'
 assert result == expected, (
     f"The goal-leaning strategy should prefer the action `{expected}` " +
     f"in state 0. It chooses `{result}` instead."
 )
-print("Passed test 4 for goal-leaning solver in file tut/StrategyTypes.ipynb")
+print("Passed test 4 for goal-leaning solver in file tut/Solvers.ipynb")
 
 
 # ### Goal-leaning is just a heuristic
