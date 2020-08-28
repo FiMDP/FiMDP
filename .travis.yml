@@ -31,5 +31,5 @@ script:
   - python ./tests/test_safety.py
   - python ./tests/test_strategy_old.py
   - python ./tut/Solvers.py
-  - jupyter nbconvert --execute ./tut/ExplicitEnergy.ipynb
-    # - jupyter nbconvert --execute ./tut/ProductDBA.ipynb
+  #- jupyter nbconvert --execute ./tut/ExplicitEnergy.ipynb
+  #- jupyter nbconvert --execute ./tut/ProductDBA.ipynb
