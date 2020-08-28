@@ -4,13 +4,86 @@ import buddy
 from .consMDP import ConsMDP
 
 
+class ProductCMDP(ConsMDP):
+    """
+    CMDP with states that have two components.
+
+    We call the two components `orig_mdp` and `other`, where `orig_mdp` is
+    some ConsMDP object and other can be arbitrary domain, for example
+    deterministic Büchi automaton, or upper bound of some integer interval.
+    The `orig_mdp` and `other` store pointers to the objects of origin for
+      the product mdp (if supplied).
+
+    The function `orig_action` maps actions in this object into actions of
+    the source ConsMDP object. Similarly,  `other_action` works for the other
+    object (if makes sense).
+    """
+
+    def __init__(self, orig_mdp, other=None):
+        super().__init__()
+        self.orig_mdp = orig_mdp
+        self.other = other
+        self.orig_action_mapping = {}
+        self.other_action_mapping = {}
+
+    def add_action(self, src, distribution, label, consumption,
+                   orig_action, other_action = None):
+        """
+        Create a new action in the product using (src, distribution, label,
+        consumption) and update mappings to `orig_action` and `other_action`.
+
+        :param src: src in product
+        :param distribution: distribution in product
+        :param label: label of the action
+        :param consumption: consumption in product
+        :param orig_action: ActionData object from the original mdp
+        :param other_action: Value to be returned by `other_action` for the new
+        action.
+        :return: action id in the product
+        """
+        # pa: product action
+        pa_id = super().add_action(src, distribution, label, consumption)
+        pa = self.actions[pa_id]
+
+        self.orig_action_mapping[pa] = orig_action
+        if other_action is not None:
+            self.other_action_mapping[pa] = other_action
+
+        return pa_id
+
+    def orig_action(self, action):
+        """
+        Decompose the action from the product to the action in the original mdp.
+
+        :param action: ActionData from product (as used in for loops)
+        :return: ActionData from the original mdp
+        """
+        return self.orig_action_mapping[action]
+
+    def other_action(self, action):
+        """
+        Decompose the action from the product onto the second component, if
+        defined.
+
+        :param action: ActionData from product (as used in for loops)
+        :return: value supplied on creation of `action` (if any), or None
+        """
+        if action in self.other_action_mapping:
+            return self.other_action_mapping[action]
+
+        return None
+
+
+
+
+
 def product_dba(lmdp, aut, init_states=None):
     """Product of a labeled CMDP and a deterministic Büchi automaton.
 
     Parameters
     ==========
-     * lcmdp : labeled CMDP (class LCMDP)
-     * dba: Spot's object twa_graph representing a deterministic state-based
+     * lmdp : labeled CMDP (class LCMDP)
+     * aut: Spot's object twa_graph representing a deterministic state-based
             Büchi automaton
      * init_states: iterable of ints, the set of initial states of the lcmdp
         The product will be started from these states. If `None`, all states are
@@ -51,7 +124,7 @@ def product_dba(lmdp, aut, init_states=None):
     if not spot.is_complete(aut):
         aut = aut.postprocess("BA", "complete")
 
-    result = ConsMDP()
+    result = ProductCMDP(lmdp, aut)
     num_ap = len(lmdp.AP)
 
     assert num_ap != 0
@@ -100,18 +173,18 @@ def product_dba(lmdp, aut, init_states=None):
         return p
 
     # Get a successor state in automaton based on label
-    def get_successor(aut_state, mdp_label):
+    def get_aut_edge(aut_state, mdp_label):
         for e in aut.out(aut_state):
             mdp_bdd = get_bdd_for_label(mdp_label)
             if mdp_bdd & e.cond != buddy.bddfalse:
-                return e.dst
+                return e
 
     # Initialization
     # For each state of mdp add a new initial state
     aut_i = aut.get_init_state_number()
     for mdp_s in range(lmdp.num_states):
         label = lmdp.state_labels[mdp_s]
-        aut_s = get_successor(aut_i, label)
+        aut_s = get_aut_edge(aut_i, label).dst
         dst(mdp_s, aut_s)
 
     # Build all states and edges in the product
@@ -121,10 +194,12 @@ def product_dba(lmdp, aut, init_states=None):
             # build new distribution
             odist = {}
             for mdst, prob in a.distr.items():
-                adst = get_successor(asrc, lmdp.state_labels[mdst])
+                aedge = get_aut_edge(asrc, lmdp.state_labels[mdst])
+                adst = aedge.dst
                 odst = dst(mdst, adst)
                 odist[odst] = prob
-            result.add_action(osrc, odist, a.label, a.cons)
+            result.add_action(osrc, odist, a.label, a.cons,
+                              orig_action=a, other_action=aedge)
 
     return result, targets
 
@@ -139,7 +214,7 @@ def product_energy(cmdp, capacity, targets=[]):
     of the form `(s', e-c)` for non-reload states and
     `(r, capacity)` for reload states.
     """
-    result = ConsMDP()
+    result = ProductCMDP(cmdp, capacity)
 
     # This will be our state dictionary
     sdict = {}
@@ -180,9 +255,9 @@ def product_energy(cmdp, capacity, targets=[]):
             if e - a.cons < 0:
                 if not sink_created:
                     sink = result.new_state(name="sink, -∞")
-                    result.add_action(sink, {sink: 1}, "σ", 1)
+                    result.add_action(sink, {sink: 1}, "σ", 1, None)
                     sink_created = True
-                result.add_action(p, {sink: 1}, a.label, a.cons)
+                result.add_action(p, {sink: 1}, a.label, a.cons, a)
                 continue
             # build new distribution
             odist = {}
@@ -190,6 +265,6 @@ def product_energy(cmdp, capacity, targets=[]):
                 new_e = capacity if cmdp.is_reload(succ) else e - a.cons
                 out_succ = dst(succ, new_e)
                 odist[out_succ] = prob
-            result.add_action(p, odist, a.label, a.cons)
+            result.add_action(p, odist, a.label, a.cons, a)
 
     return result, otargets

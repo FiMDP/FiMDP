@@ -1,5 +1,23 @@
+# -*- coding: utf-8 -*-
 from fimdp import consMDP
 from fimdp import dot
+from decimal import Decimal
+import decimal
+
+
+def uniform(dests):
+    """Create a uniform distribution for given destinations.
+
+    dests: iterable of states
+    """
+    count = len(dests)
+    mod = 100 % count
+    decimal.getcontext().prec = 2
+    prob = Decimal(1)/Decimal(count)
+    dist = {i: prob for i in dests}
+    last = dests[-1]
+    dist[last] = dist[last] + Decimal("0.01")*mod
+    return dist
 
 
 # ## Almost sure reachability example
@@ -55,6 +73,22 @@ def little_alsure2():
     m.new_state()
     m.add_action(4, {0:.5, 2:.5}, "", 1)
     return m, T
+
+def explicit():
+    dot.dotpr = "dot"
+    mdp = consMDP.ConsMDP()
+    mdp.new_states(5)
+    mdp.set_reload(4)
+    mdp.add_action(0, uniform([1,2]), "α", 1)
+    mdp.add_action(0, uniform([2,3]), "β", 2)
+    mdp.add_action(1, uniform([3]), "r", 1)
+    mdp.add_action(2, uniform([3]), "r", 1)
+    mdp.add_action(3, uniform([0, 4]), "s", 1)
+    mdp.add_action(3, uniform([4]), "r", 2)
+    mdp.add_action(4, uniform([0]), "i", 2)
+    T = [1,2]
+    return mdp, T
+
 
 def ultimate():
     dot.dotpr="neato"

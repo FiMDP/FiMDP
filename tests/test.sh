@@ -9,5 +9,6 @@ python3 test_reachability.py
 python3 test_safety.py
 python3 test_strategy.py
 python3 test_strategy_old.py
+jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb
 jupyter nbconvert --execute ../tut/ProductDBA.ipynb
 jupyter nbconvert --execute ../tut/Solvers.ipynb
