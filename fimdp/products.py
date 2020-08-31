@@ -25,6 +25,8 @@ class ProductCMDP(ConsMDP):
         self.other = other
         self.orig_action_mapping = {}
         self.other_action_mapping = {}
+        self.components_to_states_d = {}
+        self.components = []
 
     def add_action(self, src, distribution, label, consumption,
                    orig_action, other_action = None):
@@ -51,6 +53,54 @@ class ProductCMDP(ConsMDP):
 
         return pa_id
 
+    def get_state(self, orig_s, other_s):
+        """
+        Return state of product based on the two components `(orig_s, other_s)`
+        if exists and `None` otherwise.
+
+        :param orig_s: state_id on the original mdp
+        :param other_s: state of the other component
+        :return: id of state `(orig_s, other_s)` or None
+        """
+        pair = (orig_s, other_s)
+        return self.components_to_states_d.get(pair, None)
+
+    def get_or_create_state(self, orig_s, other_s):
+        """
+        Return state of product based on the two components `(orig_s, other_s)`
+        and create one if it does not exist.
+
+        :param orig_s: state_id on the original mdp
+        :param other_s: state of the other component
+        :return: id of state `(orig_s, other_s)`
+        """
+        p_s = self.get_state(orig_s, other_s)
+        if p_s is None:
+            return self.new_state(orig_s, other_s)
+
+        return p_s
+
+    def new_state(self, orig_s, other_s, reload=False, name=None):
+        """
+        Create a new product state (orig_s, other_s).
+
+        :param orig_s: state_id in the original mdp
+        :param other_s: state of the other component
+        :param reload: is state reloading? (Bool)
+        :param name: a custom name of the state, `orig_s,other_s` by default.
+        :return: id of the new state
+        """
+        if name is None:
+            name = f"{orig_s},{other_s}"
+        new_id = super().new_state(reload=reload, name=name)
+
+        pair = (orig_s, other_s)
+        self.components_to_states_d[pair] = new_id
+        assert len(self.components) == new_id
+        self.components.append(pair)
+
+        return new_id
+
     def orig_action(self, action):
         """
         Decompose the action from the product to the action in the original mdp.
@@ -58,7 +108,7 @@ class ProductCMDP(ConsMDP):
         :param action: ActionData from product (as used in for loops)
         :return: ActionData from the original mdp
         """
-        return self.orig_action_mapping[action]
+        return self.orig_action_mapping.get(action, None)
 
     def other_action(self, action):
         """
@@ -68,13 +118,7 @@ class ProductCMDP(ConsMDP):
         :param action: ActionData from product (as used in for loops)
         :return: value supplied on creation of `action` (if any), or None
         """
-        if action in self.other_action_mapping:
-            return self.other_action_mapping[action]
-
-        return None
-
-
-
+        return self.other_action_mapping.get(action, None)
 
 
 def product_dba(lmdp, aut, init_states=None):
@@ -131,8 +175,7 @@ def product_dba(lmdp, aut, init_states=None):
 
     # This will store the list of Büchi states
     targets = []
-    # This will be our state dictionary
-    sdict = {}
+
     # The list of output states for which we have not yet
     # computed the successors.  Items on this list are triplets
     # of the form `(mdps, auts, p)` where `mdps` is the state
@@ -161,12 +204,10 @@ def product_dba(lmdp, aut, init_states=None):
     # number in the output mdp, creating a new state if needed.
     # Whenever a new state is created, we can add it to todo.
     def dst(mdps, auts):
-        pair = (mdps, auts)
-        p = sdict.get(pair)
+        p = result.get_state(mdps, auts)
         if p is None:
-            p = result.new_state(name=f"{mdps},{auts}",
+            p = result.new_state(mdps, auts,
                                  reload=lmdp.is_reload(mdps))
-            sdict[pair] = p
             todo.append((mdps, auts, p))
             if aut.state_is_accepting(auts):
                 targets.append(p)
@@ -180,9 +221,9 @@ def product_dba(lmdp, aut, init_states=None):
                 return e
 
     # Initialization
-    # For each state of mdp add a new initial state
+    # For each state of mdp in init_states, add a new initial state
     aut_i = aut.get_init_state_number()
-    for mdp_s in range(lmdp.num_states):
+    for mdp_s in init_states:
         label = lmdp.state_labels[mdp_s]
         aut_s = get_aut_edge(aut_i, label).dst
         dst(mdp_s, aut_s)
@@ -215,9 +256,6 @@ def product_energy(cmdp, capacity, targets=[]):
     `(r, capacity)` for reload states.
     """
     result = ProductCMDP(cmdp, capacity)
-
-    # This will be our state dictionary
-    sdict = {}
     # The list of output states for which we have not yet
     # computed the successors.  Items on this list are triplets
     # of the form `(s, e, p)` where `s` is the state
@@ -231,12 +269,10 @@ def product_energy(cmdp, capacity, targets=[]):
     # number in the output mdp, creating a new state if needed.
     # Whenever a new state is created, we can add it to todo.
     def dst(s, e):
-        pair = (s, e)
-        p = sdict.get(pair)
+        p = result.get_state(s, e)
         if p is None:
-            p = result.new_state(name=f"{s},{e}",
+            p = result.new_state(s, e,
                                  reload=cmdp.is_reload(s))
-            sdict[pair] = p
             if s in targets and e >= 0:
                 otargets.append(p)
             todo.append((s, e, p))
@@ -254,7 +290,7 @@ def product_energy(cmdp, capacity, targets=[]):
             # negative goes to sink
             if e - a.cons < 0:
                 if not sink_created:
-                    sink = result.new_state(name="sink, -∞")
+                    sink = result.new_state(-1, "-∞", name="sink,-∞")
                     result.add_action(sink, {sink: 1}, "σ", 1, None)
                     sink_created = True
                 result.add_action(p, {sink: 1}, a.label, a.cons, a)
