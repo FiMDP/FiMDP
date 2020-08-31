@@ -145,15 +145,9 @@ def product_dba(lmdp, aut, init_states=None):
     """
     # Check the type of automaton
     if not aut.is_sba():
-        raise ValueError("The automaton must be state-based deterministic Büchi." +
-            "\nYou can get one by calling `aut.postprocess('BA','complete')`")
-
-    # Check if all APs of the dba are used by the MDP
-    for ap in aut.ap():
-        if ap not in lmdp.AP:
-            raise ValueError(f"The automaton uses atomic proposition {ap}" +
-                             "not specified in the labeled MDP. Remove it "+
-                             "first! Otherwise, determinism is lost.")
+        raise ValueError("The automaton must be state-based deterministic"
+                         "Büchi. You can get one by calling `aut.postprocess("
+                         "'BA','complete')`")
 
     # All states are initial unless specified otherwise
     if init_states is None:
@@ -168,76 +162,46 @@ def product_dba(lmdp, aut, init_states=None):
     if not spot.is_complete(aut):
         aut = aut.postprocess("BA", "complete")
 
+    dba = DBAWrapper(aut, lmdp.AP)
     result = ProductCMDP(lmdp, aut)
-    num_ap = len(lmdp.AP)
 
-    assert num_ap != 0
-
-    # This will store the list of Büchi states
-    targets = []
-
-    # The list of output states for which we have not yet
-    # computed the successors.  Items on this list are triplets
-    # of the form `(mdps, auts, p)` where `mdps` is the state
-    # number in the mdp, `auts` is the state number in the
-    # automaton, and p is the state number in the output mdp.
-    todo = []
-
-    # Mapping of AP representation in MDP to repr. in automaton
-    ap2bdd_var = {}
-    aut_ap = aut.ap()
-    for ap_i, ap in enumerate(lmdp.AP):
-        if ap in aut_ap:
-            ap2bdd_var[ap_i] = aut_ap.index(ap)
-
-    # Given label in mdp, return corresponding BDD
-    def get_bdd_for_label(mdp_label):
-        cond = buddy.bddtrue
-        for ap_i in ap2bdd_var.keys():
-            if ap_i in mdp_label:
-                cond &= buddy.bdd_ithvar(ap2bdd_var[ap_i])
-            else:
-                cond -= buddy.bdd_ithvar(ap2bdd_var[ap_i])
-        return cond
+    # Output states for which we have not yet computed the successors and
+    # Büchi states
+    todo, targets = [], []
 
     # Transform a pair of state numbers (mdps, auts) into a state
     # number in the output mdp, creating a new state if needed.
     # Whenever a new state is created, we can add it to todo.
-    def dst(mdps, auts):
+    def get_or_create(mdps, auts):
         p = result.get_state(mdps, auts)
         if p is None:
             p = result.new_state(mdps, auts,
                                  reload=lmdp.is_reload(mdps))
-            todo.append((mdps, auts, p))
+            todo.append(p)
             if aut.state_is_accepting(auts):
                 targets.append(p)
         return p
-
-    # Get a successor state in automaton based on label
-    def get_aut_edge(aut_state, mdp_label):
-        for e in aut.out(aut_state):
-            mdp_bdd = get_bdd_for_label(mdp_label)
-            if mdp_bdd & e.cond != buddy.bddfalse:
-                return e
 
     # Initialization
     # For each state of mdp in init_states, add a new initial state
     aut_i = aut.get_init_state_number()
     for mdp_s in init_states:
         label = lmdp.state_labels[mdp_s]
-        aut_s = get_aut_edge(aut_i, label).dst
-        dst(mdp_s, aut_s)
+        aut_s = dba.succ(aut_i, label)
+        get_or_create(mdp_s, aut_s)
 
     # Build all states and edges in the product
     while todo:
-        msrc, asrc, osrc = todo.pop()
+        osrc = todo.pop()
+        msrc, asrc = result.components[osrc]
         for a in lmdp.actions_for_state(msrc):
             # build new distribution
             odist = {}
             for mdst, prob in a.distr.items():
-                aedge = get_aut_edge(asrc, lmdp.state_labels[mdst])
+                label = lmdp.state_labels[mdst]
+                aedge = dba.edge(asrc, label)
                 adst = aedge.dst
-                odst = dst(mdst, adst)
+                odst = get_or_create(mdst, adst)
                 odist[odst] = prob
             result.add_action(osrc, odist, a.label, a.cons,
                               orig_action=a, other_action=aedge)
@@ -304,3 +268,77 @@ def product_energy(cmdp, capacity, targets=[]):
             result.add_action(p, odist, a.label, a.cons, a)
 
     return result, otargets
+
+
+class DBAWrapper:
+    """
+    Wrapper class around Spot's interface for automaton that answers queries
+    for successor in case of deterministic automata.
+
+    AP is a list of names of atomic propositions. The order (and index) of
+    the atomic proposition in AP can differ from the order used by the
+    automaton. Moreover, the list can contain only a subset of atomic
+    propositions of the automaton. It cannot contain superset, as this would
+    lead to non-determinism. In queries, atomic propositions should be
+    referenced by index in this given list.
+    """
+
+    def __init__(self, aut, AP):
+        # Check type of automaton
+        if not aut.is_deterministic():
+            raise ValueError("The automaton is not deterministic.")
+
+        if len(AP) == 0:
+            raise ValueError("The list of AP cannot be empty.")
+
+        # Check if all APs of the dba are used by the MDP
+        aut_ap = aut.ap()
+        for ap in aut_ap:
+            if ap not in AP:
+                raise ValueError(f"The automaton uses atomic proposition {ap}" +
+                                 "not specified in the labeled MDP. Remove it " +
+                                 "first! Otherwise, determinism is lost.")
+
+        self.aut = aut
+        self.AP = AP
+
+        self.bdd_dict = aut.get_dict()
+        self.ap2bdd_var = {}
+
+        # Establish the mapping between AP-indices and BDD variables
+        for ap_i, ap in enumerate(AP):
+            if ap in aut_ap:
+                bddvar_i = aut.get_dict().register_proposition(ap, self)
+                self.ap2bdd_var[ap_i] = bddvar_i
+
+    def _bdd_for_label(self, label):
+        """Get the BDD for given label (sequence of AP-indices)."""
+        cond = buddy.bddtrue
+        for ap_i, bdd_var in self.ap2bdd_var.items():
+            if ap_i in label:
+                cond &= buddy.bdd_ithvar(bdd_var)
+            else:
+                cond -= buddy.bdd_ithvar(bdd_var)
+        return cond
+
+    def __del__(self):
+        self.bdd_dict.unregister_all_my_variables(self)
+        # Mapping of AP representation in MDP to repr. in automaton
+
+    def edge(self, state, label):
+        """
+        Get edge from `state` under `label`
+
+        Label is sequence of indices in AP as given by creation of this object.
+        """
+        for e in self.aut.out(state):
+            mdp_bdd = self._bdd_for_label(label)
+            if mdp_bdd & e.cond != buddy.bddfalse:
+                return e
+
+    def succ(self, state, label):
+        """
+        Get successor from `state` under `label` given as indices to self.AP.
+        """
+        return self.edge(state, label).dst
+
