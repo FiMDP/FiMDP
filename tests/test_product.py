@@ -96,3 +96,60 @@ orig_dest, _ = p.components[prod_dest]
 assert orig_dest in result.distr
 assert expected.distr[prod_dest] == result.distr[orig_dest]
 print("Passed test for ProductSelectorWrapper in file test_product.py")
+
+# ### Test ProductSelector
+
+from fimdp.products import ProductSelector
+from fimdp.strategy import NoFeasibleActionError
+
+
+def get_from_CounterSelector(counter_selector):
+    res = ProductSelector(counter_selector.mdp)
+    for s, rule in enumerate(counter_selector):
+        for energy, action in rule.items():
+            res.update(s, energy, action)
+    return res
+
+
+p_s = get_from_CounterSelector(res)
+
+for s in range(p.num_states):
+    orig_s, other_s = p.components[s]
+    bounds = list(p_s[orig_s][other_s].keys())
+    for energy in bounds:
+        PS_orig_action = p_s.select_action(orig_s, other_s, energy)
+        p_action = res.select_action(s, energy)
+        assert PS_orig_action == p_selector.select_action(orig_s, other_s, energy)
+        assert PS_orig_action == p.orig_action(p_action)
+print("Passed test 1 for ProductSelector in file test_product.py")
+
+# #### Test copy of Product selector
+
+ps_copy = ProductSelector(p)
+ps_copy.copy_values_from(p_s)
+assert ps_copy == p_s
+print("Passed test 2 for ProductSelector in file test_product.py")
+
+# Partial copy
+
+ps_copy = ProductSelector(p)
+ps_copy.copy_values_from(p_s, [0,2,4,6])
+
+# +
+for s in [0,2,4,6]:
+    orig_s, other_s = p.components[s]
+    bounds = list(p_s[orig_s][other_s].keys())
+    for energy in bounds:
+        PS_orig_action = p_s.select_action(orig_s, other_s, energy)
+        p_action = res.select_action(s, energy)
+        assert PS_orig_action == p_selector.select_action(orig_s, other_s, energy)
+        assert PS_orig_action == p.orig_action(p_action)
+
+for s in [1,3,5]:
+    orig_s, other_s = p.components[s]
+    try:
+        ps_copy.select_action(orig_s, other_s, 100)
+        assert False
+    except KeyError:
+        pass
+print("Passed test 3 for ProductSelector in file test_product.py")

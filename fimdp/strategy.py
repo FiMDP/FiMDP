@@ -35,6 +35,8 @@ new initialization of initial state and memory.
 [CAV paper]: https://link.springer.com/chapter/10.1007/978-3-030-53291-8_22
 """
 
+from copy import deepcopy
+
 
 class Strategy:
     """
@@ -123,10 +125,12 @@ class CounterStrategy(Strategy):
     take anything that implements `select_action(state, energy)`.
     """
 
-    def __init__(self, mdp, selector, capacity, init_energy, init_state=None):
+    def __init__(self, mdp, selector, capacity,
+                 init_energy, init_state=None, *args, **kwargs):
         super(CounterStrategy, self).__init__(mdp,
                                               init_state,
-                                              init_energy=init_energy)
+                                              init_energy=init_energy,
+                                              *args, **kwargs)
         self.capacity = capacity
         self.selector = selector
 
@@ -191,8 +195,11 @@ class CounterSelector(list):
         """
         Update the action for given `state` and `energy_level` to `action`.
 
-        `energy_level` is an lower bound of an interval for which `action`
+        `energy_level` is a lower bound of an interval for which `action`
         will be selected by `select_action`.
+
+        Raises ValueError if `product_action` is not an action of
+        `product_state`
         """
         if action not in self.mdp.actions_for_state(state):
             raise ValueError(f"The action {action} is not valid for the state "
@@ -205,17 +212,33 @@ class CounterSelector(list):
         """
         return self[state].select_action(energy)
 
+    def copy_values_from(self, other, state_subset=None):
+        """
+        Replace values for given `state_subset` by values from `other` counter
+        selector.
+
+        If `state_subset` is not given (or is None), replace values for all
+        states.
+        """
+        if state_subset is None:
+            state_subset = range(self.mdp.num_states)
+
+        for s in state_subset:
+            self[s] = other[s].copy()
+
     def __copy__(self):
         """Return a shallow copy of the CounterSelector"""
-        res = CounterSelector(self.mdp)
-        for rule in self:
-            res.append(rule)
+        res = type(self)(self.mdp)
+        for i, rule in enumerate(self):
+            res[i] = (rule)
         return res
 
     def __deepcopy__(self, memodict={}):
         """Return a deep copy of the CounterSelector"""
-        return CounterSelector(self.mdp, values=self)
-
+        res = type(self)(self.mdp)
+        for i, rule in enumerate(self):
+            res[i] = (deepcopy(rule))
+        return res
 
 
 class SelectionRule(dict):
@@ -253,6 +276,12 @@ class SelectionRule(dict):
 
     def __copy__(self):
         return SelectionRule(self)
+
+    def __deepcopy__(self, memodict={}):
+        res = type(self)()
+        for k, v in self.items():
+            res[k] = v
+        return res
 
     def __str__(self):
         """

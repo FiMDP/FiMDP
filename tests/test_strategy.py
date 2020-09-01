@@ -12,7 +12,7 @@
 #   3. no action at all
 
 from reachability_examples import basic
-from fimdp.energy_solver import AS_REACH
+from fimdp.energy_solver import AS_REACH, POS_REACH
 from fimdp.strategy import SelectionRule
 
 m, T = basic()
@@ -76,6 +76,7 @@ except NoFeasibleActionError:
 # 1. Test initialization (with an iterable, nothing)
 # 2. Test update (correct and incorrect actions)
 # 3. Test `select_action`
+# 4. Test `copy_values_from`
 
 from fimdp.strategy import CounterSelector
 
@@ -148,6 +149,35 @@ try:
     assert False
 except NoFeasibleActionError:
     print("Passed test 5 for CounterSelector (select_action) in file test_strategy.py")
+
+# ### Copy values from
+
+# +
+selector_from = selector
+#m, T = basic()
+
+m.get_positiveReachability(T, 40)
+selector_to = m.energy_levels.get_strategy(POS_REACH, True)
+selector_to
+expected = selector_to.copy()
+result = CounterSelector(m)
+result.copy_values_from(selector_to)
+assert result == expected
+# -
+
+expected[0][2] = m.actions_for_state(0).__next__()
+expected
+
+selector_to.copy_values_from(selector_from, [0])
+assert selector_to == expected
+
+selector_to.copy_values_from(selector_from, [3])
+for s in range(m.num_states):
+    if s == 3:
+        assert selector_to[s] == selector_from[s]
+    else:
+        assert selector_to[s] == expected[s]
+print("Passed test 6 for CounterSelector (copy_values_from) in file test_strategy.py")
 
 # ## Test Strategy interface
 # We first create a simple strategy that always chooses the first action for the current state.
