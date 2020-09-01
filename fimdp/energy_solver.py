@@ -21,7 +21,8 @@ setting `mdp.EL=solver` and then calling `mdp.show()`.
 
 from math import inf
 
-from .fixpoints import largest_fixpoint, least_fixpoint, argmin, pick_best_action
+from .fixpoints import largest_fixpoint, least_fixpoint, \
+                       argmin, pick_best_action
 from .strategy import CounterSelector, SelectionRule
 
 # objectives

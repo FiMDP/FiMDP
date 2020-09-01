@@ -53,6 +53,23 @@ def basic():
     
     return m, targets
 
+
+def explicit():
+    dot.dotpr = "dot"
+    mdp = consMDP.ConsMDP()
+    mdp.new_states(5)
+    mdp.set_reload(4)
+    mdp.add_action(0, uniform([1,2]), "α", 1)
+    mdp.add_action(0, uniform([2,3]), "β", 2)
+    mdp.add_action(1, uniform([3]), "r", 1)
+    mdp.add_action(2, uniform([3]), "r", 1)
+    mdp.add_action(3, uniform([0, 4]), "s", 1)
+    mdp.add_action(3, uniform([4]), "r", 2)
+    mdp.add_action(4, uniform([0]), "i", 2)
+    T = [1,2]
+    return mdp, T
+
+
 def little_alsure():
     dot.dotpr = "dot"
     m = consMDP.ConsMDP()
@@ -74,20 +91,16 @@ def little_alsure2():
     m.add_action(4, {0:.5, 2:.5}, "", 1)
     return m, T
 
-def explicit():
-    dot.dotpr = "dot"
+def product_example():
     mdp = consMDP.ConsMDP()
-    mdp.new_states(5)
-    mdp.set_reload(4)
-    mdp.add_action(0, uniform([1,2]), "α", 1)
-    mdp.add_action(0, uniform([2,3]), "β", 2)
-    mdp.add_action(1, uniform([3]), "r", 1)
+    mdp.new_states(4)
+    mdp.set_reload(3)
+    mdp.add_action(0, uniform([1,2]), "α", 3)
+    mdp.add_action(0, uniform([2,3]), "β", 1)
+    mdp.add_action(1, uniform([3]), "r", 3)
     mdp.add_action(2, uniform([3]), "r", 1)
-    mdp.add_action(3, uniform([0, 4]), "s", 1)
-    mdp.add_action(3, uniform([4]), "r", 2)
-    mdp.add_action(4, uniform([0]), "i", 2)
-    T = [1,2]
-    return mdp, T
+    mdp.add_action(3, uniform([0]), "s", 3)
+    return mdp, {1, 2}
 
 
 def ultimate():
