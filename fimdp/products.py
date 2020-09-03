@@ -296,7 +296,7 @@ class DBAWrapper:
         aut_ap = aut.ap()
         for ap in aut_ap:
             if ap not in AP:
-                raise ValueError(f"The automaton uses atomic proposition {ap}" +
+                raise ValueError(f"The automaton uses atomic proposition {ap} " +
                                  "not specified in the labeled MDP. Remove it " +
                                  "first! Otherwise, determinism is lost.")
 
@@ -324,7 +324,6 @@ class DBAWrapper:
 
     def __del__(self):
         self.bdd_dict.unregister_all_my_variables(self)
-        # Mapping of AP representation in MDP to repr. in automaton
 
     def edge(self, state, label):
         """
@@ -336,6 +335,9 @@ class DBAWrapper:
             mdp_bdd = self._bdd_for_label(label)
             if mdp_bdd & e.cond != buddy.bddfalse:
                 return e
+
+    def get_init(self):
+        return self.aut.get_init_state_number()
 
     def succ(self, state, label):
         """

@@ -57,7 +57,7 @@ aut
 
 # Build the product. It should contain states named in the form `mdp_state,automaton_state`.
 
-p, T = lmdp.product(aut)
+p, T = lmdp.product_with_dba(aut)
 assert p.names == ['0,1', '1,0', '2,1', '3,1', '3,0', '0,0', '2,2']
 print("Passed test 1 for product in file test_product.py")
 
@@ -153,3 +153,42 @@ for s in [1,3,5]:
     except KeyError:
         pass
 print("Passed test 3 for ProductSelector in file test_product.py")
+# -
+
+# ### Test DBACounterStrategy
+
+# +
+f = spot.formula("GF s1 & GF s2")
+aut = spot.translate(f, "BA", "deterministic", "complete")
+mdp, T = product_example()
+lmdp = LCMDP(AP=["s1","s2"], mdp=mdp)
+lmdp.state_labels = [set(), {0}, {1}, set()]
+
+capacity = 10
+init_energy = 5
+# -
+
+# We create 2 strategies:
+#  1. A `CounterStrategy` that works on product CMDP
+#  2. A `DBACounterStrategy` that works on labeled CMDP
+
+# Get CounterSelector
+product, targets = lmdp.product_with_dba(aut)
+product.get_Buchi(targets, capacity, recompute=True)
+counter_sel = product.energy_levels.get_strategy(BUCHI)
+
+# Get ProductSelector
+dba_sel = lmdp.selector_for_dba(aut, cap=capacity)
+
+from fimdp.strategy import CounterStrategy
+from fimdp.labeledConsMDP import DBACounterStategy
+cs = CounterStrategy(product, counter_sel, capacity, init_energy)
+dbas = DBACounterStategy(lmdp, aut, dba_sel, capacity, init_energy)
+
+# We now start a play from the initial states (0 in both cases) and check whether the strategies give equivalent choices.
+
+for outcome in [0, 2, 3, 0, 2, 3, 0, 1, 4, 5, 4, 5, 6, 3, 0]:
+    pr_action = cs.next_action(outcome)
+    orig_action = dbas.next_action(product.components[outcome][0])
+    assert product.orig_action(pr_action) == orig_action
+print("Passed test for DBA strategy in file test_product")

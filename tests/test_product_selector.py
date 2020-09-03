@@ -23,7 +23,7 @@ assert aut.is_deterministic()
 
 # Create product.
 
-product, _ = lmdp.product(aut)
+product, _ = lmdp.product_with_dba(aut)
 
 # Create ProductSelector and fill a few rules manualy using the product states and actions.
 

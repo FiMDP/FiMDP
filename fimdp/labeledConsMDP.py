@@ -1,7 +1,10 @@
 from .consMDP import ConsMDP
-from .products import product_dba
+from .products import DBAWrapper, product_dba, ProductSelector
+from .energy_solver import GoalLeaningES, BUCHI
+from .strategy import CounterStrategy
 
 from copy import deepcopy
+from math import inf
 
 
 class LCMDP(ConsMDP):
@@ -122,12 +125,12 @@ class LCMDP(ConsMDP):
         states = self.num_states
         return [i for i in range(states) if labels[i] == label]
 
-    def product(self, aut, init_states=None):
+    def product_with_dba(self, aut, init_states=None):
         """Product of a labeled CMDP and a deterministic Büchi automaton.
 
         Parameters
         ==========
-         * dba: Spot's object twa_graph representing a deterministic state-based
+         * aut: Spot's object twa_graph representing a deterministic state-based
                 Büchi automaton
          * init_states: iterable of ints, the set of initial states of the LCMDP `self`
             The product will be started from these states. If `None`, all states are
@@ -146,4 +149,127 @@ class LCMDP(ConsMDP):
         """
         return product_dba(self, aut, init_states)
 
+    def selector_for_dba(self, aut, init_states=None,
+                         cap = inf,
+                         SolverClass=GoalLeaningES,
+                         keep_product=False):
+        """
+        Get selector for almost surely satisfaction of specification given as
+        deterministic Büchi automaton.
 
+        Build a product of the lCMDP with the automaton and synthesise strategy
+        for Büchi objective with targets in states of the product with accepting
+        state in the automaton component.
+
+        If `init_states` are given, only consider these states as possible
+        initial states. This can save the algorithm from building parts of
+        the product that would never be used.
+
+        After the product is analyzed, it is discarded andg no longer available,
+        unless `keep_product` is `True`. In this case, the product MDP object
+        is accessible by `selector.product_mdp`.
+
+        Parameters
+        ==========
+
+         * aut: Spot's object twa_graph representing a deterministic
+             state-based Büchi automaton
+
+         * init_states: iterable of ints, the set of initial states of the
+             LCMDP `self`. The product will be started from these states only.
+             If `None`, all states are considered initial. At least one state
+             must be declared as initial.
+        * SolverClass of energy solvers to be used for analysis of the
+            product (GoalLeaningES by default)
+        * keep_product: Bool, default False.
+            Keep the product MDP associated to the returned selector.
+
+        Returns: `ProductSelector` for Büchi objective given by determinstic
+            Büchi automaton `aut`.
+        """
+        product, targets = self.product_with_dba(aut, init_states)
+        solver = SolverClass(product, cap, targets=targets)
+        solver.SelectorClass = ProductSelector
+        selector: ProductSelector = solver.get_strategy(BUCHI)
+
+        if not keep_product:
+            del product
+            del selector.product_mdp
+
+        return selector
+
+
+class DBACounterStategy(CounterStrategy):
+    """
+    Strategy for labeled ConsMDPs `mdp` with 2 components of memory:
+     1. counter to maintain energy level of the play, and
+     2. deterministic Büchi automaton that runs on the labels produced by the
+        play.
+
+    It uses ProductSelector built for the corresponding product mdp × dba
+    for selecting the next actions on the original mdp.
+
+    At initialization, if both `init_state` and `init_aut_state` are given,
+    the play starts in configuration `(init_state, init_aut_state)`. If only
+    `init_state` is given, the play starts at `(init_state, aut_state)` where
+    `aut_state=δ(qi, label(init_state))` is the successor of the initial state
+    `qi` of `aut` under the label of `init_state`. If only `init_aut_state` is
+    given, the initial state needs to be given by `update(outcome)` and the
+    automaton state will be updated based on `outcome` to the corresponding
+    successor `aut_init_state`. If neither is given, the previous applies with
+    `aut_init_state=qi`, which means that the automaton starts from its initial
+    state.
+    """
+    def __init__(self, mdp: LCMDP, aut,
+                 selector: ProductSelector,
+                 capacity: int, init_energy: int, init_state=None,
+                 *args, **kwargs):
+        # Check the type of mdp
+        if not isinstance(mdp, LCMDP):
+            raise ValueError("Argument `mdp` must be a labeled consumption "
+                             f"MDP (LCMDP). It is of type {type(mdp)}")
+
+        # Check the type of automaton
+        if not (aut.is_sba() and aut.is_deterministic()):
+            raise ValueError(
+                "The automaton must be state-based deterministic Büchi."
+                "If the property is DBA-realizable, get one by calling: "
+                "`aut.postprocess('BA','complete','deterministic')`")
+
+        # Check if all APs of the dba are used by the MDP
+        for ap in aut.ap():
+            if ap not in mdp.AP:
+                raise ValueError(
+                    f"The automaton uses atomic proposition {ap}" +
+                    "not specified in the labeled MDP. Remove it " +
+                    "first! Otherwise, determinism is lost.")
+
+        self.aut = DBAWrapper(aut, mdp.AP)
+        super().__init__(mdp, selector, capacity,
+                         init_energy, init_state,
+                         *args, **kwargs)
+        self.mdp = mdp
+
+    def _next_action(self):
+        mdp_s = self._current_state
+        aut_s = self.aut_state
+        energy = self.energy
+        return self.selector.select_action(mdp_s, aut_s, energy)
+
+    def _update(self, outcome):
+        super()._update(outcome)
+        label = self.mdp.state_labels[outcome]
+        self.aut_state = self.aut.succ(self.aut_state, label)
+
+    def _reset(self, init_energy=None, init_aut_state=None, *args, **kwargs):
+        super()._reset(init_energy)
+        if init_aut_state is not None and self._current_state is not None:
+            self.aut_state = init_aut_state
+        else:
+            if init_aut_state is None:
+                init_aut_state = self.aut.get_init()
+            if self._current_state is not None:
+                label = self.mdp.state_labels[self._current_state]
+                self.aut_state = self.aut.succ(init_aut_state, label)
+            else:
+                self.aut_state = init_aut_state
