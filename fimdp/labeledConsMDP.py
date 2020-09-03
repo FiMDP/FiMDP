@@ -6,6 +6,8 @@ from .strategy import CounterStrategy
 from copy import deepcopy
 from math import inf
 
+import spot
+
 
 class LCMDP(ConsMDP):
     """Represent consumption MDP with states labeled by sets of Atomic
@@ -165,9 +167,12 @@ class LCMDP(ConsMDP):
         initial states. This can save the algorithm from building parts of
         the product that would never be used.
 
-        After the product is analyzed, it is discarded andg no longer available,
+        After the product is analyzed, it is discarded and no longer available,
         unless `keep_product` is `True`. In this case, the product MDP object
         is accessible by `selector.product_mdp`.
+
+        The returned selector is intended to be passed to DBACounterStrategy
+        that work directly on top of this LCMDP.
 
         Parameters
         ==========
@@ -197,6 +202,60 @@ class LCMDP(ConsMDP):
             del selector.product_mdp
 
         return selector
+
+    def selector_for_ltl(self, formula, init_states=None,
+                         cap = inf,
+                         SolverClass=GoalLeaningES,
+                         keep_product=False):
+        """
+        Get selector for almost surely satisfaction of specification given as
+        ltl formula.
+
+        Currently, only the recurrence fragment is supported.
+
+        Translate the formula into equivalent deterministic Büchi automaton,
+        build a product of the lCMDP with the automaton and synthesise
+        strategy for Büchi objective with targets in states of the product
+        with accepting state in the automaton component.
+
+        If `init_states` are given, only consider these states as possible
+        initial states. This can save the algorithm from building parts of
+        the product that would never be used.
+
+        After the product is analyzed, it is discarded and no longer available,
+        unless `keep_product` is `True`. In this case, the product MDP object
+        is accessible by `selector.product_mdp`.
+
+        The returned selector is intended to be passed to DBACounterStrategy
+        that work directly on top of this LCMDP.
+
+        Parameters
+        ==========
+
+         * formula: formula from the recurrence fragment of LTL in format that
+            is readable by Spot's Python binding.
+
+         * init_states: iterable of ints, the set of initial states of the
+             LCMDP `self`. The product will be started from these states only.
+             If `None`, all states are considered initial. At least one state
+             must be declared as initial.
+        * SolverClass of energy solvers to be used for analysis of the
+            product (GoalLeaningES by default)
+        * keep_product: Bool, default False.
+            Keep the product MDP associated to the returned selector.
+
+        Returns: `ProductSelector` for Büchi objective given by determinstic
+            Büchi automaton `aut`.
+        """
+        f = spot.formula(formula)
+        if f.mp_class() not in "SRPOBG":
+            raise ValueError("The formula must be from the recurrence fragment"
+                             "of LTL. See https://spot.lrde.epita.fr/hierarchy.html"
+                             f"for more details. The formula {f} was given.")
+        dba = spot.translate(f, "BA", "deterministic", "complete")
+        return self.selector_for_dba(aut=dba, init_states=init_states,
+                                     cap=cap, SolverClass=SolverClass,
+                                     keep_product=keep_product)
 
 
 class DBACounterStategy(CounterStrategy):

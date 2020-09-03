@@ -155,7 +155,7 @@ for s in [1,3,5]:
 print("Passed test 3 for ProductSelector in file test_product.py")
 # -
 
-# ### Test DBACounterStrategy
+# ### LTL selector
 
 # +
 f = spot.formula("GF s1 & GF s2")
@@ -168,6 +168,15 @@ capacity = 10
 init_energy = 5
 # -
 
+# Get ProductSelector
+dba_sel = lmdp.selector_for_dba(aut, cap=capacity)
+
+ltl_sel = lmdp.selector_for_ltl("GF s1 & GF s2", cap=capacity)
+assert ltl_sel == dba_sel
+print("Passed test selector_for_ltl in file test_product.py")
+
+# ### Test DBACounterStrategy
+
 # We create 2 strategies:
 #  1. A `CounterStrategy` that works on product CMDP
 #  2. A `DBACounterStrategy` that works on labeled CMDP
@@ -176,9 +185,6 @@ init_energy = 5
 product, targets = lmdp.product_with_dba(aut)
 product.get_Buchi(targets, capacity, recompute=True)
 counter_sel = product.energy_levels.get_strategy(BUCHI)
-
-# Get ProductSelector
-dba_sel = lmdp.selector_for_dba(aut, cap=capacity)
 
 from fimdp.strategy import CounterStrategy
 from fimdp.labeledConsMDP import DBACounterStategy
