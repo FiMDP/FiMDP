@@ -462,6 +462,16 @@ class ProductSelector(dict):
             for orig, rule in selector:
                 res_sel[orig] = rule.copy()
 
+    def __repr__(self):
+        res = "===ProductSelector===\n"
+        for mdp_s in sorted(self.keys()):
+            for aut_s in self[mdp_s]:
+                res += " "
+                res += f"{mdp_s}×{aut_s}: "
+                res += self[mdp_s][aut_s].__repr__()
+                res += "\n"
+        return res+"=====================\n"
+
 
 class ProductSelectorWrapper(CounterSelector):
     """

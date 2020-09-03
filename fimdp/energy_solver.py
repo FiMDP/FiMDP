@@ -23,7 +23,7 @@ from math import inf
 
 from .fixpoints import largest_fixpoint, least_fixpoint, \
                        argmin, pick_best_action
-from .strategy import CounterSelector, SelectionRule
+from .strategy import CounterSelector
 
 # objectives
 MIN_INIT_CONS = 0
@@ -72,7 +72,9 @@ class BasicES:
         # reloads
         self.is_reload  = lambda x: self.mdp.is_reload(x)
 
+        # Selector's setup
         self.strategy = {}
+        self.SelectorClass = CounterSelector
 
         # HOOKS
         # Hooks that enable creation of heuristic-based child classes.
@@ -233,7 +235,7 @@ class BasicES:
         """
         if objective not in range(OBJ_COUNT):
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
-        self.strategy[objective] = CounterSelector(self.mdp)
+        self.strategy[objective] = self.SelectorClass(self.mdp)
 
     def _copy_strategy(self, source, to, state_set=None):
         """Copy strategy for objective `source` to objective `to` for states in `states_set`
@@ -253,8 +255,7 @@ class BasicES:
         if to not in range(OBJ_COUNT):
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {to} was given!")
 
-        for s in state_set:
-            self.strategy[to][s] = SelectionRule(self.strategy[source][s])
+        self.strategy[to].copy_values_from(self.strategy[source], state_set)
 
     def _update_function(self, objective):
         """Return update function for given objective.
@@ -266,7 +267,7 @@ class BasicES:
             raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
 
         def update(s, e, a):
-            self.strategy[objective][s][e] = a
+            self.strategy[objective].update(s, e, a)
 
         return update
 
