@@ -21,6 +21,9 @@ before_script:
   - sudo echo 'deb http://www.lrde.epita.fr/repo/debian/ unstable/' >> /etc/apt/sources.list
   - sudo apt-get update
   - sudo apt-get install spot libspot-dev spot-doc python3-spot
+  - sudo ln -s /usr/local/lib/python3.8/site-packages/spot/ /usr/local/lib/python3.8/dist-packages/spot
+  - sudo ln -s /usr/local/lib/python3.8/site-packages/buddy.py /usr/local/lib/python3.8/dist-packages
+  - sudo ln -s /usr/local/lib/python3.8/site-packages/_buddy* /usr/local/lib/python3.8/dist-packages/
 
 # command to run tests
 script:
