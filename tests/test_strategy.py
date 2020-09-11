@@ -12,8 +12,10 @@
 #   3. no action at all
 
 from reachability_examples import basic
+
+from fimdp.core import SelectionRule
 from fimdp.energy_solver import BasicES, AS_REACH, POS_REACH
-from fimdp.strategy import SelectionRule
+
 
 m, T = basic()
 
@@ -50,7 +52,7 @@ print("Passed test 2 for selection rules in fle test_strategy.py")
 
 # ### 3. `select_action` 
 
-from fimdp.strategy import NoFeasibleActionError
+from fimdp.core import NoFeasibleActionError
 
 assert rule.select_action(2).label == 't'
 assert rule.select_action(6).label == 't'
@@ -78,7 +80,7 @@ except NoFeasibleActionError:
 # 3. Test `select_action`
 # 4. Test `copy_values_from`
 
-from fimdp.strategy import CounterSelector
+from fimdp.core import CounterSelector
 
 # ### 1. Test initialization
 
@@ -182,7 +184,7 @@ print("Passed test 6 for CounterSelector (copy_values_from) in file test_strateg
 # ## Test Strategy interface
 # We first create a simple strategy that always chooses the first action for the current state.
 
-from fimdp.strategy import WrongCallOrderError, PickFirstStrategy
+from fimdp.core import WrongCallOrderError, PickFirstStrategy
 
 # +
 s = PickFirstStrategy(m, 0)
@@ -260,7 +262,7 @@ except ValueError:
 
 # # Test CounterStrategy
 
-from fimdp.strategy import CounterStrategy
+from fimdp.core import CounterStrategy
 
 # +
 solver = BasicES(m, 30, T)

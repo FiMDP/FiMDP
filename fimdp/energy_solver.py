@@ -26,7 +26,7 @@ from IPython.display import SVG, display
 from . import dot
 from .fixpoints import largest_fixpoint, least_fixpoint, \
                        argmin, pick_best_action
-from .strategy import CounterSelector
+from .core import CounterSelector
 
 # objectives
 MIN_INIT_CONS = 0

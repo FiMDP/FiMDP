@@ -101,7 +101,6 @@ print("Passed test for ProductSelectorWrapper in file test_product.py")
 # ### Test ProductSelector
 
 from fimdp.products import ProductSelector
-from fimdp.strategy import NoFeasibleActionError
 
 
 def get_from_CounterSelector(counter_selector):
@@ -187,7 +186,7 @@ product, targets = lmdp.product_with_dba(aut)
 psolver = BasicES(product, capacity, targets)
 counter_sel = psolver.get_strategy(BUCHI)
 
-from fimdp.strategy import CounterStrategy
+from fimdp.core import CounterStrategy
 from fimdp.labeledConsMDP import DBACounterStategy
 cs = CounterStrategy(product, counter_sel, capacity, init_energy)
 dbas = DBACounterStategy(lmdp, aut, dba_sel, capacity, init_energy)

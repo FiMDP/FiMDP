@@ -1,8 +1,7 @@
 import spot
 import buddy
 
-from .core import ConsMDP
-from .strategy import CounterSelector, SelectionRule
+from .core import ConsMDP, CounterSelector, SelectionRule
 
 
 class ProductCMDP(ConsMDP):
