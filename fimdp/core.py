@@ -9,6 +9,7 @@ from IPython.display import SVG
 from .dot import consMDP2dot, dot_to_svg
 from .energy_solver import BasicES
 
+
 def is_distribution(d):
 
     """Checks if a given array of probabilities is indeed a valid distribution
@@ -226,12 +227,12 @@ class ConsMDP:
 
     def actions_for_state(self, s):
         """Return iterator of actions available for state `s`."""
-        it = Succ_iter(self.actions, self.succ[s])
+        it = _ActionIter(self.actions, self.succ[s])
         return it
 
     def out_iteraser(self, s):
         """Return iterator of actions available for state `s`."""
-        it = Succ_iteraser(self, s)
+        it = _ActionItEraser(self, s)
         return it
 
     def state_succs(self, s):
@@ -364,7 +365,7 @@ class ActionData:
         return f"{self.src}——{self.label}[{self.cons}]——>{self.distr}"
 
 
-class Succ_iter:
+class _ActionIter:
     """Iterate over linked list nested in a given List.
     
     Expect that the items stored in `l` contain field `next_succ` which
@@ -386,7 +387,7 @@ class Succ_iter:
     
     """
     def __init__(self, l, i):
-        """Constructor method - Succ_iter class
+        """Constructor method - _ActionIter class
         """
         # TODO check for types
         self.l = l
@@ -421,7 +422,8 @@ class Succ_iter:
             c += 1
         return c
 
-class Succ_iteraser(Succ_iter):
+
+class _ActionItEraser(_ActionIter):
     """Iterate over outgoing edges of `s` and allow erasing edges.
 
     Expects an consMDP `mdp` and state index `s`. The function erase
@@ -429,9 +431,9 @@ class Succ_iteraser(Succ_iter):
     """
 
     def __init__(self, mdp, s):
-        """Constructor method - Succ_iteraser class
+        """Constructor method - _ActionItEraser class
         """
-        super(Succ_iteraser,self).__init__(mdp.actions, mdp.succ[s])
+        super(_ActionItEraser, self).__init__(mdp.actions, mdp.succ[s])
         self.curr = None
         self.prev = None
         self.s    = s
@@ -441,11 +443,12 @@ class Succ_iteraser(Succ_iter):
     def __next__(self):
         self.prev = self.curr
         self.curr = self.next
-        return super(Succ_iteraser,self).__next__()
+        return super(_ActionItEraser, self).__next__()
 
     def erase(self):
         if self.curr is None:
-            raise ValueError("Can't erase before moved to 1st edge. Call self.__next__() first")
+            raise ValueError("Can't erase before moved to 1st edge. "
+                             "Call self.__next__() first")
 
         self.mdp.structure_change()
 
