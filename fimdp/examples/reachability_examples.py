@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fimdp import consMDP
+from fimdp.core import ConsMDP
 from fimdp import dot
 from decimal import Decimal
 import decimal
@@ -30,7 +30,7 @@ def uniform(dests):
 # Capacity should be 25
 def basic():
     dot.dotpr = "neato"
-    m = consMDP.ConsMDP()
+    m = ConsMDP()
 
     m.new_states(9)
     for s in [0, 7]:
@@ -56,7 +56,7 @@ def basic():
 
 def explicit():
     dot.dotpr = "dot"
-    mdp = consMDP.ConsMDP()
+    mdp = ConsMDP()
     mdp.new_states(5)
     mdp.set_reload(4)
     mdp.add_action(0, uniform([1,2]), "α", 1)
@@ -70,9 +70,40 @@ def explicit():
     return mdp, T
 
 
+def goal_leaning():
+    dot.dotpr = "dot"
+    m = ConsMDP()
+    m.new_states(3)
+    for r in [0, 2]:
+        m.set_reload(r)
+    m.add_action(0, {1:.5, 0:.5}, "top", 1)
+    m.add_action(0,{1:.7, 0:.3},"bottom",1)
+    m.add_action(1,{2:1}, "r", 1)
+    m.add_action(2,{2:1}, "r", 2)
+
+    targets=set([2])
+    return m, targets
+
+
+def goal_leaning_2():
+    dot.dotpr = "dot"
+    m = ConsMDP()
+    m.new_states(4)
+    for r in [0, 2]:
+        m.set_reload(r)
+    m.add_action(0, {1:.5, 3:.5}, "sure", 1)
+    m.add_action(0,{1:.7, 0:.3},"cycle",1)
+    m.add_action(1,{2:1}, "r", 1)
+    m.add_action(3,{2:1}, "r", 1)
+    m.add_action(2,{2:1}, "r", 3)
+
+    targets=set([2])
+    return m, targets
+
+
 def little_alsure():
     dot.dotpr = "dot"
-    m = consMDP.ConsMDP()
+    m = ConsMDP()
     m.new_states(4)
     for r in [3]:
         m.set_reload(r)
@@ -92,7 +123,7 @@ def little_alsure2():
     return m, T
 
 def product_example():
-    mdp = consMDP.ConsMDP()
+    mdp = ConsMDP()
     mdp.new_states(4)
     mdp.set_reload(3)
     mdp.add_action(0, uniform([1,2]), "α", 3)
@@ -102,10 +133,24 @@ def product_example():
     mdp.add_action(3, uniform([0]), "s", 3)
     return mdp, {1, 2}
 
+def two_step():
+    dot.dotpr = "neato"
+    two_step = ConsMDP()
+    two_step.new_states(4)
+    two_step.set_reload(1)
+    two_step.set_reload(3)
+   
+    two_step.add_action(0, {1: .99, 3: .01}, "direct", 1)
+    two_step.add_action(1, {0: 1}, "", 1)
+    two_step.add_action(0, {2: 1}, "long", 1)
+    two_step.add_action(2, {3: 1}, "long", 1)
+    two_step.add_action(3, {3: 1}, "rel", 1);
+
+    return two_step, {3}
 
 def ultimate():
     dot.dotpr="neato"
-    m = consMDP.ConsMDP()
+    m = ConsMDP()
     m.new_states(11)
     for r in [2,4,9]:
         m.set_reload(r)

@@ -27,6 +27,8 @@
 ### Changed
 
 #### Backward incompatible changes
+ * The class `ConsMDP` and its helper classes (`ActionData` and iterators) are moved
+  from `consMDP.py` module to `core.py`.
  * The update function of energy solvers now stores pointer to the whole ActionData object instead of
    just label. Add `.label` to every access to actions stored in the current representations
    of strategies.

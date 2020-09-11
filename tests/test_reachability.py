@@ -4,7 +4,7 @@
 """
 
 import fimdp
-from fimdp.consMDP import ConsMDP
+from fimdp.core import ConsMDP
 from math import inf
 from reachability_examples import basic, little_alsure, little_alsure2
 

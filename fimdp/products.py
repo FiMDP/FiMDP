@@ -1,7 +1,7 @@
 import spot
 import buddy
 
-from .consMDP import ConsMDP
+from .core import ConsMDP
 from .strategy import CounterSelector, SelectionRule
 
 

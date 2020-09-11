@@ -1,4 +1,4 @@
-from .consMDP import ConsMDP
+from .core import ConsMDP
 from .products import DBAWrapper, product_dba, ProductSelector
 from .energy_solver import GoalLeaningES, BUCHI
 from .strategy import CounterStrategy

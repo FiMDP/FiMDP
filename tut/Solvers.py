@@ -145,32 +145,20 @@ print("Passed test 2 for values of goal-leaning strategies in file tut/Solvers.i
 # ### Sure path with 2 steps better than unlikely 1-step path.
 
 # ![threshold example](threshold_example.svg)
+#
 # All actions having consumption 1, not-listed probabilities are also 1, rel are reload states.
 #
 # Now let's create the CMDP using the FiMDP package.
 
-from fimdp import dot
-dot.dotpr = "neato"
-
-# +
-two_step = fimdp.consMDP.ConsMDP()
-
-two_step.new_states(4)
-two_step.set_reload(1)
-two_step.set_reload(3)
-two_step.add_action(0, {1: .99, 3: .01}, "direct", 1)
-two_step.add_action(1, {0: 1}, "", 1)
-two_step.add_action(0, {2: 1}, "long", 1)
-two_step.add_action(2, {3: 1}, "long", 1)
-two_step.add_action(3, {3: 1}, "rel", 1);
-
-two_step
-# -
+from fimdp.examples.reachability_examples import two_step
+mdp, T = two_step()
+print(T)
+mdp
 
 from fimdp.energy_solver import BUCHI
-basic = BasicES(two_step, targets=[3])
-goal = GoalLeaningES(two_step, targets=[3])
-threshold = GoalLeaningES(two_step, targets=[3], threshold=0.011)
+basic = BasicES(mdp, cap=40, targets=T)
+goal = GoalLeaningES(mdp, cap=40, targets=T)
+threshold = GoalLeaningES(mdp, cap=40, targets=T, threshold=0.011)
 
 # Intuitively, if we want to reach the target quickly, we need to take the upper path (via state 2) and we surely reach the target (double circled) in 2 steps. The lower path (via state 1) reaches the target with very low probability; trying infinitely often will lead us to the target almost surely, though.
 #
@@ -191,40 +179,10 @@ print("Passed test 3 for the threshold strategy in file tut/Solvers.ipynb")
 
 # ### Simple goal-leaning example
 
-# +
-goal_leaning = fimdp.consMDP.ConsMDP()
-
-goal_leaning.new_states(4)
-goal_leaning.set_reload(1)
-goal_leaning.set_reload(3)
-goal_leaning.add_action(0, {1: .99, 3: .01}, "direct", 1)
-goal_leaning.add_action(1, {0: 1}, "", 1)
-goal_leaning.add_action(0, {2: 1}, "long", 1)
-goal_leaning.add_action(2, {3: 1}, "long", 1)
-goal_leaning.add_action(3, {3: 1}, "rel", 1);
-
-goal_leaning
-
-
-# +
-def goal_leaning():
-    dot.dotpr = "dot"
-    m = fimdp.consMDP.ConsMDP()
-    m.new_states(3)
-    for r in [0, 2]:
-        m.set_reload(r)
-    m.add_action(0, {1:.5, 0:.5}, "top", 1)
-    m.add_action(0,{1:.7, 0:.3},"bottom",1)
-    m.add_action(1,{2:1}, "r", 1)
-    m.add_action(2,{2:1}, "r", 2)
-
-    targets=set([2])
-    return m, targets
-
+from fimdp.examples.reachability_examples import goal_leaning
 gl, T = goal_leaning()
 gl.get_Buchi(T)
 gl
-# -
 
 basic = BasicES(gl, targets=T)
 goal = GoalLeaningES(gl, targets=T)
@@ -243,30 +201,13 @@ assert result == expected, (
 )
 print("Passed test 4 for goal-leaning solver in file tut/Solvers.ipynb")
 
-
 # ### Goal-leaning is just a heuristic
 # We slightly modify the previous example by adding a new state (3), which is a copy of state 1. The `top` action, now named `sure`, does not loop back to 0, instead, it goes either to 1 or 2. This results in a situation where picking the `sure` action surely leads to the targets. But when deciding which action to choose, the solvers always consider only 1 successor. The best the action `sure` can achieve in this view is `0.5` reaching a promising successor. Therefore, the goal-leaning solver still prefers the bottom action, now called `cycle`. The `basic` solver still chooses the action that comes first as they both can achieve the same value.
 
-# +
-def goal_leaning_2():
-    dot.dotpr = "dot"
-    m = fimdp.consMDP.ConsMDP()
-    m.new_states(4)
-    for r in [0, 2]:
-        m.set_reload(r)
-    m.add_action(0, {1:.5, 3:.5}, "sure", 1)
-    m.add_action(0,{1:.7, 0:.3},"cycle",1)
-    m.add_action(1,{2:1}, "r", 1)
-    m.add_action(3,{2:1}, "r", 1)
-    m.add_action(2,{2:1}, "r", 3)   
-
-    targets=set([2])
-    return m, targets
-
+from fimdp.examples.reachability_examples import goal_leaning_2
 gl2, T = goal_leaning_2()
 gl2.get_Buchi(T)
 gl2
-# -
 
 basic2 = BasicES(gl2, targets=T)
 goal2 = GoalLeaningES(gl2, targets=T)

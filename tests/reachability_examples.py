@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from fimdp import consMDP
+from fimdp import core
 from fimdp import dot
 
 
@@ -13,7 +13,7 @@ from fimdp import dot
 # Capacity should be 25
 def basic():
     dot.dotpr = "neato"
-    m = consMDP.ConsMDP()
+    m = core.ConsMDP()
 
     m.new_states(9)
     for s in [0, 7]:
@@ -38,7 +38,7 @@ def basic():
 
 def little_alsure():
     dot.dotpr = "dot"
-    m = consMDP.ConsMDP()
+    m = core.ConsMDP()
     m.new_states(4)
     for r in [3]:
         m.set_reload(r)
@@ -59,7 +59,7 @@ def little_alsure2():
 
 def ultimate():
     dot.dotpr="neato"
-    m = consMDP.ConsMDP()
+    m = core.ConsMDP()
     m.new_states(11)
     for r in [2,4,9]:
         m.set_reload(r)

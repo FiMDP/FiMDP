@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from fimdp import consMDP
+from fimdp import core
 from math import inf
 from fimdp.energy_solver import BasicES, LeastFixpointES
 from sys import stderr
 
 # ## Simple example
 
-m = consMDP.ConsMDP()
+m = core.ConsMDP()
 m.new_states(13)
 for sid in [0,3,4,9,11]:
     m.set_reload(sid)
@@ -135,7 +135,7 @@ print("Passed test 1 for LeastFixpointES() in test_safety file.")
 # ## Reload that is never safe
 # safe_values = ∞ even with cap = ∞, which is different from minInitCons (orange)
 
-m = consMDP.ConsMDP()
+m = core.ConsMDP()
 m.new_states(4)
 m.set_reload(2)
 m.set_reload(0)
@@ -180,7 +180,7 @@ print("Passed test 6 for get_safe() in test_safety file.")
 
 # # Example of incorrectness of the least fixpoint algorithm bounded by $|S|$ steps
 
-m = consMDP.ConsMDP()
+m = core.ConsMDP()
 m.new_state(True)
 m.new_states(2)
 m.add_action(0, {0:1}, "", 0)
@@ -203,7 +203,7 @@ print("Passed test 6 for BasicES.get_minInitCons() in test_safety file.")
 # The original idea that we can bound the number of iterations by $|S|$ is incorrect. The following example used to give value 1 for state 2.
 
 # +
-m = consMDP.ConsMDP()
+m = core.ConsMDP()
 m.new_state(True)
 m.new_states(2)
 m.new_state(True)
