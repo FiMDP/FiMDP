@@ -11,19 +11,44 @@ from .dot import consMDP2dot, dot_to_svg
 from .energy_solver import BasicES
 
 
+
 class ConsMDP:
-    """Represent Markov Decision Process with consumption on actions. The data describing 
-       the MDP are stored mainly in two vectors:
-         - `succ`
-         - `actions`
-    States are represented by integers and `succ[i]` stores the index to
-    the list `actions` where the data for `i` start. Thus `actions[succ[i]]`
-    hold the first action of `i`. To iterate over actions of a state `s`
-    use `actions_for_state(s)`. If you wish to remove actions, use
-    `out_iteraser(s)` instead.
+    """
+    Represent Markov Decision Process with consumption on actions.
+
+    States are represented by integers and actions are represented by
+    `ActionData` objects. To add an action, use `add_action`. To iterate over
+    actions of a state `s` use `actions_for_state(s)`. If you wish to remove
+    actions during the iteration, use `out_iteraser(s)` instead. There is
+    also `remove_action` which requires an action id. See implementation
+    details for further info.
 
     States can have names using the list `names`. Reload states are stored
     in the set `reload_states`.
+
+    Important
+    =========
+    Functions that change the structure of the consMDP should always call
+    `self.structure_change()`.
+
+    Define your probabilities in distributions in some exact representation
+    like `decimal.Decimal(probability_string)` and always avoid floating-point
+    data types. Due to their imprecision some checks could fail or trigger
+    false positives (e.g. `0.06+0.82+0.12 != 1`!).
+
+    Implementation details
+    ======================
+    The action objects are stored in a sparse-matrix fashion using two
+    vectors: `succ` and `actions`. The latter is just a list of `ActionData`
+    objects stored in the order in which the actions were created. Using
+    the `ActionData.next_succ` the actions form a linked-list of actions
+    for each state (that is how `actions_for_state(s)` work internally).
+    The vector `succ` serves to locate the first action in this linked-list
+    for given state (`actions[succ[s]]` hold the first action of `s`).
+
+    Do not modify the two vectors directly. Always use `ConsMDP.add_action`
+    to add and `ConsMDP.remove_action` or `ConsMDP.out_iteraser(s)` to remove
+    actions.
     
     Computation of Safe vector
     ==========================
@@ -43,16 +68,6 @@ class ConsMDP:
     Basically, LeastFixpointES is faster on models where the maximal
     consumption on an action is strictly smaller than the number of states,
     and the other way.
-
-    Important
-    =========
-    Functions that change the structure of the consMDP should always call
-    `self.structure_change()`.
-
-    Define your probabilities in distributions in some exact representation
-    like `decimal.Decimal(probability_string)` and always avoid floating-point
-    data types. Due to their imprecission some checks could fail or trigger
-    false positives (e.g. `0.06+0.82+0.12 != 1`!).
     """
 
     def __init__(self):
@@ -214,7 +229,10 @@ class ConsMDP:
         return it
 
     def out_iteraser(self, s):
-        """Return iterator of actions available for state `s`."""
+        """
+        Return iterator of actions available for state `s` that allows
+        action removal.
+        """
         it = _ActionItEraser(self, s)
         return it
 
@@ -325,8 +343,17 @@ class ConsMDP:
         
         
 class ActionData:
-    """Object that holds the data of an action in the consMDP for a given
-    state, consumption, distribution and label. 
+    """
+    Holds data of an action in ConsMDP.
+
+    The defining attributes of an action are:
+     * source state `src`
+     * consumption `cons`,
+     * the successors probability distribution `distr`,
+     * the action `label`
+
+    The attribute `next_succ` is used to keep a nested linked-list of actions
+    with the same `src`.
     """
        
     def __init__(self, src, cons, distr, label, next_succ):
@@ -349,32 +376,31 @@ class ActionData:
 
 
 class _ActionIter:
-    """Iterate over linked list nested in a given List.
-    
-    Expect that the items stored in `l` contain field `next_succ` which
-    contain integers that are indices in `l` where new successor can be
+    """
+    Iterate over linked list nested in a given List.
+
+    Expect that the items stored in `outer_list` contain field `next_succ` which
+    contain integers that are indices in `outer_list` where new successor can be
     found.
     
     Assumptions
     ===========
-     * List `l` is indexed from 1
-     * `next_succ = 0` means last item of the linked list (`succ`)
-     
-    ..attribute: l
-    
-        List of items containing `next_succ` fields. Indexed from 1
-        
-    ..attribute: i
-        
-        Index in `l` of the first element of the nested list.
+     * List `outer_list` is indexed from 1
+     * `item.next_succ == 0` means last item of the linked list (`succ`)
+
+    Parameters
+    ==========
+     * outer_list: list of items containing `next_succ` fields. Indexed from 1.
+     * start_index: (int) index in `outer_list` of the first element of the
+        nested list that we want to iterate.
     
     """
-    def __init__(self, l, i):
+    def __init__(self, outer_list, start_index):
         """Constructor method - _ActionIter class
         """
         # TODO check for types
-        self.l = l
-        self.next = i
+        self.outer_list = outer_list
+        self.next = start_index
 
     def __iter__(self):
         return self
@@ -382,10 +408,10 @@ class _ActionIter:
     def __next__(self):
         if self.next == 0:
             raise StopIteration()
-        if self.next >= len(self.l):
-            raise IndexError("{} ".format(self.l)+f"{self.next}")
+        if self.next >= len(self.outer_list):
+            raise IndexError("{} ".format(self.outer_list) + f"{self.next}")
         else:
-            item = self.l[self.next]
+            item = self.outer_list[self.next]
             self.next = item.next_succ
             return item
         
@@ -407,7 +433,8 @@ class _ActionIter:
 
 
 class _ActionItEraser(_ActionIter):
-    """Iterate over outgoing edges of `s` and allow erasing edges.
+    """
+    Iterate over outgoing edges of `s` and allow erasing edges.
 
     Expects an consMDP `mdp` and state index `s`. The function erase
     erases the current action and moves to the next one for `s`.
@@ -435,8 +462,9 @@ class _ActionItEraser(_ActionIter):
 
         self.mdp.structure_change()
 
-        self.l[self.curr].next_succ = self.curr
+        self.outer_list[self.curr].next_succ = self.curr
         if self.prev is None:
             self.succ[self.s] = self.next
         else:
-            self.l[self.prev].next_succ = self.next
+            self.outer_list[self.prev].next_succ = self.next
+
