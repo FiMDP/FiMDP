@@ -6,27 +6,10 @@ the associated methods.
 import math
 from IPython.display import SVG
 
+from .distribution import is_distribution
 from .dot import consMDP2dot, dot_to_svg
 from .energy_solver import BasicES
 
-
-def is_distribution(d):
-
-    """Checks if a given array of probabilities is indeed a valid distribution
-
-    Parameters
-    ----------
-    d: distribution; an array that sums up to 1.
-       A valid probability distribution.
-
-    Returns
-    -------
-    Boolean: Boolean Type
-       0 or 1 depending on whether array d is a valid distribution.
-
-    """
-    probs = d.values()
-    return sum(probs) == 1
 
 class ConsMDP:
     """Represent Markov Decision Process with consumption on actions. The data describing 

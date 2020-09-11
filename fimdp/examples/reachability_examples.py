@@ -1,23 +1,7 @@
 # -*- coding: utf-8 -*-
-from fimdp.core import ConsMDP
-from fimdp import dot
-from decimal import Decimal
-import decimal
-
-
-def uniform(dests):
-    """Create a uniform distribution for given destinations.
-
-    dests: iterable of states
-    """
-    count = len(dests)
-    mod = 100 % count
-    decimal.getcontext().prec = 2
-    prob = Decimal(1)/Decimal(count)
-    dist = {i: prob for i in dests}
-    last = dests[-1]
-    dist[last] = dist[last] + Decimal("0.01")*mod
-    return dist
+from .. import dot
+from ..core import ConsMDP
+from ..distribution import uniform
 
 
 # ## Almost sure reachability example
