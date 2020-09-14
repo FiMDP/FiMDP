@@ -76,8 +76,10 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
         for i in range(len(tour_min)-1):
             #Add the cost of the constructed tour, and add the edges to the list
             cost_agent=cost_agent+Agent_graph[tour_min[i]][tour_min[i+1]]['weight']
-            agent_list.append((tour_min[i],tour_min[i+1]))
-
+            if tour_min[i] not in agent_list:
+                agent_list.append(tour_min[i])
+            if tour_min[i+1] not in agent_list:
+                agent_list.append(tour_min[i+1])
             # If the cost exceeds 4x of the optimal cost, break the tour of this agent
             if cost_agent>4*(cost_upper+cost_low)/2:
                 all_agentlist.append(agent_list)
@@ -108,8 +110,9 @@ def min_hamilton(tree):
 
     step_list=[]
     # Go over the edges of tree, add to the Eulerian tour if they are not already present
+    #for i in range(len(tree)):
     for item,item2,weight in sorted(tree.edges(data=True)):
-        #print(item,item2,weight)
+            #print(item,item2,weight)
         if item not in step_list:
             step_list.append(item)
 
@@ -117,7 +120,7 @@ def min_hamilton(tree):
             step_list.append(item2)
     return(step_list)
 
-def generate_Graph(m,T,env):
+def generate_Graph(T):
     """
 
     :param m: FiMDP model
@@ -135,10 +138,37 @@ def generate_Graph(m,T,env):
         Agent_graph.add_node((item))
 
     #Generate edge costs for the agent
-    for item in Agent_graph:
-        for item2 in Agent_graph:
-            if not item==item2 and not (item,item2) in Agent_graph.edges:
-                Agent_graph.add_edge(item,item2,weight=np.random.uniform(0, 20))
+    # for item in Agent_graph:
+    #     for item2 in Agent_graph:
+    #         if not item==item2 and not (item,item2) in Agent_graph.edges:
+    #             Agent_graph.add_edge(item,item2,weight=np.random.uniform(0, 20))
+
+    #return the networkx graph
+    return Agent_graph
+
+def generate_Graph_multi_agent(T,num_agent):
+    """
+
+    :param m: FiMDP model
+    :param T: set of targets: which is a proxy here
+    :param env: FiMDP env
+    :return:
+    Agent_graph: Networkx graph with nodes representing each target, edges representing cost
+    """
+    Agent_graph=[0 for _ in range(num_agent)]
+    #Generate nodes of the agent
+    for i in range(num_agent):
+        Agent_graph[i]= nx.Graph()
+        count=0
+        for item in T:
+            count=count+1
+            Agent_graph[i].add_node((item))
+
+    #Generate edge costs for the agent
+    # for item in Agent_graph:
+    #     for item2 in Agent_graph:
+    #         if not item==item2 and not (item,item2) in Agent_graph.edges:
+    #             Agent_graph.add_edge(item,item2,weight=np.random.uniform(0, 20))
 
     #return the networkx graph
     return Agent_graph
@@ -152,6 +182,8 @@ def generate_minimumspanning_tree(Agent_graph):
     :return:
     Tree: minimum spanning tree
     """
+    #Tree=[0 for _ in range(len(Agent_graph))]
+    #for i in range(len(Agent_graph)):
     Tree = nx.minimum_spanning_tree(Agent_graph)
     return Tree
 
@@ -170,4 +202,23 @@ def compute_cost(Agent_graph,tour):
 
         cost=cost+Agent_graph[tour[i]][tour[i+1]]['weight']
     return cost
+
+def compute_cost_assignments(Agent_graph,tour):
+    """
+    :param Agent_graph: Networkx graph for the targets
+    :type Agent_graph: Networkx undirected graph
+    :param tour: Nodes of the Eulerian tour
+    :type tour: python list
+    :return:
+    cost: Cost of the Eulerian tour
+    """
+    #print(tour)
+    #print(len(tour))
+    cost=[0 for i in range(len(tour))]
+    for i in range(len(tour)):
+        for j in range(len(tour[i])-1):
+            #print(Agent_graph,tour[i][j],tour[i][j+1])
+            cost[i]=cost[i]+Agent_graph[tour[i][j]][tour[i][j+1]]['weight']
+    return cost
+
 
