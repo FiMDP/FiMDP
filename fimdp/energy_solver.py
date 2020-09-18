@@ -21,6 +21,9 @@ setting `mdp.EL=solver` and then calling `mdp.show()`.
 
 from math import inf
 
+from IPython.display import SVG
+
+from . import dot
 from .fixpoints import largest_fixpoint, least_fixpoint, \
                        argmin, pick_best_action
 from .strategy import CounterSelector
@@ -209,7 +212,7 @@ class BasicES:
             # Over capacity values -> ∞
             cap = lambda s, v: inf if v > self.cap else v
 
-            largest_fixpoint(self.mdp, values,
+            largest_fixpoint(self, values,
                              rem_action_value,
                              value_adj=cap,
                              skip_state=skip_cond,
@@ -283,7 +286,7 @@ class BasicES:
 
         self.mic_values = [inf] * self.states
         cap = lambda s, v: inf if v > self.cap else v
-        largest_fixpoint(self.mdp,
+        largest_fixpoint(self,
                          self.mic_values,
                          self._action_value,
                          value_adj=cap,
@@ -314,7 +317,7 @@ class BasicES:
         for t in self.targets:
             self.pos_reach_values[t] = self.safe_values[t]
 
-        self.largest_fixpoint(self.mdp, self.pos_reach_values,
+        self.largest_fixpoint(self, self.pos_reach_values,
                          self._action_value_T,
                          value_adj=self._reload_capper,
                          # Target states are always safe_values[t]
@@ -365,7 +368,7 @@ class BasicES:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            self.largest_fixpoint(self.mdp, self.alsure_values,
+            self.largest_fixpoint(self, self.alsure_values,
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
@@ -419,7 +422,7 @@ class BasicES:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            self.largest_fixpoint(self.mdp, self.buchi_values,
+            self.largest_fixpoint(self, self.buchi_values,
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
@@ -600,6 +603,18 @@ class BasicES:
         """
         self.get_minimal_levels(objective, recompute=recompute)
         return self.strategy[objective]
+
+    def _get_dot(self, options=""):
+        dot_writer = dot.consMDP2dot(mdp=self.mdp,
+                                     solver=self,
+                                     options=options)
+        return dot_writer.get_dot()
+
+    def _repr_svg_(self):
+        return dot.dot_to_svg(self._get_dot())
+
+    def show(self, options=""):
+        return SVG(dot.dot_to_svg(self._get_dot(options)))
 
 
 class GoalLeaningES(BasicES):

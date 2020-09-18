@@ -41,7 +41,7 @@ print("Passed test 2 for get_Buchi() in test_buchi file.")
 m, T = little_alsure()
 act = m.actions_for_state(3)
 m.actions[act.next].distr = {0: 1}
-m.show("M")
+#m.show("M")
 
 result = m.get_Buchi([1], 5)
 expected = [2, 1, 2, 0]

@@ -43,7 +43,7 @@ def pick_best_action(actions_iterable, func):
     return res_item, res_val
 
 
-def largest_fixpoint(mdp, values, action_value,
+def largest_fixpoint(solver, values, action_value,
                      value_adj=lambda s, v: v,
                      skip_state=lambda x: False,
                      on_update=lambda s, v, a: None,
@@ -94,6 +94,7 @@ def largest_fixpoint(mdp, values, action_value,
      * `debug`     : print `values` at start of each iteration
      * `debug_vis` : display `mdp` using the IPython `display`
     """
+    mdp = solver.mdp
     states = len(values)
     act_value = lambda a: action_value(a, values)
 
@@ -102,7 +103,7 @@ def largest_fixpoint(mdp, values, action_value,
     c = 0
     while iterate:
         if debug: print(f"it {c}\t:{values}", file=stderr)
-        if debug_vis: display(f"Iteration {c}:", mdp.show("msrRb"))
+        if debug_vis: display(f"Iteration {c}:", solver.show("msrRb"))
         c += 1
         iterate = False
 

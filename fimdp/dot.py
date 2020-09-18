@@ -53,7 +53,7 @@ default_options = "msrRb"
 class consMDP2dot:
     """Convert consMDP to dot"""
     
-    def __init__(self, mdp, options=""):
+    def __init__(self, mdp, solver=None, options=""):
         self.mdp = mdp
         self.str = ""
         self.options = default_options + options
@@ -68,21 +68,19 @@ class consMDP2dot:
         self.opt_ar = False # Almost-sure reachability
         self.opt_bu = False # Büchi
 
-        self.el = mdp.energy_levels
+        self.el = solver
 
         if "m" in self.options:
             self.opt_mi = self.el is not None and self.el.mic_values is not None
         if "M" in self.options:
-            mdp.get_minInitCons()
+            solver.get_minInitCons()
             self.opt_mi = True
-            self.el = mdp.energy_levels
 
         if "s" in self.options:
             self.opt_sr = self.el is not None and self.el.safe_values is not None
         if "S" in self.options:
-            mdp.get_safe()
+            solver.get_safe()
             self.opt_sr = True
-            self.el = mdp.energy_levels
 
         if "r" in self.options:
             self.opt_pr = self.el is not None and self.el.pos_reach_values is not None

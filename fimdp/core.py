@@ -11,7 +11,6 @@ from .dot import consMDP2dot, dot_to_svg
 from .energy_solver import BasicES
 
 
-
 class ConsMDP:
     """
     Represent Markov Decision Process with consumption on actions.
@@ -329,7 +328,7 @@ class ConsMDP:
         return self.energy_levels.get_Buchi()
 
     def get_dot(self, options=""):
-        dwriter = consMDP2dot(self, options)
+        dwriter = consMDP2dot(self, solver=None, options=options)
         return dwriter.get_dot()
 
     def show(self, options=""):
