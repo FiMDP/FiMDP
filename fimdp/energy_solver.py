@@ -614,7 +614,7 @@ class BasicES:
         return dot.dot_to_svg(self._get_dot())
 
     def show(self, options=""):
-        return SVG(dot.dot_to_svg(self._get_dot(options)))
+        return display(SVG(dot.dot_to_svg(self._get_dot(options))))
 
 
 class GoalLeaningES(BasicES):

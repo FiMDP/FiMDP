@@ -179,7 +179,9 @@ def least_fixpoint(mdp, values, action_value,
     c = 0
     while iterate:
         if debug: print(f"it {c}\t:{values}", file=stderr)
-        if debug_vis: display(f"Iteration {c}:", mdp.show("msrRb"))
+        if debug_vis:
+            display(f"Iteration {c}:")
+            mdp.show("msrRb")
         c += 1
         iterate = False
 

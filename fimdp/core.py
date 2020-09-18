@@ -332,7 +332,7 @@ class ConsMDP:
         return dwriter.get_dot()
 
     def show(self, options=""):
-        return SVG(dot_to_svg(self.get_dot(options)))
+        return display(SVG(dot_to_svg(self.get_dot(options))))
         
     def _repr_dot_(self):
         return self.get_dot()
