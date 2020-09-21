@@ -5,6 +5,9 @@ in energy_solver module for computing safe vector.
 
 from math import inf
 from sys import stderr
+
+from IPython.display import display
+
 debug = False
 debug_vis = False
 

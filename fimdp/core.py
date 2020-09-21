@@ -4,7 +4,7 @@ the associated methods.
 """
 
 import math
-from IPython.display import SVG
+from IPython.display import SVG, display
 
 from .distribution import is_distribution
 from .dot import consMDP2dot, dot_to_svg
