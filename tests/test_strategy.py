@@ -12,7 +12,7 @@
 #   3. no action at all
 
 from reachability_examples import basic
-from fimdp.energy_solver import AS_REACH, POS_REACH
+from fimdp.energy_solver import BasicES, AS_REACH, POS_REACH
 from fimdp.strategy import SelectionRule
 
 m, T = basic()
@@ -88,9 +88,8 @@ assert len(selector) == m.num_states
 # Initialize with a list of dicts
 
 # +
-m.get_almostSureReachability(T)
-
-s = list(m.energy_levels.get_strategy(AS_REACH))
+solver = BasicES(m, cap=1000, targets=T)
+s = list(solver.get_strategy(AS_REACH))
 
 selector = CounterSelector(m, s)
 assert selector == s
@@ -156,8 +155,9 @@ except NoFeasibleActionError:
 selector_from = selector
 #m, T = basic()
 
-m.get_positiveReachability(T, 40)
-selector_to = m.energy_levels.get_strategy(POS_REACH, True)
+solver = BasicES(m, 40, T)
+solver.get_positiveReachability()
+selector_to = solver.get_strategy(POS_REACH, True)
 selector_to
 expected = selector_to.copy()
 result = CounterSelector(m)
@@ -263,8 +263,8 @@ except ValueError:
 from fimdp.strategy import CounterStrategy
 
 # +
-m.get_almostSureReachability(T, 30)
-selector = m.energy_levels.get_strategy(AS_REACH)
+solver = BasicES(m, 30, T)
+selector = solver.get_strategy(AS_REACH)
 s = CounterStrategy(m, selector=selector,
                     capacity=30, 
                     init_energy=15, init_state=6)

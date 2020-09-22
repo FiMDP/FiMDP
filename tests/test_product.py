@@ -7,7 +7,7 @@ from spot.jupyter import display_inline
 from math import inf
 
 from fimdp.labeledConsMDP import LCMDP
-from fimdp.energy_solver import BUCHI
+from fimdp.energy_solver import BasicES, BUCHI
 from fimdp.products import DBAWrapper
 # -
 
@@ -61,13 +61,14 @@ p, T = lmdp.product_with_dba(aut)
 assert p.names == ['0,1', '1,0', '2,1', '3,1', '3,0', '0,0', '2,2']
 print("Passed test 1 for product in file test_product.py")
 
-res = p.get_Buchi(T, 5, True)
+psolver = BasicES(p, 5, T)
+res = psolver.get_Buchi()
 assert res == [inf, inf, inf, inf, inf, inf, inf]
 print("Passed test 2 for product in file test_product.py")
 
 # +
-res = p.get_Buchi(T, 9, True)
-res = p.energy_levels.get_strategy(BUCHI)
+psolver.cap = 9
+res = psolver.get_strategy(BUCHI, recompute=True)
 
 result = []
 for rule in res:
@@ -183,8 +184,8 @@ print("Passed test selector_for_ltl in file test_product.py")
 
 # Get CounterSelector
 product, targets = lmdp.product_with_dba(aut)
-product.get_Buchi(targets, capacity, recompute=True)
-counter_sel = product.energy_levels.get_strategy(BUCHI)
+psolver = BasicES(product, capacity, targets)
+counter_sel = psolver.get_strategy(BUCHI)
 
 from fimdp.strategy import CounterStrategy
 from fimdp.labeledConsMDP import DBACounterStategy

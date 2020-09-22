@@ -200,6 +200,7 @@ class LCMDP(ConsMDP):
         if not keep_product:
             del product
             del selector.product_mdp
+            del targets
 
         return selector
 

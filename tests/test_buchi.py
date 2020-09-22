@@ -4,6 +4,7 @@
 
 from math import inf
 from reachability_examples import ultimate, little_alsure
+from fimdp.energy_solver import BasicES
 
 
 # ## Test case 1
@@ -12,9 +13,10 @@ from reachability_examples import ultimate, little_alsure
 # +
 m, targets = ultimate()
 
-result = m.get_Buchi(targets, 15)
+solver = BasicES(m, 15, targets)
+result = solver.get_Buchi()
 expected = [6, inf, inf, 3, 0, 1, 10, inf, 4, inf, inf]
-m.show()
+solver
 # -
 
 assert result == expected, ("get_Buchi() returns" +
@@ -26,9 +28,10 @@ print("Passed test 1 for get_Buchi() in test_buchi file.")
 
 # The same MDP, now with capacity 14. No initial load is enough.
 
-result = m.get_Buchi(targets, 14)
+solver.cap = 14
+result = solver.get_Buchi(recompute=True)
 expected = [inf] * m.num_states
-m.show()
+solver
 
 assert result == expected, ("get_Buchi() returns" +
     " wrong values:\n" +
@@ -41,11 +44,11 @@ print("Passed test 2 for get_Buchi() in test_buchi file.")
 m, T = little_alsure()
 act = m.actions_for_state(3)
 m.actions[act.next].distr = {0: 1}
-#m.show("M")
 
-result = m.get_Buchi([1], 5)
+solver = BasicES(m, 5, [1])
+result = solver.get_Buchi()
 expected = [2, 1, 2, 0]
-m.show()
+solver
 
 assert result == expected, ("get_Buchi() returns" +
     " wrong values:\n" +

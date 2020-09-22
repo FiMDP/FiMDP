@@ -181,7 +181,6 @@ print("Passed test 3 for the threshold strategy in file tut/Solvers.ipynb")
 
 from fimdp.examples.reachability_examples import goal_leaning
 gl, T = goal_leaning()
-gl.get_Buchi(T)
 print(f"Target states: {T}")
 gl
 
@@ -207,7 +206,6 @@ print("Passed test 4 for goal-leaning solver in file tut/Solvers.ipynb")
 
 from fimdp.examples.reachability_examples import goal_leaning_2
 gl2, T = goal_leaning_2()
-gl2.get_Buchi(T)
 print(f"Target states: {T}")
 gl2
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from fimdp.labeledConsMDP import LCMDP
+from fimdp.energy_solver import BasicES
 from math import inf
 
 # Test simple assigment of APs
@@ -96,8 +97,8 @@ m.add_action(10, {9: 1}, "", 1)
 
 m.add_action(8, {5: 1}, "r", 3)
 
-targets = T
-result = m.get_Buchi(targets, 15)
+solver = BasicES(m, 15, T)
+result = solver.get_Buchi()
 expected = [6, inf, inf, 3, 0, 1, 10, inf, 4, inf, inf]
 
 assert result == expected, ("get_Buchi() returns" +
@@ -105,7 +106,8 @@ assert result == expected, ("get_Buchi() returns" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 # WIth cap < 15, we get all infs
-result = m.get_Buchi(targets, 14)
+solver = BasicES(m, 14, T)
+result = solver.get_Buchi()
 expected = [inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf]
 
 assert result == expected, ("get_Buchi() returns" +

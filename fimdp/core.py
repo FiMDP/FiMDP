@@ -83,12 +83,10 @@ class ConsMDP:
 
         self.num_states = 0
 
-        self.energy_levels = None
         self.def_EL_class = BasicES
 
     def structure_change(self):
-        """Reset `energy_levels` to None after structure change."""
-        self.energy_levels = None
+        pass
 
     def state_with_name(self, name):
         '''Return id of state with name `name` or `None` if not exists.'''
@@ -241,91 +239,6 @@ class ConsMDP:
         for e in self.actions_for_state(s):
             succs = succs.union(e.distr.keys())
         return succs
-
-    def get_minInitCons(self,
-                        capacity=None,
-                        recompute=False):
-        """Return (and store) the energy levels needed to reach some
-        target within > 0 steps.
-        
-        If capacity is exceeded for state `s`, the value for `s` is ∞.
-
-        By default use last capacity or ∞.
-        """
-        el = self.energy_levels
-        if capacity is None:
-            capacity = math.inf if el is None else el.cap
-        if el is None or capacity != el.cap:
-            recompute = True
-        if recompute:
-            self.energy_levels = self.def_EL_class(self, capacity)
-        return self.energy_levels.get_minInitCons()
-
-    def get_safe(self, capacity=None, recompute=False):
-        """Return (and store) the energy levels needed to survive
-        with given capacity.
-
-        If cannot survival from `s` cannot be guaranteed with given
-        capacity, the value for `s` is ∞.
-
-        By default use last capacity or ∞.
-        """
-        self.get_minInitCons(capacity, recompute)
-        return self.energy_levels.get_safe()
-
-    def get_positiveReachability(self, targets,
-                                 capacity=None, recompute=False):
-        """Return (and store) the energy levels needed to reach T (`targets`)
-        from each state.
-
-        `targets` : set of ints
-        `capacity`: capacity
-
-        By default use last capacity or ∞.
-        """
-        el = self.energy_levels
-        if capacity is None:
-            capacity = math.inf if el is None else el.cap
-        if el is None or el.cap != capacity or el.targets is None:
-            recompute = True
-        if recompute:
-            self.energy_levels = self.def_EL_class(self, capacity, targets)
-        return self.energy_levels.get_positiveReachability()
-
-    def get_almostSureReachability(self, targets,
-                                   capacity=None, recompute=False):
-        """Return (and store) the energy levels needed to reach T (`targets`)
-        from each state.
-
-        `targets` : set of ints
-
-        By default use last capacity or ∞.
-        """
-        el = self.energy_levels
-        if capacity is None:
-            capacity = math.inf if el is None else el.cap
-        if el is None or el.cap != capacity or el.targets is None:
-            recompute = True
-        if recompute:
-            self.energy_levels = self.def_EL_class(self, capacity, targets)
-        return self.energy_levels.get_almostSureReachability()
-
-    def get_Buchi(self, targets, capacity=None, recompute=False):
-        """Return (and store) the energy levels needed to reach T (`targets`)
-        infinitely often from each state.
-
-        `targets` : set of ints
-
-        By default use last capacity or ∞.
-        """
-        el = self.energy_levels
-        if capacity is None:
-            capacity = math.inf if el is None else el.cap
-        if el is None or el.cap != capacity or el.targets is None:
-            recompute = True
-        if recompute:
-            self.energy_levels = self.def_EL_class(self, capacity, targets)
-        return self.energy_levels.get_Buchi()
 
     def get_dot(self, options=""):
         dwriter = consMDP2dot(self, solver=None, options=options)

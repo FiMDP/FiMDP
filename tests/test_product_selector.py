@@ -5,7 +5,7 @@ spot.setup()
 from spot.jupyter import display_inline
 
 from fimdp.labeledConsMDP import LCMDP
-from fimdp.energy_solver import BUCHI
+from fimdp.energy_solver import BasicES, BUCHI
 from fimdp.products import ProductSelector
 # -
 
@@ -72,8 +72,8 @@ from fimdp.products import ProductSelectorWrapper
 
 # Create ProductSelector and initialize it using CounterSelector for product
 
-product.get_Buchi(T, 9, True)
-p_selector = product.energy_levels.get_strategy(BUCHI)
+psolver = BasicES(product, 9, T)
+p_selector = psolver.get_strategy(BUCHI)
 selector = ProductSelector(product)
 for state, rule in enumerate(p_selector):
     for energy, action in rule.items():
