@@ -21,7 +21,7 @@ setting `mdp.EL=solver` and then calling `mdp.show()`.
 
 from math import inf
 
-from IPython.display import SVG
+from IPython.display import SVG, display
 
 from . import dot
 from .fixpoints import largest_fixpoint, least_fixpoint, \
