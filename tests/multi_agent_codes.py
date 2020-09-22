@@ -30,7 +30,6 @@ def compute_min_cost_bisection(Agent_graph,num_agents):
     #Prints the ordered edges in the tree
     #print(sorted(tree.edges(data=True)))
 
-
     #Compute approximate Eulerian tour
     tour_min=min_hamilton(tree)
     #Prints the edges of eulerian tour
@@ -64,7 +63,7 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
 
     #Bisection over optimal costcost
     cost_low=0
-    cost_upper=10000
+    cost_upper=1000
     while cost_upper-cost_low>1e-6:
         cost_bisec=(cost_upper+cost_low)/2
 
@@ -72,30 +71,51 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
         cost_agent=0
         all_agentlist=[]
         agent_list=[]
+        total_list=[]
         #Go over the eulerian tour
-        for i in range(len(tour_min)-1):
-            #Add the cost of the constructed tour, and add the edges to the list
-            cost_agent=cost_agent+Agent_graph[tour_min[i]][tour_min[i+1]]['weight']
-            if tour_min[i] not in agent_list:
+        for i in range(len(tour_min)):
+            #check if the initial target is covered by any agent
+            #if not tour_min[i] in agent_list:
+            if not tour_min[i] in total_list:
+
+                # add the target to the agent
                 agent_list.append(tour_min[i])
-            if tour_min[i+1] not in agent_list:
-                agent_list.append(tour_min[i+1])
-            # If the cost exceeds 4x of the optimal cost, break the tour of this agent
+                # add the target to the all covered target lists
+                total_list.append(tour_min[i])
+
+            #check if the next target is covered by any agent
+            try:
+                if not tour_min[i+1] in total_list:
+                    # add the target to the agent
+                    agent_list.append(tour_min[i+1])
+                    # add the target to the all covered target lists
+                    total_list.append(tour_min[i+1])
+                    # update the cost if the next capacity is higher than previous one
+                    if cost_agent < Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']:
+                        cost_agent = Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']
+            except IndexError:
+                pass
+                # If the cost exceeds 4x of the optimal cost, break the tour of this agent
             if cost_agent>4*(cost_upper+cost_low)/2:
                 all_agentlist.append(agent_list)
+                for item in agent_list:
+                    total_list.append(item)
                 agent_list=[]
-                #print(cost_agent)
                 cost_agent=0
+        if len(agent_list)>0:
+            all_agentlist.append(agent_list)
+
         #If the number of tours is less or equal than the
         # number of agents, we increase our guess of the optimal cost
-        if len(all_agentlist)>=num_agents:
+        if len(all_agentlist)>num_agents:
             cost_low=(cost_upper+cost_low)/2
         #Else, we lower our guess of optimal cost
         else:
             cost_upper=(cost_upper+cost_low)/2
 
     #Returns the paths for each agent, and the optimal cost,
-    # which is guaranteed to be a 4 approximation for planar graphs
+    # which is guaranteed to be a 4 approximation for graphs that satisfies triangular inequality
+    print(tour_min)
     return (all_agentlist,cost_bisec)
 
 
@@ -110,7 +130,6 @@ def min_hamilton(tree):
 
     step_list=[]
     # Go over the edges of tree, add to the Eulerian tour if they are not already present
-    #for i in range(len(tree)):
     for item,item2,weight in sorted(tree.edges(data=True)):
             #print(item,item2,weight)
         if item not in step_list:
@@ -123,55 +142,19 @@ def min_hamilton(tree):
 def generate_Graph(T):
     """
 
-    :param m: FiMDP model
     :param T: set of targets: which is a proxy here
-    :param env: FiMDP env
     :return:
     Agent_graph: Networkx graph with nodes representing each target, edges representing cost
     """
-
-    #Generate nodes of the agent
-    Agent_graph= nx.Graph()
+    #Generate nodes for each target
+    Agent_graph= nx.DiGraph()
     count=0
     for item in T:
         count=count+1
         Agent_graph.add_node((item))
 
-    #Generate edge costs for the agent
-    # for item in Agent_graph:
-    #     for item2 in Agent_graph:
-    #         if not item==item2 and not (item,item2) in Agent_graph.edges:
-    #             Agent_graph.add_edge(item,item2,weight=np.random.uniform(0, 20))
-
-    #return the networkx graph
     return Agent_graph
 
-def generate_Graph_multi_agent(T,num_agent):
-    """
-
-    :param m: FiMDP model
-    :param T: set of targets: which is a proxy here
-    :param env: FiMDP env
-    :return:
-    Agent_graph: Networkx graph with nodes representing each target, edges representing cost
-    """
-    Agent_graph=[0 for _ in range(num_agent)]
-    #Generate nodes of the agent
-    for i in range(num_agent):
-        Agent_graph[i]= nx.Graph()
-        count=0
-        for item in T:
-            count=count+1
-            Agent_graph[i].add_node((item))
-
-    #Generate edge costs for the agent
-    # for item in Agent_graph:
-    #     for item2 in Agent_graph:
-    #         if not item==item2 and not (item,item2) in Agent_graph.edges:
-    #             Agent_graph.add_edge(item,item2,weight=np.random.uniform(0, 20))
-
-    #return the networkx graph
-    return Agent_graph
 
 #Computes minimum spanning tree, used to generate minimum cost path
 def generate_minimumspanning_tree(Agent_graph):
@@ -180,14 +163,12 @@ def generate_minimumspanning_tree(Agent_graph):
     :param Agent_graph: Networkx graph for the targets
     :type Agent_graph: Networkx undirected graph
     :return:
-    Tree: minimum spanning tree
+    Tree: minimum spanning tree, which is also minimum bottleneck spanning tree
     """
-    #Tree=[0 for _ in range(len(Agent_graph))]
-    #for i in range(len(Agent_graph)):
-    Tree = nx.minimum_spanning_tree(Agent_graph)
+    Tree = nx.minimum_spanning_tree(Agent_graph.to_undirected())
     return Tree
 
-#Compute the cost of the path
+#Compute the bottleneck cost of the overall path
 def compute_cost(Agent_graph,tour):
     """
     :param Agent_graph: Networkx graph for the targets
@@ -195,14 +176,17 @@ def compute_cost(Agent_graph,tour):
     :param tour: Nodes of the Eulerian tour
     :type tour: python list
     :return:
-    cost: Cost of the Eulerian tour
+    cost: Bottleneck cost of the Eulerian tour
     """
     cost=0
+    #Go over the path
     for i in range(len(tour)-1):
+        # update the cost if the capacity is higher than the max capacity so far
+        if Agent_graph[tour[i]][tour[i+1]]['weight']>cost:
 
-        cost=cost+Agent_graph[tour[i]][tour[i+1]]['weight']
+            cost=Agent_graph[tour[i]][tour[i+1]]['weight']
     return cost
-
+#Compute the bottleneck cost of the path assignments
 def compute_cost_assignments(Agent_graph,tour):
     """
     :param Agent_graph: Networkx graph for the targets
@@ -210,15 +194,18 @@ def compute_cost_assignments(Agent_graph,tour):
     :param tour: Nodes of the Eulerian tour
     :type tour: python list
     :return:
-    cost: Cost of the Eulerian tour
+    cost: Bottleneck cost of the Eulerian tour
     """
-    #print(tour)
-    #print(len(tour))
+
     cost=[0 for i in range(len(tour))]
+    #Go over the tours for each agent
     for i in range(len(tour)):
         for j in range(len(tour[i])-1):
-            #print(Agent_graph,tour[i][j],tour[i][j+1])
-            cost[i]=cost[i]+Agent_graph[tour[i][j]][tour[i][j+1]]['weight']
+            print(tour[i][j],tour[i][j+1],tour[i],cost,Agent_graph[tour[i][j]][tour[i][j+1]]['weight'])
+            #update the cost if the capacity is higher than the max capacity so far
+            if Agent_graph[tour[i][j]][tour[i][j+1]]['weight']>cost[i]:
+                cost[i]=Agent_graph[tour[i][j]][tour[i][j+1]]['weight']
+
     return cost
 
 
