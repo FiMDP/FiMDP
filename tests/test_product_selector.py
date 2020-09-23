@@ -6,13 +6,13 @@ from spot.jupyter import display_inline
 
 from fimdp.core import ProductSelector
 from fimdp.energy_solver import BasicES, BUCHI
-from fimdp.labeledConsMDP import LCMDP
+from fimdp.labeled import LabeledConsMDP
 
 # -
 
 from fimdp.examples.reachability_examples import product_example
 mdp, T = product_example()
-lmdp = LCMDP(AP=["s1","s2"], mdp=mdp)
+lmdp = LabeledConsMDP(AP=["s1", "s2"], mdp=mdp)
 lmdp.state_labels = [set(), {0}, {1}, set()]
 lmdp
 

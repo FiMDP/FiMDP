@@ -6,9 +6,9 @@ from spot.jupyter import display_inline
 
 from math import inf
 
-from fimdp.labeledConsMDP import LCMDP
+from fimdp.labeled import DBAWrapper, LabeledConsMDP
 from fimdp.energy_solver import BasicES, BUCHI
-from fimdp.products import DBAWrapper
+
 # -
 
 # ### Test DBAWrapper
@@ -45,7 +45,7 @@ mdp
 
 # We create labeled consumption MDP with corresponding atomic propositions and label the states accprdngly using indices into the `AP` list.
 
-lmdp = LCMDP(AP=["s1","s2"], mdp=mdp)
+lmdp = LabeledConsMDP(AP=["s1", "s2"], mdp=mdp)
 lmdp.state_labels = [set(), {0}, {1}, set()]
 
 # Create a deterministic automaton for the desired formula
@@ -161,7 +161,7 @@ print("Passed test 3 for ProductSelector in file test_product.py")
 f = spot.formula("GF s1 & GF s2")
 aut = spot.translate(f, "BA", "deterministic", "complete")
 mdp, T = product_example()
-lmdp = LCMDP(AP=["s1","s2"], mdp=mdp)
+lmdp = LabeledConsMDP(AP=["s1", "s2"], mdp=mdp)
 lmdp.state_labels = [set(), {0}, {1}, set()]
 
 capacity = 10
@@ -187,7 +187,7 @@ psolver = BasicES(product, capacity, targets)
 counter_sel = psolver.get_strategy(BUCHI)
 
 from fimdp.core import CounterStrategy
-from fimdp.labeledConsMDP import DBACounterStategy
+from fimdp.labeled import DBACounterStategy
 cs = CounterStrategy(product, counter_sel, capacity, init_energy)
 dbas = DBACounterStategy(lmdp, aut, dba_sel, capacity, init_energy)
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from fimdp.labeledConsMDP import LCMDP
+from fimdp.labeled import LabeledConsMDP
 from fimdp.energy_solver import BasicES
 from math import inf
 
 # Test simple assigment of APs
-m = LCMDP(AP=["a","b"])
+m = LabeledConsMDP(AP=["a", "b"])
 
 m.new_state(label={0})
 m.new_state(label={1})
@@ -19,7 +19,7 @@ assert m.state_labels[2] == {0,1}
 assert m.state_labels[3] == set()
 assert m.state_labels[4] == set()
 
-print("Passed test 1 for LCMDP.")
+print("Passed test 1 for LabeledConsMDP.")
 
 # Test assigment of non-existent AP
 try:
@@ -28,10 +28,10 @@ except ValueError:
     pass
 else:
     raise AssertionError("Invalid AP was given, but not reported!")
-print("Passed test 2 for LCMDP (non-existent AP).")
+print("Passed test 2 for LabeledConsMDP (non-existent AP).")
 
 # Test AP & names at the same time
-m = LCMDP(AP=["a","b"])
+m = LabeledConsMDP(AP=["a", "b"])
 m.new_state(name="s0")
 m.new_state(name="s1", label={0,1})
 
@@ -53,10 +53,10 @@ except ValueError:
 else:
     raise AssertionError("Invalid AP was given, but not reported!")
 
-print("Passed test 3 for LCMDP (labels & names).")
+print("Passed test 3 for LabeledConsMDP (labels & names).")
 
 # states_with_label
-m = LCMDP(AP=["a","b","c"])
+m = LabeledConsMDP(AP=["a", "b", "c"])
 count = 100
 a_labels = [{0} if i % 2 == 0 else set() for i in range(count)]
 b_labels = [{1} if i % 3 == 1 else set() for i in range(count)]
@@ -66,10 +66,10 @@ labels = [a_labels[i].union(b_labels[i]).union(c_labels[i]) for i in range(count
 m.new_states(count, labels=labels)
 
 assert m.states_with_label({0,2}) == [0,20,30,50,60,80,90]
-print("Passed test 4 for LCMDP (states_with_label).")
+print("Passed test 4 for LabeledConsMDP (states_with_label).")
 
-# Check that algorithms work also on LCMDP
-m = LCMDP(["a"])
+# Check that algorithms work also on LabeledConsMDP
+m = LabeledConsMDP(["a"])
 m.new_states(11, labels=[{0}]*11)
 for r in [2, 4, 9]:
     m.set_reload(r)
@@ -114,4 +114,4 @@ assert result == expected, ("get_Buchi() returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
-print("Passed test 5 for LCMDP (algo).")
+print("Passed test 5 for LabeledConsMDP (algo).")
