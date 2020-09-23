@@ -98,8 +98,8 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
                         cost_agent = Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']
 
 
-            # If the cost exceeds 4x of the optimal cost, break the tour of this agent
-            if cost_agent>4*((cost_upper+cost_low)/2):
+            # If the cost exceeds 6x of the optimal cost, break the tour of this agent
+            if cost_agent>6*((cost_upper+cost_low)/2):
                 all_agentlist.append(agent_list)
                 for item in agent_list:
                     total_list.append(item)
