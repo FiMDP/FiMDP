@@ -12,7 +12,10 @@ import scipy.optimize
 from scipy.optimize import linear_sum_assignment
 import networkx as nx
 import math
+from networkx.algorithms import bipartite
 # In the following example, the minimal capacity is 15 for Buchi objective defined by the blue states.
+
+
 
 #Compute the minimum cost of the assignments by bisection
 def compute_min_cost_bisection(Agent_graph,num_agents):
@@ -63,10 +66,17 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
 
     #Bisection over optimal costcost
     cost_low=0
-    cost_upper=1000
-    while cost_upper-cost_low>1e-6:
-        cost_bisec=(cost_upper+cost_low)/2
+    cost_upper=1e4
+    best_cost=cost_upper
+    returnflag=False
+    while cost_upper-cost_low>1e-5 or not returnflag:
+        #safeguard to ensure that the solution returns a valid assignment
+        if abs(cost_upper - cost_low) <= 1e-5:
+            cost_upper = best_cost
+            cost_low = best_cost
+            #print("")
 
+        cost_bisec = (cost_upper + cost_low) / 2
         #Initialze lists for agents
         cost_agent=0
         all_agentlist=[]
@@ -74,48 +84,54 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
         total_list=[]
         #Go over the eulerian tour
         for i in range(len(tour_min)):
+
             #check if the initial target is covered by any agent
-            #if not tour_min[i] in agent_list:
             if not tour_min[i] in total_list:
 
                 # add the target to the agent
                 agent_list.append(tour_min[i])
                 # add the target to the all covered target lists
                 total_list.append(tour_min[i])
-
-            #check if the next target is covered by any agent
-            try:
-                if not tour_min[i+1] in total_list:
-                    # add the target to the agent
-                    agent_list.append(tour_min[i+1])
-                    # add the target to the all covered target lists
-                    total_list.append(tour_min[i+1])
+                if i<len(tour_min)-1:
                     # update the cost if the next capacity is higher than previous one
                     if cost_agent < Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']:
                         cost_agent = Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']
-            except IndexError:
-                pass
-                # If the cost exceeds 4x of the optimal cost, break the tour of this agent
-            if cost_agent>4*(cost_upper+cost_low)/2:
+
+
+            # If the cost exceeds 4x of the optimal cost, break the tour of this agent
+            if cost_agent>4*((cost_upper+cost_low)/2):
                 all_agentlist.append(agent_list)
                 for item in agent_list:
                     total_list.append(item)
                 agent_list=[]
                 cost_agent=0
+        #apennd tour
         if len(agent_list)>0:
             all_agentlist.append(agent_list)
 
         #If the number of tours is less or equal than the
         # number of agents, we increase our guess of the optimal cost
+        #add flags to ensure that the solution is valid
+        if len(all_agentlist)<=num_agents:
+            returnflag=True
+            best_cost= cost_bisec
+            #print(best_cost)
+        else:
+            returnflag=False
         if len(all_agentlist)>num_agents:
-            cost_low=(cost_upper+cost_low)/2
+            cost_low=cost_bisec
+
         #Else, we lower our guess of optimal cost
         else:
-            cost_upper=(cost_upper+cost_low)/2
+            cost_upper=cost_bisec
+
+    #add empty assignments
+    while len(all_agentlist)<num_agents:
+        all_agentlist.append([])
 
     #Returns the paths for each agent, and the optimal cost,
     # which is guaranteed to be a 4 approximation for graphs that satisfies triangular inequality
-    print(tour_min)
+    #print(tour_min)
     return (all_agentlist,cost_bisec)
 
 
@@ -130,8 +146,7 @@ def min_hamilton(tree):
 
     step_list=[]
     # Go over the edges of tree, add to the Eulerian tour if they are not already present
-    for item,item2,weight in sorted(tree.edges(data=True)):
-            #print(item,item2,weight)
+    for item,item2,weight in (tree.edges(data=True)):
         if item not in step_list:
             step_list.append(item)
 
@@ -148,6 +163,7 @@ def generate_Graph(T):
     """
     #Generate nodes for each target
     Agent_graph= nx.DiGraph()
+
     count=0
     for item in T:
         count=count+1
@@ -157,7 +173,21 @@ def generate_Graph(T):
 
 
 #Computes minimum spanning tree, used to generate minimum cost path
-def generate_minimumspanning_tree(Agent_graph):
+# def generate_minimumspanning_tree(Agent_graph):
+#     """
+#
+#     :param Agent_graph: Networkx graph for the targets
+#     :type Agent_graph: Networkx undirected graph
+#     :return:
+#     Tree: minimum spanning tree, which is also minimum bottleneck spanning tree
+#     """
+#     Tree = nx.minimum_spanning_tree(Agent_graph.to_undirected())
+#     #print(dir(Tree))
+#     #print(Tree.nodes)
+#     #print(Tree.edges,"old")
+#     return Tree
+
+def generate_minimumspanning_tree_edmonds(Agent_graph):
     """
 
     :param Agent_graph: Networkx graph for the targets
@@ -165,7 +195,9 @@ def generate_minimumspanning_tree(Agent_graph):
     :return:
     Tree: minimum spanning tree, which is also minimum bottleneck spanning tree
     """
-    Tree = nx.minimum_spanning_tree(Agent_graph.to_undirected())
+    G=nx.algorithms.tree.branchings.Edmonds(Agent_graph)
+
+    Tree = G.find_optimum(attr="weight",kind="min",style="arbroescence")
     return Tree
 
 #Compute the bottleneck cost of the overall path
@@ -201,11 +233,64 @@ def compute_cost_assignments(Agent_graph,tour):
     #Go over the tours for each agent
     for i in range(len(tour)):
         for j in range(len(tour[i])-1):
-            print(tour[i][j],tour[i][j+1],tour[i],cost,Agent_graph[tour[i][j]][tour[i][j+1]]['weight'])
+            #print(tour[i][j],tour[i][j+1],tour[i],cost,Agent_graph[tour[i][j]][tour[i][j+1]]['weight'])
             #update the cost if the capacity is higher than the max capacity so far
             if Agent_graph[tour[i][j]][tour[i][j+1]]['weight']>cost[i]:
                 cost[i]=Agent_graph[tour[i][j]][tour[i][j+1]]['weight']
 
     return cost
+
+def augment_matching(matching,agent_lists,init_state,Bottleneckgraph):
+    """
+    :param matching: optimal bottleneck matching between agents and assignments
+    :param agent_lists: assignments to the each agents
+    :param init_state: set of initial states for agent
+    :param Bottleneckgraph: networkx graph between initial states of the agent and initial elements of the targets
+    :return:
+    assignments: set of assignments for each agent
+    costs: cost of the assignments
+    """
+    assignments=[]
+    costs=[]
+    #go over agents
+    for i in range(len(init_state)):
+        for item in matching.items():
+            # if matching found
+            if item[0]==init_state[i]:
+                for k in range(len(agent_lists)):
+                    # add edge between initial state of the agent, and initial element of the target
+                    if item[1] in agent_lists[k]:
+                        assignments.append(agent_lists[k])
+                        costs.append(Bottleneckgraph[item[0]][agent_lists[k][0]]['weight'])
+    #add empty assignment if agents are not necessary
+    while len(assignments)<len(agent_lists):
+        assignments.append([])
+    return(assignments,costs)
+
+def bottleneckassignment(Bottleneckgraph):
+    """
+    :param Bottleneckgraph: networkx graph between initial states of the agent and initial elements of the targets
+    :return:
+    matching: optimal bottleneck matching between agents and assignments
+    """
+    costlow=0
+    costhigh=1e4
+    #compute optimal bottleneck matching
+    while costhigh-costlow>1e-6:
+        aux_graph=Bottleneckgraph.copy()
+        cost_bisec=(costhigh+costlow)/2
+        #remove edges if the cost is larger than the current cost
+        for item in aux_graph.edges:
+            if aux_graph[item[0]][item[1]]['weight']>cost_bisec:
+                aux_graph.remove_edge(item[0],item[1])
+        #try if there exists a matching, if not, do not return it
+        try:
+            matching=nx.bipartite.maximum_matching(aux_graph)
+            costhigh=cost_bisec
+            #print(matching,cost_bisec)
+
+        except nx.exception.AmbiguousSolution:
+            costlow=cost_bisec
+    return matching
 
 
