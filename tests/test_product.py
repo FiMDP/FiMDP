@@ -79,7 +79,7 @@ print("Passed test 3 for product in file test_product.py")
 
 # ### Test ProductSelectorWrapper
 
-from fimdp.products import ProductSelectorWrapper
+from fimdp.core import ProductSelectorWrapper
 
 orig, aut = 3, 0
 p_s = p.components_to_states_d[(orig, aut)]
@@ -100,7 +100,7 @@ print("Passed test for ProductSelectorWrapper in file test_product.py")
 
 # ### Test ProductSelector
 
-from fimdp.products import ProductSelector
+from fimdp.core import ProductSelector
 
 
 def get_from_CounterSelector(counter_selector):

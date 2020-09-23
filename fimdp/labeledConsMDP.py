@@ -1,5 +1,5 @@
-from .core import ConsMDP, CounterStrategy
-from .products import DBAWrapper, product_dba, ProductSelector
+from .core import ConsMDP, CounterStrategy, ProductSelector
+from .products import DBAWrapper, product_dba
 from .energy_solver import GoalLeaningES, BUCHI
 
 from copy import deepcopy

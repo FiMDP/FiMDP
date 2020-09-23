@@ -3,16 +3,19 @@ Core module defining basic data structures and classes of the FiMDP package.
 
 It defines the class for representation of Consumption Decision Processes,
 the interface for strategies (including exceptions), and Counter-strategies
-(and the needed building blocks).
+(and the needed building blocks). Further, it provides support for ConsMDPs
+that represent a product with some input ConsMDP and some other component
+(explicit energy, automaton, ...).
 
 ## Consumption Markov Decision Processes (CMDPs)
 
 See our [CAV paper] for the theoretical backgrounds.
 
 The classes needed for representation of (CMDPs) are:
- * ConsMDP: represent an CMDP object
- * ActionData: represent actions of CMDPs
+ * `ConsMDP`: represent an CMDP object
+ * `ActionData`: represent actions of CMDPs
 
+The `ProductConsMDP` are ConsMDPs with states fromed by 2 components.
 
 ## Interface for strategies
 
@@ -49,6 +52,10 @@ details.
 
 The classes `CounterStrategy`, `CounterSelector`, and `SelectionRule` implement
 the respective objects as described in the paper.
+
+`ProductSelector` and `ProductSelectorWrapper` are two selectors that can be
+used to hide the product construction from the user and maps actions and
+states of a ProductConsMDP into states and actions of the original ConsMDP.
 
 [CAV paper]: https://link.springer.com/chapter/10.1007/978-3-030-53291-8_22
 """
@@ -428,6 +435,123 @@ class _ActionItEraser(_ActionIter):
             self.outer_list[self.prev].next_succ = self.next
 
 
+class ProductConsMDP(ConsMDP):
+    """
+    CMDP with states that have two components.
+
+    We call the two components `orig_mdp` and `other`, where `orig_mdp` is
+    some ConsMDP object and other can be arbitrary domain, for example
+    deterministic Büchi automaton, or upper bound of some integer interval.
+    The `orig_mdp` and `other` store pointers to the objects of origin for
+      the product mdp (if supplied).
+
+    The function `orig_action` maps actions in this object into actions of
+    the source ConsMDP object. Similarly,  `other_action` works for the other
+    object (if makes sense).
+    """
+
+    def __init__(self, orig_mdp, other=None):
+        super().__init__()
+        self.orig_mdp = orig_mdp
+        self.other = other
+        self.orig_action_mapping = {}
+        self.other_action_mapping = {}
+        self.components_to_states_d = {}
+        self.components = []
+
+    def add_action(self, src, distribution, label, consumption,
+                   orig_action, other_action = None):
+        """
+        Create a new action in the product using (src, distribution, label,
+        consumption) and update mappings to `orig_action` and `other_action`.
+
+        :param src: src in product
+        :param distribution: distribution in product
+        :param label: label of the action
+        :param consumption: consumption in product
+        :param orig_action: ActionData object from the original mdp
+        :param other_action: Value to be returned by `other_action` for the new
+        action.
+        :return: action id in the product
+        """
+        # pa: product action
+        pa_id = super().add_action(src, distribution, label, consumption)
+        pa = self.actions[pa_id]
+
+        self.orig_action_mapping[pa] = orig_action
+        if other_action is not None:
+            self.other_action_mapping[pa] = other_action
+
+        return pa_id
+
+    def get_state(self, orig_s, other_s):
+        """
+        Return state of product based on the two components `(orig_s, other_s)`
+        if exists and `None` otherwise.
+
+        :param orig_s: state_id on the original mdp
+        :param other_s: state of the other component
+        :return: id of state `(orig_s, other_s)` or None
+        """
+        pair = (orig_s, other_s)
+        return self.components_to_states_d.get(pair, None)
+
+    def get_or_create_state(self, orig_s, other_s):
+        """
+        Return state of product based on the two components `(orig_s, other_s)`
+        and create one if it does not exist.
+
+        :param orig_s: state_id on the original mdp
+        :param other_s: state of the other component
+        :return: id of state `(orig_s, other_s)`
+        """
+        p_s = self.get_state(orig_s, other_s)
+        if p_s is None:
+            return self.new_state(orig_s, other_s)
+
+        return p_s
+
+    def new_state(self, orig_s, other_s, reload=False, name=None):
+        """
+        Create a new product state (orig_s, other_s).
+
+        :param orig_s: state_id in the original mdp
+        :param other_s: state of the other component
+        :param reload: is state reloading? (Bool)
+        :param name: a custom name of the state, `orig_s,other_s` by default.
+        :return: id of the new state
+        """
+        if name is None:
+            name = f"{orig_s},{other_s}"
+        new_id = super().new_state(reload=reload, name=name)
+
+        pair = (orig_s, other_s)
+        self.components_to_states_d[pair] = new_id
+        assert len(self.components) == new_id
+        self.components.append(pair)
+
+        return new_id
+
+    def orig_action(self, action):
+        """
+        Decompose the action from the product to the action in the original mdp.
+
+        :param action: ActionData from product (as used in for loops)
+        :return: ActionData from the original mdp
+        """
+        return self.orig_action_mapping.get(action, None)
+
+    def other_action(self, action):
+        """
+        Decompose the action from the product onto the second component, if
+        defined.
+
+        :param action: ActionData from product (as used in for loops)
+        :return: value supplied on creation of `action` (if any), or None
+        """
+        return self.other_action_mapping.get(action, None)
+
+
 ### Strategies ###
 class Strategy:
     """
@@ -630,6 +754,173 @@ class CounterSelector(list):
         for i, rule in enumerate(self):
             res[i] = (deepcopy(rule))
         return res
+
+
+class ProductSelector(dict):
+    """
+    Selector suited for ConsMDPs whose analysis requires a product ConsMDP.
+
+    It combines the approach of CounterSelector with decomposition of the
+    product states and actions into the original components and works for
+    selection even after destruction of the product MDP. The intended use is
+    as follows.
+
+    For a MDP called `orig` and some `other` object, we build `product` MDP.
+    The analysis of `product` calls `ProductSelector.update()` with states
+    and actions belonging to the product MDP. For selection of the next
+    action, `ProductSelector.select_action` should be called with
+    `orig_state` and `other_state` that belong to `orig` and `other` and no
+    translation from/to product states is needed. Indeed, the translation
+    happens directly on update.
+
+    In short, based on information what action should be picked in a product
+    (supplied using `update), ProductSelector selects actions of the original
+    mdp (at the time `select_action` is called).
+
+    It is implemented as 2-dimensional dict (other × orig) to SelectionRules.
+    The reason for dicts instead of lists is that the product can be sparse.
+    """
+
+    def __init__(self, product_mdp: ProductConsMDP):
+        self.product_mdp = product_mdp
+        self.orig = product_mdp.orig_mdp
+        self.other = product_mdp.other
+        super(ProductSelector, self).__init__()
+
+    def update(self, product_state, energy_level, product_action):
+        """
+        For given state of product with components `(orig, other)` update the
+        selection rule for `selector[other][orig]` with `rule[energy]=action`
+        where `action` belongs to `orig` and corresponds to `product_action`.
+
+        energy_level` is a lower bound of an interval for which `action`
+        will be selected by `select_action`.
+
+        Raises ValueError if `product_action` is not an action of
+        `product_state`
+        """
+        mdp = self.product_mdp
+        if product_action not in mdp.actions_for_state(product_state):
+            raise ValueError(f"The action {product_action} is not valid for "
+                             f"the state {product_state}.")
+
+        orig_state, other_state = mdp.components[product_state]
+        orig_action = mdp.orig_action(product_action)
+        orig_selector: dict = self.setdefault(orig_state, {})
+        # rule = selector[other_state][orig_state]
+        rule = orig_selector.setdefault(other_state, SelectionRule())
+        rule[energy_level] = orig_action
+
+    def select_action(self, orig_state, other_state, energy):
+        """
+        Return action selected for `orig_state×other_state` and `energy`.
+        """
+        try:
+            rule: SelectionRule = self[orig_state][other_state]
+        except KeyError:
+            raise KeyError(f"There is no selection rule for the pair "
+                           f"(orig_state, other_state) = "
+                           f"({orig_state},{other_state})")
+
+        return rule.select_action(energy)
+
+    def copy_values_from(self, other, product_state_subset=None):
+        """
+        Replace values by values from `other` ProductSelector.
+
+        If `product_state_subset` is not given (or is None), replace values for
+        all states. Otherwise, replaces only those values that correspond to
+        the given states from the product.
+        """
+        if product_state_subset is None:
+            product_state_subset = range(self.product_mdp.num_states)
+
+        for s in product_state_subset:
+            orig_state, other_state = self.product_mdp.components[s]
+            orig_selector: dict = self.setdefault(orig_state, {})
+            orig_selector[other_state] = other[orig_state][other_state]
+
+    def __copy__(self):
+        """
+        Return a shallow copy of the selector.
+
+        The shallow copy creates new instances of both dimensions of the
+        dictionaries, but reuses SelectionRules.
+        """
+        # Don't run ProductSelector's constructor in case product_mdp is
+        # already deleted
+        res = super(ProductSelector, self).__init__()
+        res.product_mdp = self.product_mdp
+        res.orig = self.orig
+        res.other = self.other
+        for other, selector in self.items():
+            res_sel = res.setdefault(other, {})
+            for orig, rule in selector:
+                res_sel[orig] = rule
+
+    def __deepcopy__(self, memodict={}):
+        """
+        Return a deep copy of the selector.
+
+        The deep copy creates new instances of both dimensions of the
+        dictionaries and also creates new SelectionRules.
+        """
+        res = super(ProductSelector, self).__init__()
+        res.product_mdp = self.product_mdp
+        res.orig = self.orig
+        res.other = self.other
+        for other, selector in self.items():
+            res_sel = res.setdefault(other, {})
+            for orig, rule in selector:
+                res_sel[orig] = rule.copy()
+
+    def __repr__(self):
+        res = "===ProductSelector===\n"
+        for mdp_s in sorted(self.keys()):
+            for aut_s in self[mdp_s]:
+                res += " "
+                res += f"{mdp_s}×{aut_s}: "
+                res += self[mdp_s][aut_s].__repr__()
+                res += "\n"
+        return res+"=====================\n"
+
+
+class ProductSelectorWrapper(CounterSelector):
+    """
+    Selector suited for ConsMDPs whose analysis requires a product ConsMDP.
+
+    The `ProductSelectorWrapper` is a wrapper around `CounterSelector` built
+    for the product and the `ProductSelectorWrapper` translates the states of
+    the product into their two components `(state, other_state)` and back.
+    The same applies to actions.
+
+    The main purpose of the selector is to provide interface that is
+    accessible without the knowledge of the product. Therefore, it selects
+    actions based on:
+      * state of the original mdp (before product),
+      * state of the other component, and
+      * energy level.
+    The actions returned by `select_action` are actions of the original mdp.
+    """
+    def __init__(self, mdp: ProductConsMDP, product_selector=None):
+        super().__init__(mdp=mdp, values=product_selector)
+        self.mdp = mdp
+
+    def select_action(self, state, other_state, energy):
+        p_s = self.mdp.get_state(state, other_state)
+        p_a = super().select_action(p_s, energy)
+        return self.mdp.orig_action(p_a)
+
+    def __copy__(self):
+        """Return a shallow copy of the ProductSelectorWrapper"""
+        res = ProductSelectorWrapper(self.mdp)
+        for rule in self:
+            res.append(rule)
+        return res
+
+    def __deepcopy__(self, memodict={}):
+        """Return a deep copy of the CounterSelector"""
+        return ProductSelectorWrapper(self.mdp, product_selector=self)
 
 
 class SelectionRule(dict):

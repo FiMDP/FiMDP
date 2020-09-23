@@ -4,9 +4,10 @@ import spot
 spot.setup()
 from spot.jupyter import display_inline
 
-from fimdp.labeledConsMDP import LCMDP
+from fimdp.core import ProductSelector
 from fimdp.energy_solver import BasicES, BUCHI
-from fimdp.products import ProductSelector
+from fimdp.labeledConsMDP import LCMDP
+
 # -
 
 from fimdp.examples.reachability_examples import product_example
@@ -68,7 +69,7 @@ print("Passed test 4 for ProductSelector")
 
 # ## Equivalence of ProductSelectorWrapper to ProductSelector
 
-from fimdp.products import ProductSelectorWrapper
+from fimdp.core import ProductSelectorWrapper
 
 # Create ProductSelector and initialize it using CounterSelector for product
 
