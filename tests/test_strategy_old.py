@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from reachability_examples import ultimate
-from fimdp.energy_solver import *
+from fimdp.energy_solvers import *
 
 m, T = ultimate()
 solver = BasicES(m, 30, T)

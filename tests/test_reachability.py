@@ -5,7 +5,7 @@
 
 import fimdp
 from fimdp.core import ConsMDP
-from fimdp.energy_solver import BasicES
+from fimdp.energy_solvers import BasicES
 from math import inf
 from reachability_examples import basic, little_alsure, little_alsure2
 

@@ -1,5 +1,5 @@
 from .core import ConsMDP, CounterStrategy, ProductConsMDP, ProductSelector
-from .energy_solver import GoalLeaningES, BUCHI
+from .energy_solvers import GoalLeaningES, BUCHI
 
 from copy import deepcopy
 from math import inf

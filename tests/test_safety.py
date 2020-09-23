@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from fimdp import core
 from math import inf
-from fimdp.energy_solver import BasicES, LeastFixpointES
+from fimdp.energy_solvers import BasicES, LeastFixpointES
 from sys import stderr
 
 # ## Simple example

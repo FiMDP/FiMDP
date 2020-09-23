@@ -23,7 +23,7 @@ fimdp.dot module
     :undoc-members:
     :show-inheritance:
 
-fimdp.energy_solver module
+fimdp.energy_solvers module
 ----------------------------
 .. automodule:: fimdp.energy_solver
     :members:

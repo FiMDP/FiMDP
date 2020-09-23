@@ -4,7 +4,7 @@
 
 from math import inf
 from reachability_examples import ultimate, little_alsure
-from fimdp.energy_solver import BasicES
+from fimdp.energy_solvers import BasicES
 
 
 # ## Test case 1

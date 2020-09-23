@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from fimdp.labeled import LabeledConsMDP
-from fimdp.energy_solver import BasicES
+from fimdp.energy_solvers import BasicES
 from math import inf
 
 # Test simple assigment of APs

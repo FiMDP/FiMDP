@@ -5,7 +5,7 @@ spot.setup()
 from spot.jupyter import display_inline
 
 from fimdp.core import ProductSelector
-from fimdp.energy_solver import BasicES, BUCHI
+from fimdp.energy_solvers import BasicES, BUCHI
 from fimdp.labeled import LabeledConsMDP
 
 # -

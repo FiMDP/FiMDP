@@ -51,14 +51,14 @@ def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
-    strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
+    strategy = solver.get_strategy(fimdp.energy_solvers.BUCHI)
     return gw.animate_strategy(strategy, num_steps=steps)
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
-    strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
+    strategy = solver.get_strategy(fimdp.energy_solvers.BUCHI)
     return strategy[state]
 
 
@@ -72,7 +72,7 @@ def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
 # [CAV'2020]: https://i-cav.org/2020/
 # [work]: https://doi.org/10.1007/978-3-030-53291-8_22
 
-from fimdp.energy_solver import BasicES
+from fimdp.energy_solvers import BasicES
 showcase_solver(BasicES, capacity=40)
 
 # While the generated strategy guarantees that the agent eventually reaches the target with probability 1, it might take an enourmous number of steps before it really happens. As the basic solver does ignore probabilities of action-outcomes complete, all actions with `WEST` as a possible outcome to `WEST` are equally good. The order of actions processed by the algorithm starts with `NORTH`, and thus `NORTH` is often chosen instead of `EAST`. But the agent only moves to `EAST` on rare events.
@@ -90,7 +90,7 @@ strategy_at(BasicES, reload, capacity=40)
 # #### More technical explenation
 # The measure of *goodness* in the sentence above means *low value of `action_value_T`, which is the amount of energy needed to satisfy the objective*. The `action_value_T` is $\mathit{SPR-Val}$ in the CAV paper. In contrast with the Basic solver, `action_value_T` returns not only the action value, but also the probability that the outcome of this action will the one that produced this value. Then from actions with minimal value we choose the one with the highest probability of reaching the desired outcome.
 
-from fimdp.energy_solver import GoalLeaningES
+from fimdp.energy_solvers import GoalLeaningES
 showcase_solver(GoalLeaningES, capacity=40)
 
 strategy_at(GoalLeaningES, reload, capacity=40)
@@ -155,7 +155,7 @@ mdp, T = two_step()
 print(T)
 mdp
 
-from fimdp.energy_solver import BUCHI
+from fimdp.energy_solvers import BUCHI
 basic = BasicES(mdp, cap=40, targets=T)
 goal = GoalLeaningES(mdp, cap=40, targets=T)
 threshold = GoalLeaningES(mdp, cap=40, targets=T, threshold=0.011)

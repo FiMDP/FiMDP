@@ -3,7 +3,7 @@ Find minimal capacity needed for given starting location
 and target location.
 """
 
-from .energy_solver import BUCHI, AS_REACH, BasicES
+from .energy_solvers import BUCHI, AS_REACH, BasicES
 
 def bin_search(mdp, init_loc, target_locs,
                starting_capacity=100,
