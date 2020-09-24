@@ -579,7 +579,7 @@ class BasicES:
 
         return self.buchi_values
 
-    def get_minimal_levels(self, objective, recompute=False):
+    def get_min_levels(self, objective, recompute=False):
         """Return (and compute) minimal levels required to satisfy given objective
 
             `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
@@ -604,7 +604,7 @@ class BasicES:
         `objective` : one of MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
         `recompute` : if `True` forces all computations to be done again
         """
-        self.get_minimal_levels(objective, recompute=recompute)
+        self.get_min_levels(objective, recompute=recompute)
         return self.strategy[objective]
 
     def _get_dot(self, options=""):
