@@ -24,17 +24,10 @@ from sys import stderr
 
 from IPython.display import SVG, display
 
+from .objectives import MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI, HELPER, \
+    OBJ_COUNT
 from . import dot
 from .core import CounterSelector
-
-# objectives
-MIN_INIT_CONS = 0
-SAFE = 1
-POS_REACH = 2
-AS_REACH = 3
-BUCHI = 4
-HELPER = 5
-OBJ_COUNT = 6
 
 # Control debug info printed after fixpoints iterations
 debug = False
@@ -240,7 +233,7 @@ class BasicES:
         The empty strategy is a list with an empty dict for each state.
         """
         if objective not in range(OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT - 1}. {objective} was given!")
         self.strategy[objective] = self.SelectorClass(self.mdp)
 
     def _copy_strategy(self, source, to, state_set=None):
@@ -257,9 +250,9 @@ class BasicES:
             state_set = range(self.states)
 
         if source not in range(OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {source} was given!")
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT - 1}. {source} was given!")
         if to not in range(OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {to} was given!")
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT - 1}. {to} was given!")
 
         self.strategy[to].copy_values_from(self.strategy[source], state_set)
 
@@ -270,7 +263,7 @@ class BasicES:
         update strategy for given objective.
         """
         if objective not in range(OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT-1}. {objective} was given!")
+            raise ValueError(f"Objective must be between 0 and {OBJ_COUNT - 1}. {objective} was given!")
 
         def update(s, e, a):
             self.strategy[objective].update(s, e, a)

@@ -14,8 +14,8 @@
 from reachability_examples import basic
 
 from fimdp.core import SelectionRule
-from fimdp.energy_solvers import BasicES, AS_REACH, POS_REACH
-
+from fimdp.energy_solvers import BasicES
+from fimdp.objectives import POS_REACH, AS_REACH
 
 m, T = basic()
 

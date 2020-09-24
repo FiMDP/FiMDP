@@ -7,7 +7,8 @@ from spot.jupyter import display_inline
 from math import inf
 
 from fimdp.labeled import DBAWrapper, LabeledConsMDP
-from fimdp.energy_solvers import BasicES, BUCHI
+from fimdp.energy_solvers import BasicES
+from fimdp.objectives import BUCHI
 
 # -
 

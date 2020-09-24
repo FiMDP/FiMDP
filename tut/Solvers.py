@@ -28,6 +28,7 @@
 # [FiMDPEnv]: https://github.com/pthangeda/FiMDPEnv
 
 import fimdpenv
+
 fimdpenv.setup()
 from env import create_env
 
@@ -51,14 +52,14 @@ def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
-    strategy = solver.get_strategy(fimdp.energy_solvers.BUCHI)
+    strategy = solver.get_strategy(fimdp.objectives.BUCHI)
     return gw.animate_strategy(strategy, num_steps=steps)
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
-    strategy = solver.get_strategy(fimdp.energy_solvers.BUCHI)
+    strategy = solver.get_strategy(fimdp.objectives.BUCHI)
     return strategy[state]
 
 
@@ -155,7 +156,8 @@ mdp, T = two_step()
 print(T)
 mdp
 
-from fimdp.energy_solvers import BUCHI
+from fimdp.objectives import BUCHI
+
 basic = BasicES(mdp, cap=40, targets=T)
 goal = GoalLeaningES(mdp, cap=40, targets=T)
 threshold = GoalLeaningES(mdp, cap=40, targets=T, threshold=0.011)

@@ -1,7 +1,8 @@
 # # Test computation of minimal capacity
 
 from reachability_examples import ultimate
-from fimdp.energy_solvers import BasicES, AS_REACH
+from fimdp.energy_solvers import BasicES
+from fimdp.objectives import AS_REACH
 from fimdp.mincap_solvers import bin_search
 
 # In the following example, the minimal capacity is 15 for Buchi objective defined by the blue states.
