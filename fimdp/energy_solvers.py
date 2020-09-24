@@ -57,16 +57,7 @@ class BasicES:
         self.cap         = cap
         self.targets     = targets
 
-        # minInitCons & Safe^cap
-        self.mic_values  = None
-        self.safe_values = None
-
-        # Reachability
-        self.pos_reach_values = None
-        self.alsure_values = None
-
-        # Buchi
-        self.buchi_values = None
+        self.min_levels = {}
 
         # reloads
         self.is_reload  = lambda x: self.mdp.is_reload(x)
@@ -131,7 +122,7 @@ class BasicES:
         max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
         ```
         where survival is given by `survival_val` vector. It's
-        `self.safe_values` as default.
+        `self.min_levels[SAFE]` as default.
 
         Parameters
         ==========
@@ -139,11 +130,11 @@ class BasicES:
         `values` = vector with current values.
         `survival_val` = Function: `state` -> `value` interpreted as "what is
                          the level of energy I need to have in order to survive
-                         if I reach `state`". Returns `self.safe_values[state]`
+                         if I reach `state`". Returns `self.min_levels[SAFE][state]`
                          by default.
         """
         if survival_val is None:
-            survival_val = lambda s: self.safe_values[s]
+            survival_val = lambda s: self.min_levels[SAFE][s]
 
         # Initialization
         candidate = inf
@@ -165,7 +156,7 @@ class BasicES:
                            removed=None,
                            init_val=lambda s: inf,
                            objective=HELPER):
-        """Compute the safe_values using the largest-fixpoint method
+        """Compute the min_levels[SAFE] using the largest-fixpoint method
         based on minInitCons computation with removal of reload states
         that have minInitCons() = ∞ in the previous itertions.
 
@@ -174,7 +165,7 @@ class BasicES:
         The worst-case complexity is |R| * minInitCons = |R|*|S|^2
 
         `values`  : list used for computation
-                    self.safe_values as default
+                    self.min_levels[SAFE] as default
         `removed` : set of reloads - start with the reloads already removed
                     ∅ by default
         `init_val`: state -> value - defines the values at the start of each
@@ -184,7 +175,7 @@ class BasicES:
                     [the original set R] after reaching T). 
         """
         if values is None:
-            values = self.safe_values
+            values = self.min_levels[SAFE]
 
         if removed is None:
             removed = set()
@@ -277,28 +268,27 @@ class BasicES:
     # * compute_almost_sure_reachability
     # * compute_buchi
     def _compute_minInitCons(self):
-        objective = MIN_INIT_CONS
-        self._init_strategy(objective)
+        self._init_strategy(MIN_INIT_CONS)
 
-        self.mic_values = [inf] * self.states
+        self.min_levels[MIN_INIT_CONS] = [inf] * self.states
         cap = lambda s, v: inf if v > self.cap else v
         largest_fixpoint(self,
-                         self.mic_values,
+                         self.min_levels[MIN_INIT_CONS],
                          self._action_value,
                          value_adj=cap,
-                         on_update=self._update_function(objective))
+                         on_update=self._update_function(MIN_INIT_CONS))
 
     def _compute_safe(self):
         objective = SAFE
         self._init_strategy(objective)
 
-        self.safe_values = [inf] * self.states
-        self._sufficient_levels(self.safe_values, objective=objective)
+        self.min_levels[SAFE] = [inf] * self.states
+        self._sufficient_levels(self.min_levels[SAFE], objective=objective)
 
         # Set the value of Safe to 0 for all good reloads
         for s in range(self.states):
-            if self.mdp.is_reload(s) and self.safe_values[s] < self.cap+1:
-                self.safe_values[s] = 0
+            if self.mdp.is_reload(s) and self.min_levels[SAFE][s] < self.cap+1:
+                self.min_levels[SAFE][s] = 0
 
     def _compute_positive_reachability(self):
         objective = POS_REACH
@@ -308,15 +298,15 @@ class BasicES:
         #  * safe_value for target states
         #  * inf otherwise
         self.get_safe()
-        self.pos_reach_values = [inf] * self.states
+        self.min_levels[POS_REACH] = [inf] * self.states
 
         for t in self.targets:
-            self.pos_reach_values[t] = self.safe_values[t]
+            self.min_levels[POS_REACH][t] = self.min_levels[SAFE][t]
 
-        self.largest_fixpoint(self, self.pos_reach_values,
+        self.largest_fixpoint(self, self.min_levels[POS_REACH],
                          self._action_value_T,
                          value_adj=self._reload_capper,
-                         # Target states are always safe_values[t]
+                         # Target states are always min_levels[SAFE][t]
                          skip_state=lambda x: x in self.targets,
                          on_update=self._update_function(objective),
                          argmin=self.argmin)
@@ -333,13 +323,13 @@ class BasicES:
 
         # Initialized safe values after reaching T
         self.get_safe()
-        safe_after_T = lambda s: self.safe_values[s] if s in self.targets else inf
+        safe_after_T = lambda s: self.min_levels[SAFE][s] if s in self.targets else inf
 
         done = False
         while not done:
             ### 2.1.1.
             # safe_after_T initializes each iteration of the fixpoint with:
-            #  * self.safe_values[t] for targets (reach done, just survive)
+            #  * self.min_levels[SAFE][t] for targets (reach done, just survive)
             #  * ∞ for the rest
 
             self._sufficient_levels(self.reach_safe, removed, safe_after_T)
@@ -347,9 +337,9 @@ class BasicES:
             ### 2.1.2. Initialize PosReach_M:
             #  * safe_value for target states
             #  * inf otherwise
-            self.alsure_values = [inf] * self.states
+            self.min_levels[AS_REACH] = [inf] * self.states
             for t in self.targets:
-                self.alsure_values[t] = self.get_safe()[t]
+                self.min_levels[AS_REACH][t] = self.get_safe()[t]
 
             self._init_strategy(objective)
 
@@ -364,7 +354,7 @@ class BasicES:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            self.largest_fixpoint(self, self.alsure_values,
+            self.largest_fixpoint(self, self.min_levels[AS_REACH],
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
@@ -375,7 +365,7 @@ class BasicES:
             done = True
             # Iterate over reloads and remove unusable ones (∞)
             for s in range(self.states):
-                if self.is_reload(s) and self.alsure_values[s] == inf:
+                if self.is_reload(s) and self.min_levels[AS_REACH][s] == inf:
                     if s not in removed:
                         removed.add(s)
                         done = False
@@ -399,9 +389,9 @@ class BasicES:
             ### 1.2. Initialization of PosReach_M
             #  * buchi_safe for target states
             #  * inf otherwise
-            self.buchi_values = [inf] * self.states
+            self.min_levels[BUCHI] = [inf] * self.states
             for t in self.targets:
-                self.buchi_values[t] = self.buchi_safe[t]
+                self.min_levels[BUCHI][t] = self.buchi_safe[t]
 
             self._init_strategy(objective)
 
@@ -418,7 +408,7 @@ class BasicES:
             skip_cond = lambda x: is_removed(x) or is_target(x)
 
             ## Finish the fixpoint
-            self.largest_fixpoint(self, self.buchi_values,
+            self.largest_fixpoint(self, self.min_levels[BUCHI],
                              rem_action_value,
                              value_adj=self._reload_capper,
                              skip_state=skip_cond,
@@ -429,7 +419,7 @@ class BasicES:
             done = True
             # Iterate over reloads and remove unusable ones (∞)
             for s in range(self.states):
-                if self.is_reload(s) and self.buchi_values[s] == inf:
+                if self.is_reload(s) and self.min_levels[BUCHI][s] == inf:
                     if s not in removed:
                         removed.add(s)
                         done = False
@@ -454,9 +444,9 @@ class BasicES:
         When called for the first time, compute the values.
         Recompute the values if requested by `recompute`.
         """
-        if self.mic_values is None or recompute:
+        if MIN_INIT_CONS not in self.min_levels or recompute:
             self._compute_minInitCons()
-        return self.mic_values
+        return self.min_levels[MIN_INIT_CONS]
 
     def get_safe(self, recompute=False):
         """Return (and compute) safe runs minimal cost for self.capacity
@@ -464,9 +454,9 @@ class BasicES:
         When called for the first time, it computes the values.
         Recomputes the values if requested by `recompute`.
         """
-        if self.safe_values is None or recompute:
+        if SAFE not in self.min_levels or recompute:
             self._compute_safe()
-        return self.safe_values
+        return self.min_levels[SAFE]
 
     def get_positiveReachability(self, recompute=False):
         """Return (and compute) minimal levels for positive
@@ -486,11 +476,11 @@ class BasicES:
         state, or the energy needed to survive in some other successor
         under the action, whatever is higher.
         """
-        if not recompute and self.pos_reach_values is not None:
-            return self.pos_reach_values
+        if not recompute and POS_REACH in self.min_levels is not None:
+            return self.min_levels[POS_REACH]
 
         self._compute_positive_reachability()
-        return self.pos_reach_values
+        return self.min_levels[POS_REACH]
 
     def get_almostSureReachability(self, recompute=False):
         """Return (and compute) minimal levels for almost-sure
@@ -525,11 +515,11 @@ class BasicES:
         to positive reachability.
         """
 
-        if not recompute and self.alsure_values is not None:
-            return self.alsure_values
+        if not recompute and AS_REACH in self.min_levels:
+            return self.min_levels[AS_REACH]
 
         self._compute_almost_sure_reachability()
-        return self.alsure_values
+        return self.min_levels[AS_REACH]
 
     def get_Buchi(self, recompute=False):
         """Return (and compute) minimal levels for Buchi
@@ -556,7 +546,7 @@ class BasicES:
         towards T.
 
         In contrast to `almostSureReachability` here we do not set
-        the `buchi_safe` values of targets to `safe_values` after
+        the `buchi_safe` values of targets to `min_levels[SAFE]` after
         each iteration. This si because after reaching a target,
         we still need to reach target again. So the steps 1.1 and
         1.2 slightly differ. Otherwise, the computation is the same.
@@ -565,12 +555,12 @@ class BasicES:
         to positive reachability.
         """
 
-        if not recompute and self.buchi_values is not None:
-            return self.buchi_values
+        if not recompute and BUCHI in self.min_levels:
+            return self.min_levels[BUCHI]
 
         self._compute_buchi()
 
-        return self.buchi_values
+        return self.min_levels[BUCHI]
 
     def get_min_levels(self, objective, recompute=False):
         """Return (and compute) minimal levels required to satisfy given objective
@@ -671,7 +661,7 @@ class GoalLeaningES(BasicES):
         max of {values(t)} ∪ {survival(t') | t' ∈ a.succ & t' ≠ t}
         ```
         where survival is given by `survival_val` vector. It's
-        `self.safe_values` as default.
+        `self.min_levels[SAFE]` as default.
 
         Parameters
         ==========
@@ -679,7 +669,7 @@ class GoalLeaningES(BasicES):
         `values` = vector with current values.
         `survival_val` = Function: `state` -> `value` interpreted as "what is
                          the level of energy I need to have in order to survive
-                         if I reach `state`". Returns `self.safe_values[state]`
+                         if I reach `state`". Returns `self.min_levels[SAFE][state]`
                          by default.
 
         Returns
@@ -691,7 +681,7 @@ class GoalLeaningES(BasicES):
         if threshold is None:
             threshold = self.threshold
         if survival_val is None:
-            survival_val = lambda s: self.safe_values[s]
+            survival_val = lambda s: self.min_levels[SAFE][s]
 
         # Initialization
         candidate = inf
@@ -745,24 +735,24 @@ class LeastFixpointES(BasicES):
         When called for the first time, it computes the values.
         Recomputes the values if requested by `recompute`.
         """
-        if self.safe_values is None or recompute:
-            self.safe_values = list(self.get_minInitCons(recompute))
+        if SAFE not in self.min_levels or recompute:
+            self.min_levels[SAFE] = list(self.get_minInitCons(recompute))
             cap = lambda s, v: inf if v > self.cap else v
             # The +1 trick handels cases when cap=∞
             zero_c = lambda succ: (self.mdp.is_reload(succ) and \
-                                  self.safe_values[succ] < self.cap+1)
+                                  self.min_levels[SAFE][succ] < self.cap+1)
 
             action_value = lambda a, values: self._action_value(a, values, zero_c)
 
-            least_fixpoint(self, self.safe_values,
+            least_fixpoint(self, self.min_levels[SAFE],
                              action_value,
                              value_adj=cap)
 
             # Set the value of Safe to 0 for all good reloads
             for s in range(self.states):
-                if self.mdp.is_reload(s) and self.safe_values[s] < self.cap+1:
-                    self.safe_values[s] = 0
-        return self.safe_values
+                if self.mdp.is_reload(s) and self.min_levels[SAFE][s] < self.cap+1:
+                    self.min_levels[SAFE][s] = 0
+        return self.min_levels[SAFE]
 
 
 ### argmin-style functions

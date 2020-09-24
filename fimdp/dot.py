@@ -9,6 +9,9 @@ dotpr = 'dot'
 debug = False
 
 from math import inf
+
+from .objectives import *
+
 #TODO build a list and join it in the end into string
 
 tab_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
@@ -71,24 +74,24 @@ class consMDP2dot:
         self.el = solver
 
         if "m" in self.options:
-            self.opt_mi = self.el is not None and self.el.mic_values is not None
+            self.opt_mi = self.el is not None and MIN_INIT_CONS in self.el.min_levels
         if "M" in self.options:
             solver.get_minInitCons()
             self.opt_mi = True
 
         if "s" in self.options:
-            self.opt_sr = self.el is not None and self.el.safe_values is not None
+            self.opt_sr = self.el is not None and SAFE in self.el.min_levels
         if "S" in self.options:
             solver.get_safe()
             self.opt_sr = True
 
         if "r" in self.options:
-            self.opt_pr = self.el is not None and self.el.pos_reach_values is not None
+            self.opt_pr = self.el is not None and POS_REACH in self.el.min_levels
         if "R" in self.options:
-            self.opt_ar = self.el is not None and self.el.alsure_values is not None
+            self.opt_ar = self.el is not None and AS_REACH in self.el.min_levels
 
         if "b" in self.options:
-            self.opt_bu = self.el is not None and self.el.buchi_values is not None
+            self.opt_bu = self.el is not None and BUCHI in self.el.min_levels
             if self.opt_bu:
                 self.label_row_span = 3
         #print(self.opt_bu,file=stderr)
@@ -130,13 +133,13 @@ class consMDP2dot:
                         f"<tr><td{tab_state_cell_style.format(self.label_row_span)}>{state_str}</td>"
 
         if self.opt_mi:
-            val = self.el.mic_values[s]
+            val = self.el.get_min_levels(MIN_INIT_CONS)[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_MI_cell_style}>" + \
                 f"<font{tab_MI_cell_font}>{val}</font></td>"
 
         if self.opt_sr:
-            val = self.el.safe_values[s]
+            val = self.el.get_min_levels(SAFE)[s]
             val = "∞" if val == inf else val
             state_str += f"<td{tab_SR_cell_style}>" + \
                 f"<font{tab_SR_cell_font}>{val}</font></td>"
@@ -148,7 +151,7 @@ class consMDP2dot:
             # positive reachability
             if self.opt_pr:
                 empty_row = False
-                val = self.el.pos_reach_values[s]
+                val = self.el.get_min_levels(POS_REACH)[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_PR_cell_style}>" + \
                     f"<font{tab_PR_cell_font}>{val}</font></td>"
@@ -156,7 +159,7 @@ class consMDP2dot:
             # almost-sure reachability
             if self.opt_ar:
                 empty_row = False
-                val = self.el.alsure_values[s]
+                val = self.el.get_min_levels(AS_REACH)[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_AR_cell_style}>" + \
                     f"<font{tab_AR_cell_font}>{val}</font></td>"
@@ -172,7 +175,7 @@ class consMDP2dot:
             if self.opt_bu:
                 state_str += f"</tr><tr>"
                 empty_row = False
-                val = self.el.buchi_values[s]
+                val = self.el.get_min_levels(BUCHI)[s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_BU_cell_style}>" + \
                     f"<font{tab_BU_cell_font}>{val}</font></td>"
