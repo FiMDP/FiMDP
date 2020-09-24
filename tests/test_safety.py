@@ -29,7 +29,7 @@ m.add_action(0, {0:1}, "r", 0)
 m.add_action(9, {9:1}, "r", 0)
 m.add_action(11, {11:1}, "a", 1)
 
-MI = BasicES(m)
+MI = BasicES(m, inf)
 # -
 
 result   = MI.get_minInitCons()
@@ -141,7 +141,7 @@ m.add_action(3, {3:1}, "r", 1010)
 m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
-solver_inf = BasicES(m)
+solver_inf = BasicES(m, inf)
 # -
 
 result = solver_inf.get_safe()
@@ -153,7 +153,7 @@ assert result == expected, ("Safe reloads are wrong.\n" +
 print("Passed test 3 for get_safe() in test_safety file.")
 
 # Test the version with LeastFixpoint
-least_solver = LeastFixpointES(m)
+least_solver = LeastFixpointES(m, inf)
 result = least_solver.get_safe()
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
@@ -186,7 +186,7 @@ m.add_action(0, {0:1}, "", 0)
 m.add_action(1, {0:1}, "a", 1000)
 m.add_action(1, {2:1}, "b", 1)
 m.add_action(2, {1:1}, "b", 1)
-solver = BasicES(m)
+solver = BasicES(m, inf)
 
 result = solver.get_minInitCons()
 expected = [0,1000,1001]

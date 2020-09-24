@@ -54,7 +54,7 @@ class BasicES:
      * targets: `iterable`; states of `mdp` that are targets for the objectives.
     """
 
-    def __init__(self, mdp, cap=inf, targets=None):
+    def __init__(self, mdp, cap, targets=None):
         # cap has to be defined
         if cap is None:
             cap = inf
@@ -654,12 +654,8 @@ class GoalLeaningES(BasicES):
                   in the first fixpoint.
     """
 
-    def __init__(self, mdp, cap=inf, targets=None, threshold=0):
-        super().__init__(
-            mdp=mdp,
-            cap=cap,
-            targets=targets
-        )
+    def __init__(self, mdp, cap, targets=None, threshold=0):
+        super().__init__(mdp=mdp, cap=cap, targets=targets)
         self.threshold = threshold
         self.argmin = pick_best_action
         self.largest_fixpoint = self.double_fixpoint

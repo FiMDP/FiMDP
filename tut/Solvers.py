@@ -184,8 +184,8 @@ gl, T = goal_leaning()
 print(f"Target states: {T}")
 gl
 
-basic = BasicES(gl, targets=T)
-goal = GoalLeaningES(gl, targets=T)
+basic = BasicES(gl, 10, targets=T)
+goal = GoalLeaningES(gl, 10, targets=T)
 
 # In state 0, the standard solver (`basic`) chooses the `top` action because it is processed first and `bottom` does not yield any better value. You can change the order of the actions in the function that creates the CMDP and see that the result for `basic` changes.
 #
@@ -209,7 +209,7 @@ gl2, T = goal_leaning_2()
 print(f"Target states: {T}")
 gl2
 
-basic2 = BasicES(gl2, targets=T)
-goal2 = GoalLeaningES(gl2, targets=T)
+basic2 = BasicES(gl2, 10, targets=T)
+goal2 = GoalLeaningES(gl2, 10, targets=T)
 
 print(basic2.get_strategy(BUCHI), goal2.get_strategy(BUCHI), sep="\n")

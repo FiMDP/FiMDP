@@ -50,7 +50,7 @@ cap = 32 # We have cap/2 reload states, cap/4 in each flower
 path = 6
 m = consMDP_double_flower(cap, path)
 
-solver = BasicES(m, cap=cap+2, targets=[2])
+solver = BasicES(m, cap=cap + 2, targets=[2])
 result = solver.get_positiveReachability()
 expected = [3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3]
 solver
