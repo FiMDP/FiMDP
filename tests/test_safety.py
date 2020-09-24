@@ -84,7 +84,7 @@ print("Passed test 4 for BasicES.get_minInitCons() in test_safety file.")
 # Reloads should have red 0, otherwise the red and orange should be the same in this case.
 
 solver14 = BasicES(m, cap=14)
-solver14._compute_minInitCons()
+solver14._minInitCons()
 result = solver14.get_safe()
 expected = [0, 3, 2, 0, 0, 9, 14, 1, 1, 0, inf, inf, 1]
 solver14
