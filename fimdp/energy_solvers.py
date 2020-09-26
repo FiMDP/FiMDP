@@ -253,10 +253,8 @@ class BasicES:
         if state_set is None:
             state_set = range(self.states)
 
-        if source not in range(_OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {_OBJ_COUNT - 1}. {source} was given!")
-        if to not in range(_OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {_OBJ_COUNT - 1}. {to} was given!")
+        self._check_objective(source, helper=True)
+        self._check_objective(to)
 
         self.strategy[to].copy_values_from(self.strategy[source], state_set)
 
@@ -266,8 +264,7 @@ class BasicES:
         Returns function that should be passed to `largest_fixpoint` to
         update strategy for given objective.
         """
-        if objective not in range(_OBJ_COUNT):
-            raise ValueError(f"Objective must be between 0 and {_OBJ_COUNT - 1}. {objective} was given!")
+        self._check_objective(objective, helper=True)
 
         def update(s, e, a):
             self.strategy[objective].update(s, e, a)
