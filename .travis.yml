@@ -15,7 +15,14 @@ addons:
 
 # command to install dependencies
 install:
-  - pip3 install jupyter matplotlib ipympl fimdpenv
+  - pip3 install jupyter matplotlib ipympl
+  # Fimdpenv custom version
+  - git clone https://github.com/xblahoud/fimdpenv
+  - cd fimdpenv
+  - git checkout fimdp2
+  - pip3 install -e .
+  - cd ..
+  # Install FiMDP
   - pip3 install -e .
 # Install Spot
 #before_script:
