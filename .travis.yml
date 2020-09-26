@@ -15,7 +15,14 @@ addons:
 
 # command to install dependencies
 install:
-  - pip3 install jupyter matplotlib ipympl fimdpenv
+  - pip3 install jupyter matplotlib ipympl
+  # Fimdpenv custom version
+  - git clone https://github.com/xblahoud/fimdpenv
+  - cd fimdpenv
+  - git checkout fimdp2
+  - pip3 install -e .
+  - cd ..
+  # Install FiMDP
   - pip3 install -e .
 # Install Spot
 #before_script:
@@ -30,16 +37,17 @@ install:
 # command to run tests
 script:
   - cd tests
-  - python3 test_buchi.py
-  - python3 test_lcmdp.py
-  - python3 test_mecs.py
-  - python3 test_mincap.py
-  - python3 test_product.py
-  - python3 test_product_selector.py
-  - python3 test_reachability.py
-  - python3 test_safety.py
-  - python3 test_strategy.py
-  - python3 test_strategy_old.py
-  - jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb
-  - jupyter nbconvert --execute ../tut/ProductDBA.ipynb
-# Needs new version of FiMDP  - jupyter nbconvert --execute ../tut/Solvers.ipynb
+  - ./test.sh
+#  - python3 test_buchi.py
+#  - python3 test_lcmdp.py
+#  - python3 test_mecs.py
+#  - python3 test_mincap.py
+#  - python3 test_product.py
+#  - python3 test_product_selector.py
+#  - python3 test_reachability.py
+#  - python3 test_safety.py
+#  - python3 test_strategy.py
+#  - python3 test_strategy_old.py
+#  - jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb --to html
+#  - jupyter nbconvert --execute ../tut/ProductDBA.ipynb --to html
+#  - jupyter nbconvert --execute ../tut/Solvers.ipynb --to html
