@@ -163,7 +163,7 @@ class consMDP2dot:
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_AR_cell_style}>" + \
                     f"<font{tab_AR_cell_font}>{val}</font></td>"
-                val = self.el.reach_safe[s]
+                val = self.el.helper_levels[AS_REACH][s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_RS_cell_style}>" + \
                     f"<font{tab_RS_cell_font}>{val}</font></td>"
@@ -179,7 +179,7 @@ class consMDP2dot:
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_BU_cell_style}>" + \
                     f"<font{tab_BU_cell_font}>{val}</font></td>"
-                val = self.el.buchi_safe[s]
+                val = self.el.helper_levels[BUCHI][s]
                 val = "∞" if val == inf else val
                 state_str += f"<td{tab_BS_cell_style}>" + \
                     f"<font{tab_BS_cell_font}>{val}</font></td>"

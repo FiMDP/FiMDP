@@ -30,8 +30,9 @@ from . import dot
 from .core import CounterSelector
 
 ### HELPER objectives ###
-_HELPER = max_objective + 1
-_OBJ_COUNT = _HELPER + 1
+_HELPER_AS_REACH = max_objective + 1
+_HELPER_BUCHI = _HELPER_AS_REACH + 1
+_OBJ_COUNT = _HELPER_BUCHI + 1
 
 # Control debug info printed after fixpoints iterations
 debug = False
@@ -62,6 +63,7 @@ class BasicES:
         self.targets     = targets
 
         self.min_levels = {}
+        self.helper_levels = {}
 
         # reloads
         self.is_reload  = lambda x: self.mdp.is_reload(x)
@@ -77,6 +79,7 @@ class BasicES:
         #
         # Initialization of argmin function for fixpoint computations.
         self.argmin = argmin
+        # Function that computes largest fixpoint
         self.largest_fixpoint = largest_fixpoint
 
     ### Helper functions ###
@@ -156,13 +159,20 @@ class BasicES:
             #print(f"{a.src} -- {a.label} -> {t}:{t_v}")
         return candidate + a.cons
 
-    def _sufficient_levels(self, values=None,
+    def _sufficient_levels(self, values,
                            removed=None,
                            init_val=lambda s: inf,
-                           objective=_HELPER):
-        """Compute the min_levels[objective] using the largest-fixpoint method
-        based on minInitCons computation with removal of reload states
-        that have minInitCons() = ∞ in the previous itertions.
+                           objective=SAFE):
+        """Compute the survival values.
+
+        Use the largest-fixpoint method based on minInitCons computation with
+        removal of reload states that have minInitCons() = ∞ in the previous
+        iteration. After the last iteration, the computed strategy (and minimal
+        levels) are enough to survive in the mdp ad infinitum.
+
+        If `init_val` is given, the semantics is slightly different: _Survive
+        ad infinitum or reach one of the states `s` for which `init_val[s]<∞`
+        with at least `init_val[s]` energy.
 
         The first computation computes, in fact, minInitCons (redundantly)
 
@@ -173,10 +183,10 @@ class BasicES:
         `removed` : set of reloads - start with the reloads already removed
                     ∅ by default
         `init_val`: state -> value - defines the values at the start of each
-                    iteration of inner fixpoint (currently needed only for)
-                    almost-sure reachability. It simulates switching between
+                    iteration of inner fixpoint. This simulates switching between
                     the MDP with 2 sets of reload states (one before, one
-                    [the original set R] after reaching T). 
+                    [the original set R] after reaching T).
+        `objective`:objective for which computes the strategy (SAFE by default)
         """
         if values is None:
             values = self.min_levels[SAFE]
@@ -297,7 +307,7 @@ class BasicES:
         self._init_strategy(objective)
 
         self.min_levels[SAFE] = [inf] * self.states
-        self._sufficient_levels(self.min_levels[SAFE], objective=objective)
+        self._sufficient_levels(self.min_levels[SAFE], objective=SAFE)
 
         # Set the value of Safe to 0 for all good reloads
         for s in range(self.states):
@@ -325,7 +335,8 @@ class BasicES:
         # Initialize:
         #  * safe_value for target states
         #  * inf otherwise
-        self.get_safe()
+        if SAFE not in self.min_levels:
+            self.compute(SAFE)
         self.min_levels[POS_REACH] = [inf] * self.states
 
         for t in self.targets:
@@ -355,7 +366,7 @@ class BasicES:
             2.3. M = M \ NonReach
 
         The PosReach_M is computed as:
-          2.1.1. Compute modified Safe_M & store it in reach_safe
+          2.1.1. Compute modified Safe_M & store it in helper_levels[AS_REACH]
             - Safe_M[t] = Safe[t] for targets
             - Use fixpoint propagation to complete Safe_M
           2.1.3. PosReach_M[t] = Safe[t] for targets
@@ -375,11 +386,14 @@ class BasicES:
         removed = set()
 
         # Initialize the helper values
-        self.reach_safe = [inf] * self.states
+        self.helper_levels[AS_REACH] = [inf] * self.states
 
         # Initialized safe values after reaching T
-        self.get_safe()
-        safe_after_T = lambda s: self.min_levels[SAFE][s] if s in self.targets else inf
+        if SAFE not in self.min_levels:
+            self.compute(SAFE)
+        safe_after_T = lambda s: self.min_levels[SAFE][s] \
+            if s in self.targets \
+            else inf
 
         done = False
         while not done:
@@ -388,7 +402,8 @@ class BasicES:
             #  * self.min_levels[SAFE][t] for targets (reach done, just survive)
             #  * ∞ for the rest
 
-            self._sufficient_levels(self.reach_safe, removed, safe_after_T)
+            self._sufficient_levels(self.helper_levels[AS_REACH], removed, safe_after_T,
+                                    _HELPER_AS_REACH)
 
             ### 2.1.2. Initialize PosReach_M:
             #  * safe_value for target states
@@ -401,10 +416,10 @@ class BasicES:
 
             ### 2.1.3 Compute PosReach on sub-MDP
             # Mitigate reload removal (use Safe_M for survival)
-            rem_survival_val = lambda s: self.reach_safe[s]
+            rem_survival_val = lambda s: self.helper_levels[AS_REACH][s]
             rem_action_value = lambda a, v: self._action_value_T(a, v, survival_val=rem_survival_val)
 
-            # Avoid unnecesarry computations
+            # Avoid unnecessary computations
             is_removed = lambda x: x in removed  # always ∞
             is_target = lambda x: x in self.targets  # always Safe
             skip_cond = lambda x: is_removed(x) or is_target(x)
@@ -449,11 +464,11 @@ class BasicES:
         always eventually reach energy sufficient to navigate
         towards T.
 
-        In contrast to `almostSureReachability` here we do not set
-        the `buchi_safe` values of targets to `min_levels[SAFE]` after
-        each iteration. This si because after reaching a target,
-        we still need to reach target again. So the steps 1.1 and
-        1.2 slightly differ. Otherwise, the computation is the same.
+        In contrast to `almostSureReachability` here we do not set the
+        `helper_levels[BUCHI]` values of targets to `min_levels[SAFE]` after
+        each iteration. This si because after reaching a target, we still
+        need to reach target again. So the steps 1.1 and 1.2 slightly differ.
+        Otherwise, the computation is the same.
 
         The first iteration (the first fixpoint achieved) is equal
         to positive reachability.
@@ -464,26 +479,26 @@ class BasicES:
         removed = set()
 
         # Initialize the helper values
-        self.buchi_safe = [inf] * self.states
+        self.helper_levels[BUCHI] = [inf] * self.states
 
         done = False
         while not done:
-            ### 1.1. Compute Safe(M\removed) and store it in buchi_safe
-            self._sufficient_levels(self.buchi_safe, removed, objective=_HELPER)
+            ### 1.1. Compute Safe(M\removed) and store it in helper_levels[BUCHI]
+            self._sufficient_levels(self.helper_levels[BUCHI], removed, objective=_HELPER_BUCHI)
 
             ### 1.2. Initialization of PosReach_M
-            #  * buchi_safe for target states
+            #  * helper_levels[BUCHI] for target states
             #  * inf otherwise
             self.min_levels[BUCHI] = [inf] * self.states
             for t in self.targets:
-                self.min_levels[BUCHI][t] = self.buchi_safe[t]
+                self.min_levels[BUCHI][t] = self.helper_levels[BUCHI][t]
 
             self._init_strategy(objective)
 
             ### 1.3. Computation of PosReach on sub-MDP (with removed reloads)
             ## how much do I need to survive via this state after reloads removal
-            # Use Safe_m (stored in buchi_safe) as value needed for survival
-            rem_survival_val = lambda s: self.buchi_safe[s]
+            # Use Safe_m (stored in helper_levels[BUCHI]) as value needed for survival
+            rem_survival_val = lambda s: self.helper_levels[BUCHI][s]
             # Navigate towards T and survive with Safe_m
             rem_action_value = lambda a, v: self._action_value_T(a, v, survival_val=rem_survival_val)
 
@@ -494,11 +509,11 @@ class BasicES:
 
             ## Finish the fixpoint
             self.largest_fixpoint(self, self.min_levels[BUCHI],
-                             rem_action_value,
-                             value_adj=self._reload_capper,
-                             skip_state=skip_cond,
-                             on_update=self._update_function(objective),
-                             argmin=self.argmin)
+                                  rem_action_value,
+                                  value_adj=self._reload_capper,
+                                  skip_state=skip_cond,
+                                  on_update=self._update_function(BUCHI),
+                                  argmin=self.argmin)
 
             ### 2. & 3. Detect bad reloads and remove them
             done = True
@@ -509,7 +524,7 @@ class BasicES:
                         removed.add(s)
                         done = False
 
-            self._copy_strategy(_HELPER, objective, self.targets)
+            self._copy_strategy(_HELPER_BUCHI, BUCHI, self.targets)
 
 
     def _check_objective(self, objective, helper=False):
