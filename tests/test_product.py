@@ -69,7 +69,7 @@ print("Passed test 2 for product in file test_product.py")
 
 # +
 psolver.cap = 9
-res = psolver.get_strategy(BUCHI, recompute=True)
+res = psolver.get_selector(BUCHI, recompute=True)
 
 result = []
 for rule in res:
@@ -185,7 +185,7 @@ print("Passed test selector_for_ltl in file test_product.py")
 # Get CounterSelector
 product, targets = lmdp.product_with_dba(aut)
 psolver = BasicES(product, capacity, targets)
-counter_sel = psolver.get_strategy(BUCHI)
+counter_sel = psolver.get_selector(BUCHI)
 
 from fimdp.core import CounterStrategy
 from fimdp.labeled import DBACounterStategy

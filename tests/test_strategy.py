@@ -91,7 +91,7 @@ assert len(selector) == m.num_states
 
 # +
 solver = BasicES(m, cap=1000, targets=T)
-s = list(solver.get_strategy(AS_REACH))
+s = list(solver.get_selector(AS_REACH))
 
 selector = CounterSelector(m, s)
 assert selector == s
@@ -159,7 +159,7 @@ selector_from = selector
 
 solver = BasicES(m, 40, T)
 solver.get_min_levels(POS_REACH)
-selector_to = solver.get_strategy(POS_REACH, True)
+selector_to = solver.get_selector(POS_REACH, True)
 selector_to
 expected = selector_to.copy()
 result = CounterSelector(m)
@@ -266,7 +266,7 @@ from fimdp.core import CounterStrategy
 
 # +
 solver = BasicES(m, 30, T)
-selector = solver.get_strategy(AS_REACH)
+selector = solver.get_selector(AS_REACH)
 s = CounterStrategy(m, selector=selector,
                     capacity=30, 
                     init_energy=15, init_state=6)

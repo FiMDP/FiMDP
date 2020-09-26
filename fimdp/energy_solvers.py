@@ -533,7 +533,7 @@ class BasicES:
     ### Public interface ###
     # * compute
     # * get_min_levels
-    # * get_strategy
+    # * get_selector
     def compute(self, objective):
         self._check_objective(objective)
         func_dict = {
@@ -561,7 +561,7 @@ class BasicES:
 
         return self.min_levels[objective]
 
-    def get_strategy(self, objective, recompute=False):
+    def get_selector(self, objective, recompute=False):
         """Return (and compute) strategy such that it ensures it can handle
         the minimal levels of energy required to satisfy given objective
         from each state (if < ∞).

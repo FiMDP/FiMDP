@@ -195,7 +195,7 @@ class LabeledConsMDP(ConsMDP):
         product, targets = self.product_with_dba(aut, init_states)
         solver = SolverClass(product, cap, targets=targets)
         solver.SelectorClass = ProductSelector
-        selector: ProductSelector = solver.get_strategy(BUCHI)
+        selector: ProductSelector = solver.get_selector(BUCHI)
 
         if not keep_product:
             del product

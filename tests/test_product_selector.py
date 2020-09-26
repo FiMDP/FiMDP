@@ -75,7 +75,7 @@ from fimdp.core import ProductSelectorWrapper
 # Create ProductSelector and initialize it using CounterSelector for product
 
 psolver = BasicES(product, 9, T)
-p_selector = psolver.get_strategy(BUCHI)
+p_selector = psolver.get_selector(BUCHI)
 selector = ProductSelector(product)
 for state, rule in enumerate(p_selector):
     for energy, action in rule.items():

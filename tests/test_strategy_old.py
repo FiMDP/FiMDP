@@ -4,10 +4,10 @@ from fimdp.energy_solvers import *
 
 m, T = ultimate()
 solver = BasicES(m, 30, T)
-safe = solver.get_strategy(SAFE)
-pr = solver.get_strategy(POS_REACH)
-asr = solver.get_strategy(AS_REACH)
-buchi = solver.get_strategy(BUCHI)
+safe = solver.get_selector(SAFE)
+pr = solver.get_selector(POS_REACH)
+asr = solver.get_selector(AS_REACH)
+buchi = solver.get_selector(BUCHI)
 
 
 def convert_actions_to_labels(selector):
@@ -81,16 +81,16 @@ buchi_expected = [
 
 assert safe == safe_expected, ("Wrong strategy for safe\n"
     f"  expected: {safe_expected}\n  returns:  {safe}\n")
-print("Passed test for solver.get_strategy(SAFE) in test_strategy file.")
+print("Passed test for solver.get_selector(SAFE) in test_strategy file.")
 
 assert pr == pr_expected, ("Wrong strategy for safe\n"
     f"  expected: {pr_expected}\n  returns:  {pr}\n")
-print("Passed test for solver.get_strategy(POS_REACH) in test_strategy file.")
+print("Passed test for solver.get_selector(POS_REACH) in test_strategy file.")
 
 assert asr == asr_expected, ("Wrong strategy for safe\n"
     f"  expected: {asr_expected}\n  returns:  {asr}\n")
-print("Passed test for solver.get_strategy(AS_REACH) in test_strategy file.")
+print("Passed test for solver.get_selector(AS_REACH) in test_strategy file.")
 
 assert buchi == buchi_expected, ("Wrong strategy for safe\n"
     f"  expected: {buchi_expected}\n  returns:  {buchi}\n")
-print("Passed test for solver.get_strategy(BUCHI) in test_strategy file.")
+print("Passed test for solver.get_selector(BUCHI) in test_strategy file.")

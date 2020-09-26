@@ -52,14 +52,14 @@ def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
-    strategy = solver.get_strategy(fimdp.objectives.BUCHI)
+    strategy = solver.get_selector(fimdp.objectives.BUCHI)
     return gw.animate_strategy(strategy, num_steps=steps)
     
 def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
     solver = SolverClass(m, capacity, t)
-    strategy = solver.get_strategy(fimdp.objectives.BUCHI)
+    strategy = solver.get_selector(fimdp.objectives.BUCHI)
     return strategy[state]
 
 
@@ -166,13 +166,13 @@ threshold = GoalLeaningES(mdp, cap=40, targets=T, threshold=0.011)
 #
 # The basic solver chooses the action `direct` that goes to the lower state. The same holds for the goal-leaning solver. With the threshold being $> 0.01$ the threshold solver goes via the lower path only with energy=1 (using the below-threshold value from the second fix-point), otherwise, it prefers the upper path.
 
-basic.get_strategy(BUCHI)
+basic.get_selector(BUCHI)
 
-goal.get_strategy(BUCHI)
+goal.get_selector(BUCHI)
 
-threshold.get_strategy(BUCHI)
+threshold.get_selector(BUCHI)
 
-result = {k: v.label for k, v in threshold.get_strategy(BUCHI)[0].items()}
+result = {k: v.label for k, v in threshold.get_selector(BUCHI)[0].items()}
 expected = {2: 'long', 1: 'direct'}
 assert result == expected, ("The threshold strategy should return\n" +
                            f"{expected} in state 0.\n" +
@@ -193,9 +193,9 @@ goal = GoalLeaningES(gl, 10, targets=T)
 #
 # The goal-leaning solver, however, chooses `bottom` as it yields a higher probability of reaching the state 1, which is the successor that has good promise to reach a target.
 
-print(basic.get_strategy(BUCHI), goal.get_strategy(BUCHI), sep="\n")
+print(basic.get_selector(BUCHI), goal.get_selector(BUCHI), sep="\n")
 
-result = goal.get_strategy(BUCHI)[0][0].label
+result = goal.get_selector(BUCHI)[0][0].label
 expected = 'bottom'
 assert result == expected, (
     f"The goal-leaning strategy should prefer the action `{expected}` " +
@@ -214,4 +214,4 @@ gl2
 basic2 = BasicES(gl2, 10, targets=T)
 goal2 = GoalLeaningES(gl2, 10, targets=T)
 
-print(basic2.get_strategy(BUCHI), goal2.get_strategy(BUCHI), sep="\n")
+print(basic2.get_selector(BUCHI), goal2.get_selector(BUCHI), sep="\n")
