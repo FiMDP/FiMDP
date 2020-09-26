@@ -52,11 +52,7 @@ class BasicES:
      * targets: `iterable`; states of `mdp` that are targets for the objectives.
     """
 
-    def __init__(self, mdp, cap, targets=None):
-        # cap has to be defined
-        if cap is None:
-            cap = inf
-
+    def __init__(self, mdp, cap, targets):
         self.mdp         = mdp
         self.states      = mdp.num_states
         self.cap         = cap

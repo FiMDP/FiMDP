@@ -30,7 +30,7 @@ m.add_action(0, {0:1}, "r", 0)
 m.add_action(9, {9:1}, "r", 0)
 m.add_action(11, {11:1}, "a", 1)
 
-MI = BasicES(m, inf)
+MI = BasicES(m, inf, None)
 # -
 
 result   = MI.get_min_levels(MIN_INIT_CONS)
@@ -84,7 +84,7 @@ print("Passed test 4 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety fi
 # ## Test safe reloads
 # Reloads should have red 0, otherwise the red and orange should be the same in this case.
 
-solver14 = BasicES(m, cap=14)
+solver14 = BasicES(m, cap=14, targets=None)
 solver14._minInitCons()
 result = solver14.get_min_levels(SAFE)
 expected = [0, 3, 2, 0, 0, 9, 14, 1, 1, 0, inf, inf, 1]
@@ -96,7 +96,7 @@ print("Passed test 1 for get_min_levels(SAFE) in test_safety file.")
 
 # ### version with LeastFixpoint
 
-least_solver = LeastFixpointES(m, 14)
+least_solver = LeastFixpointES(m, 14, None)
 result = least_solver.get_min_levels(SAFE)
 least_solver
 
@@ -142,7 +142,7 @@ m.add_action(3, {3:1}, "r", 1010)
 m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
-solver_inf = BasicES(m, inf)
+solver_inf = BasicES(m, inf, None)
 # -
 
 result = solver_inf.get_min_levels(SAFE)
@@ -154,7 +154,7 @@ assert result == expected, ("Safe reloads are wrong.\n" +
 print("Passed test 3 for get_min_levels(SAFE) in test_safety file.")
 
 # Test the version with LeastFixpoint
-least_solver = LeastFixpointES(m, inf)
+least_solver = LeastFixpointES(m, inf, None)
 result = least_solver.get_min_levels(SAFE)
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
@@ -167,7 +167,7 @@ print("Passed test 3 for LeastFixpointES() in test_safety file.")
 from reachability_examples import little_alsure
 m, T = little_alsure()
 
-solver = BasicES(m, cap=3)
+solver = BasicES(m, cap=3, targets=None)
 result = solver.get_min_levels(SAFE)
 expected = [2, 1, 2, 0]
 solver
@@ -187,7 +187,7 @@ m.add_action(0, {0:1}, "", 0)
 m.add_action(1, {0:1}, "a", 1000)
 m.add_action(1, {2:1}, "b", 1)
 m.add_action(2, {1:1}, "b", 1)
-solver = BasicES(m, inf)
+solver = BasicES(m, inf, None)
 
 result = solver.get_min_levels(MIN_INIT_CONS)
 expected = [0,1000,1001]
@@ -214,7 +214,7 @@ m.add_action(3, {3:1}, "r", 1010)
 m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
-solver = BasicES(m, cap=1005)
+solver = BasicES(m, cap=1005, targets=None)
 result = solver.get_min_levels(SAFE)
 expected = [0, 1000, 1001, inf]
 solver
@@ -226,7 +226,7 @@ assert result == expected, ("EnergyLevels.get_min_levels(SAFE) returns" +
 print("Passed test 5 for get_min_levels(SAFE) in test_safety file.")
 
 # Test the version with LeastFixpoint
-solver_least = LeastFixpointES(m, 1005)
+solver_least = LeastFixpointES(m, 1005, None)
 result = solver_least.get_min_levels(SAFE)
 solver_least
 
