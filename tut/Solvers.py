@@ -125,18 +125,20 @@ strategy_at(threshold_class, problematic, capacity=35)
 
 # ## Equivalent values
 
-# In this section, we show that the new solvers are actually improving the Basic solver while maintaining the same minimal energy levels needed to fulfill the objectives. These values can be obtained by calling the `get_Buchi` on the solvers.
+# In this section, we show that the new solvers are actually improving the Basic solver while maintaining the same minimal energy levels needed to fulfill the objectives. These values can be obtained by calling the `get_min_levels(BUCHI)` on the solvers.
+
+from fimdp.objectives import BUCHI
 
 m, t = e.get_consmdp()
 basic = BasicES(m, cap=35, targets=t)
 goal = GoalLeaningES(m, cap=35, targets=t)
 threshold = GoalLeaningES(m, cap=35, targets=t, threshold=0.1)
 
-assert basic.get_Buchi() == goal.get_Buchi(), ("The basic and goal-leaning strategy "+
+assert basic.get_min_levels(BUCHI) == goal.get_min_levels(BUCHI), ("The basic and goal-leaning strategy "+
                                               "do not reach the same values of "+
                                               "initial load for the same task.")
 print("Passed test 1 for values of goal-leaning strategies in file tut/Solvers.ipynb")
-assert basic.get_Buchi() == threshold.get_Buchi(), ("The basic and the threshold strategy "+
+assert basic.get_min_levels(BUCHI) == threshold.get_min_levels(BUCHI), ("The basic and the threshold strategy "+
                                               "do not reach the same values of "+
                                               "initial load for the same task.")
 print("Passed test 2 for values of goal-leaning strategies in file tut/Solvers.ipynb")
@@ -155,8 +157,6 @@ from fimdp.examples.reachability_examples import two_step
 mdp, T = two_step()
 print(T)
 mdp
-
-from fimdp.objectives import BUCHI
 
 basic = BasicES(mdp, cap=40, targets=T)
 goal = GoalLeaningES(mdp, cap=40, targets=T)

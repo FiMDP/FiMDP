@@ -3,6 +3,7 @@
 from fimdp import core
 from math import inf
 from fimdp.energy_solvers import BasicES, LeastFixpointES
+from fimdp.objectives import MIN_INIT_CONS, SAFE
 from sys import stderr
 
 # ## Simple example
@@ -32,71 +33,71 @@ m.add_action(11, {11:1}, "a", 1)
 MI = BasicES(m, inf)
 # -
 
-result   = MI.get_minInitCons()
+result   = MI.get_min_levels(MIN_INIT_CONS)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, 5, 1, 1]
 MI
 
-assert result == expected, ("BasicES.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_min_levels(MIN_INIT_CONS) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 1 for BasicES.get_minInitCons() in test_safety file.")
+print("Passed test 1 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety file.")
 
 # If state 11 is not a reload state, we cannot reach reload from 10 for sure.
 
 # +
 m.unset_reload(11)
 
-result = MI.get_minInitCons(recompute=True)
+result = MI.get_min_levels(MIN_INIT_CONS, recompute=True)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 MI
 # -
 
-assert result == expected, ("BasicES.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_min_levels(MIN_INIT_CONS) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 2 for BasicES.get_minInitCons() in test_safety file.")
+print("Passed test 2 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety file.")
 
 # ### Test BasicES with capacity
 
 MI.cap=14
-result = MI.get_minInitCons(recompute=True)
+result = MI.get_min_levels(MIN_INIT_CONS, recompute=True)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]
 MI
 
-assert result == expected, ("BasicES.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_min_levels(MIN_INIT_CONS) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 3 for BasicES.get_minInitCons() in test_safety file.")
+print("Passed test 3 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety file.")
 
 # Decreasing capacity should "kill" state 6
 
 MI.cap = 13
-result = MI.get_minInitCons(recompute=True)
+result = MI.get_min_levels(MIN_INIT_CONS, recompute=True)
 expected = [0, 3, 2, 1, 3, 9, inf, 1, 1, 0, inf, inf, 1]
 MI
 
-assert result == expected, ("BasicES get_minInitCons() returns" +
+assert result == expected, ("BasicES get_min_levels(MIN_INIT_CONS) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 4 for BasicES.get_minInitCons() in test_safety file.")
+print("Passed test 4 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety file.")
 
 # ## Test safe reloads
 # Reloads should have red 0, otherwise the red and orange should be the same in this case.
 
 solver14 = BasicES(m, cap=14)
 solver14._minInitCons()
-result = solver14.get_safe()
+result = solver14.get_min_levels(SAFE)
 expected = [0, 3, 2, 0, 0, 9, 14, 1, 1, 0, inf, inf, 1]
 solver14
 
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 1 for get_safe() in test_safety file.")
+print("Passed test 1 for get_min_levels(SAFE) in test_safety file.")
 
 # ### version with LeastFixpoint
 
 least_solver = LeastFixpointES(m, 14)
-result = least_solver.get_safe()
+result = least_solver.get_min_levels(SAFE)
 least_solver
 
 assert result == expected, ("Safe reloads are wrong.\n" +
@@ -111,17 +112,17 @@ a = next(m.actions_for_state(3))
 a.cons = 15
 m.structure_change()
 
-result = solver14.get_safe(recompute=True)
+result = solver14.get_min_levels(SAFE, recompute=True)
 expected = [0, inf, inf, inf, inf, inf, inf, inf, 1, 0, inf, inf, inf]
 solver14
 # -
 
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 2 for get_safe() in test_safety file.")
+print("Passed test 2 for get_min_levels(SAFE) in test_safety file.")
 
 # Test the version with LeastFixpoint
-result = least_solver.get_safe(recompute=True)
+result = least_solver.get_min_levels(SAFE, recompute=True)
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 print("Passed test 2 for LeastFixpointES() in test_safety file.")
@@ -144,17 +145,17 @@ m.add_action(2, {3:1}, "r", 1)
 solver_inf = BasicES(m, inf)
 # -
 
-result = solver_inf.get_safe()
+result = solver_inf.get_min_levels(SAFE)
 expected = [0, 1000, inf, inf]
 solver_inf
 
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 3 for get_safe() in test_safety file.")
+print("Passed test 3 for get_min_levels(SAFE) in test_safety file.")
 
 # Test the version with LeastFixpoint
 least_solver = LeastFixpointES(m, inf)
-result = least_solver.get_safe()
+result = least_solver.get_min_levels(SAFE)
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 print("Passed test 3 for LeastFixpointES() in test_safety file.")
@@ -167,7 +168,7 @@ from reachability_examples import little_alsure
 m, T = little_alsure()
 
 solver = BasicES(m, cap=3)
-result = solver.get_safe()
+result = solver.get_min_levels(SAFE)
 expected = [2, 1, 2, 0]
 solver
 # -
@@ -175,7 +176,7 @@ solver
 assert result == expected, ("Safe reloads are wrong.\n" +
     f"  expected: {expected}\n  returns:  {result}\n" +
     "Perhaps some reload should be 0 and is not")
-print("Passed test 4 for get_safe() in test_safety file.")
+print("Passed test 4 for get_min_levels(SAFE) in test_safety file.")
 
 # # Example of incorrectness of the least fixpoint algorithm bounded by $|S|$ steps
 
@@ -188,14 +189,14 @@ m.add_action(1, {2:1}, "b", 1)
 m.add_action(2, {1:1}, "b", 1)
 solver = BasicES(m, inf)
 
-result = solver.get_minInitCons()
+result = solver.get_min_levels(MIN_INIT_CONS)
 expected = [0,1000,1001]
 solver
 
-assert result == expected, ("BasicES.get_minInitCons() returns" +
+assert result == expected, ("BasicES.get_min_levels(MIN_INIT_CONS) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 5 for BasicES.get_minInitCons() in test_safety file.")
+print("Passed test 5 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety file.")
 
 # # Example of the incorrectness of bounding SafeReloads by $|S|$ iterations
 # The original idea that we can bound the number of iterations by $|S|$ is incorrect. The following example used to give value 1 for state 2.
@@ -214,19 +215,19 @@ m.add_action(1, {3:1}, "r", 1)
 m.add_action(2, {3:1}, "r", 1)
 
 solver = BasicES(m, cap=1005)
-result = solver.get_safe()
+result = solver.get_min_levels(SAFE)
 expected = [0, 1000, 1001, inf]
 solver
 # -
 
-assert result == expected, ("EnergyLevels.get_safe() returns" +
+assert result == expected, ("EnergyLevels.get_min_levels(SAFE) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
-print("Passed test 5 for get_safe() in test_safety file.")
+print("Passed test 5 for get_min_levels(SAFE) in test_safety file.")
 
 # Test the version with LeastFixpoint
 solver_least = LeastFixpointES(m, 1005)
-result = solver_least.get_safe()
+result = solver_least.get_min_levels(SAFE)
 solver_least
 
 assert result == expected, ("Safe reloads are wrong.\n" +

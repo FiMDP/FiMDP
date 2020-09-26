@@ -356,7 +356,7 @@ class BasicES:
         A Bellman-style equation largest fixpoint solver.
 
         On the high level, it goes as:
-          1. Compute Safe = Safe_M (achieved by get_safe())
+          1. Compute Safe = Safe_M (achieved by get_min_levels(SAFE))
           2. Repeat the following until fixpoint:
             2.1. Compute PosReach_M with modified Safe_M computation
             2.2. NonReach = {r is reload and PosReach_M[r] = ∞}
@@ -407,7 +407,7 @@ class BasicES:
             #  * inf otherwise
             self.min_levels[AS_REACH] = [inf] * self.states
             for t in self.targets:
-                self.min_levels[AS_REACH][t] = self.get_safe()[t]
+                self.min_levels[AS_REACH][t] = self.get_min_levels(SAFE)[t]
 
             self._init_strategy(objective)
 
@@ -531,6 +531,9 @@ class BasicES:
                              f" {objective} was given!")
 
     ### Public interface ###
+    # * compute
+    # * get_min_levels
+    # * get_strategy
     def compute(self, objective):
         self._check_objective(objective)
         func_dict = {
@@ -542,62 +545,6 @@ class BasicES:
         }
         func_dict[objective]()
 
-    # * get_minInitCons
-    # * get_safe
-    # * get_positiveReachability
-    # * get_almostSureReachability
-    # * get_Buchi
-    def get_minInitCons(self, recompute=False):
-        """
-
-
-        When called for the first time, compute the values.
-        Recompute the values if requested by `recompute`.
-        """
-        return self.get_min_levels(MIN_INIT_CONS, recompute)
-
-    def get_safe(self, recompute=False):
-        """Return (and compute) safe runs minimal cost for self.capacity
-
-        When called for the first time, it computes the values.
-        Recomputes the values if requested by `recompute`.
-        """
-        return self.get_min_levels(SAFE, recompute)
-
-    def get_positiveReachability(self, recompute=False):
-        """Return (and compute) minimal levels for positive
-        reachability of `self.targets` and `self.capacity`.
-
-        When called for the first time, compute the values.
-        Recomputes the values if requested by `recompute`.
-
-
-        """
-        if not recompute and POS_REACH in self.min_levels is not None:
-            return self.min_levels[POS_REACH]
-
-        self._positive_reachability()
-        return self.get_min_levels(POS_REACH, recompute)
-
-    def get_almostSureReachability(self, recompute=False):
-        """Return (and compute) minimal levels for almost-sure
-        reachability of `self.targets` and `self.capacity`.
-
-        When called for the first time, compute the values.
-        Recompute the values if requested by `recompute`.
-
-
-        """
-        return self.get_min_levels(AS_REACH, recompute)
-
-    def get_Buchi(self, recompute=False):
-        """Return (and compute) minimal levels for Buchi
-        objective with `self.targets` and `self.capacity`.
-
-        When called for the first time, compute the values.
-        Recomputes the values if requested by `recompute`.
-        """
-        return self.get_min_levels(BUCHI, recompute)
 
     def get_min_levels(self, objective, recompute=False):
         """
@@ -764,32 +711,27 @@ class LeastFixpointES(BasicES):
     ``|S|``^3 steps.
     """
 
-    def get_safe(self, recompute=False):
-        """Return (and compute) safe runs minimal cost for
-        self.capacity using the iteration from minInitCons
-        towards an higher fixpoint.
+    def _safe(self):
+        """Compute the survival objective
 
-        When called for the first time, it computes the values.
-        Recomputes the values if requested by `recompute`.
+        Uses least-fixpoint iteration from minInitCons towards an higher fixpoint.
         """
-        if SAFE not in self.min_levels or recompute:
-            self.min_levels[SAFE] = list(self.get_minInitCons(recompute))
-            cap = lambda s, v: inf if v > self.cap else v
-            # The +1 trick handels cases when cap=∞
-            zero_c = lambda succ: (self.mdp.is_reload(succ) and \
-                                  self.min_levels[SAFE][succ] < self.cap+1)
+        self.min_levels[SAFE] = list(self.get_min_levels(MIN_INIT_CONS))
+        cap = lambda s, v: inf if v > self.cap else v
+        # The +1 trick handels cases when cap=∞
+        zero_c = lambda succ: (self.mdp.is_reload(succ) and \
+                               self.min_levels[SAFE][succ] < self.cap+1)
 
-            action_value = lambda a, values: self._action_value(a, values, zero_c)
+        action_value = lambda a, values: self._action_value(a, values, zero_c)
 
-            least_fixpoint(self, self.min_levels[SAFE],
-                             action_value,
-                             value_adj=cap)
+        least_fixpoint(self, self.min_levels[SAFE],
+                       action_value,
+                       value_adj=cap)
 
-            # Set the value of Safe to 0 for all good reloads
-            for s in range(self.states):
-                if self.mdp.is_reload(s) and self.min_levels[SAFE][s] < self.cap+1:
-                    self.min_levels[SAFE][s] = 0
-        return self.min_levels[SAFE]
+        # Set the value of Safe to 0 for all good reloads
+        for s in range(self.states):
+            if self.mdp.is_reload(s) and self.min_levels[SAFE][s] < self.cap+1:
+                self.min_levels[SAFE][s] = 0
 
 
 ### argmin-style functions

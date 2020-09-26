@@ -2,18 +2,18 @@
 
 from reachability_examples import ultimate
 from fimdp.energy_solvers import BasicES
-from fimdp.objectives import AS_REACH
+from fimdp.objectives import AS_REACH, BUCHI
 from fimdp.mincap_solvers import bin_search
 
 # In the following example, the minimal capacity is 15 for Buchi objective defined by the blue states.
 
 m, T = ultimate()
 solver15 = BasicES(m, 15, T)
-solver15.get_Buchi()
+solver15.get_min_levels(BUCHI)
 solver15
 
 solver14 = BasicES(m, 14, T)
-solver14.get_Buchi()
+solver14.get_min_levels(BUCHI)
 solver14
 
 # +
@@ -53,11 +53,11 @@ except ValueError as e:
 # For almost-sure reachability, the minimum capacity needed from state 0 is 8
 
 solver9 = BasicES(m, 9, T)
-solver9.get_almostSureReachability()
+solver9.get_min_levels(AS_REACH)
 solver9
 
 solver8 = BasicES(m, 8, T)
-solver8.get_almostSureReachability()
+solver8.get_min_levels(AS_REACH)
 solver8
 
 # +

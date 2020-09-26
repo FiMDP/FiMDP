@@ -158,7 +158,7 @@ selector_from = selector
 #m, T = basic()
 
 solver = BasicES(m, 40, T)
-solver.get_positiveReachability()
+solver.get_min_levels(POS_REACH)
 selector_to = solver.get_strategy(POS_REACH, True)
 selector_to
 expected = selector_to.copy()

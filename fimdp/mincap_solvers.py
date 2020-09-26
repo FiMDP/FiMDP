@@ -45,9 +45,9 @@ def bin_search(mdp, init_loc, target_locs,
         solver = BasicES(mdp, current_cap, target_locs)
         # Get the results
         if objective == BUCHI:
-            result = solver.get_Buchi()
+            result = solver.get_min_levels(BUCHI)
         elif objective == AS_REACH:
-            result = solver.get_almostSureReachability()
+            result = solver.get_min_levels(AS_REACH)
         else:
             raise ValueError("Objective not supported yet.")
 

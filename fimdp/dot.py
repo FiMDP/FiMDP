@@ -76,13 +76,13 @@ class consMDP2dot:
         if "m" in self.options:
             self.opt_mi = self.el is not None and MIN_INIT_CONS in self.el.min_levels
         if "M" in self.options:
-            solver.get_minInitCons()
+            solver.get_min_levels(MIN_INIT_CONS)
             self.opt_mi = True
 
         if "s" in self.options:
             self.opt_sr = self.el is not None and SAFE in self.el.min_levels
         if "S" in self.options:
-            solver.get_safe()
+            solver.get_min_levels(SAFE)
             self.opt_sr = True
 
         if "r" in self.options:

@@ -2,6 +2,7 @@
 
 from fimdp.labeled import LabeledConsMDP
 from fimdp.energy_solvers import BasicES
+from fimdp.objectives import BUCHI
 from math import inf
 
 # Test simple assigment of APs
@@ -98,19 +99,19 @@ m.add_action(10, {9: 1}, "", 1)
 m.add_action(8, {5: 1}, "r", 3)
 
 solver = BasicES(m, 15, T)
-result = solver.get_Buchi()
+result = solver.get_min_levels(BUCHI)
 expected = [6, inf, inf, 3, 0, 1, 10, inf, 4, inf, inf]
 
-assert result == expected, ("get_Buchi() returns" +
+assert result == expected, ("get_min_levels(BUCHI) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 
 # WIth cap < 15, we get all infs
 solver = BasicES(m, 14, T)
-result = solver.get_Buchi()
+result = solver.get_min_levels(BUCHI)
 expected = [inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf]
 
-assert result == expected, ("get_Buchi() returns" +
+assert result == expected, ("get_min_levels(BUCHI) returns" +
     " wrong values:\n" +
     f"  expected: {expected}\n  returns:  {result}\n")
 

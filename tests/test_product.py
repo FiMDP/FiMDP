@@ -63,7 +63,7 @@ assert p.names == ['0,1', '1,0', '2,1', '3,1', '3,0', '0,0', '2,2']
 print("Passed test 1 for product in file test_product.py")
 
 psolver = BasicES(p, 5, T)
-res = psolver.get_Buchi()
+res = psolver.get_min_levels(BUCHI)
 assert res == [inf, inf, inf, inf, inf, inf, inf]
 print("Passed test 2 for product in file test_product.py")
 
