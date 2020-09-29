@@ -8,6 +8,8 @@ import sys
 dotpr = 'dot'
 debug = False
 
+import pygraphviz as pgv
+
 from math import inf
 #TODO build a list and join it in the end into string
 
@@ -52,11 +54,16 @@ default_options = "msrRb"
 
 class consMDP2dot:
     """Convert consMDP to dot"""
-    
+
     def __init__(self, mdp, solver=None, options=""):
         self.mdp = mdp
         self.str = ""
-        self.options = default_options + options
+
+        if options[0] ==".":
+            self.options = default_options + options[1:]
+        else
+            self.options = default_options
+
 
         self.act_color = "black"
         self.prob_color = "gray52"
@@ -72,15 +79,9 @@ class consMDP2dot:
 
         if "m" in self.options:
             self.opt_mi = self.el is not None and self.el.mic_values is not None
-        if "M" in self.options:
-            solver.get_minInitCons()
-            self.opt_mi = True
 
         if "s" in self.options:
             self.opt_sr = self.el is not None and self.el.safe_values is not None
-        if "S" in self.options:
-            solver.get_safe()
-            self.opt_sr = True
 
         if "r" in self.options:
             self.opt_pr = self.el is not None and self.el.pos_reach_values is not None
@@ -91,29 +92,28 @@ class consMDP2dot:
             self.opt_bu = self.el is not None and self.el.buchi_values is not None
             if self.opt_bu:
                 self.label_row_span = 3
-        #print(self.opt_bu,file=stderr)
 
     def get_dot(self):
         self.start()
-        
+
         m = self.mdp
         for s in range(m.num_states):
             self.process_state(s)
             for a in m.actions_for_state(s):
                 self.process_action(a)
-        
+        self.add_key()
         self.finish()
         return self.str
-        
+
     def start(self):
         gr_name = self.mdp.name if self.mdp.name else ""
-   
+
         self.str += f"digraph \"{gr_name}\" {{\n"
         self.str += "  rankdir=LR\n"
-        
+
     def finish(self):
         self.str += "}\n"
-        
+
     def get_state_name(self, s):
         name = s if self.mdp.names[s] is None else self.mdp.names[s]
         return name
@@ -194,6 +194,19 @@ class consMDP2dot:
         if (self.opt_pr or self.opt_ar or self.opt_bu) and s in self.el.targets:
             self.str += targets_style
         self.str += "]\n"
+
+
+    def add_key(self):
+        self.str += "Subgraph {\n\ntbl [\n\nshape=plaintext\n\nlabel=<\n\n<table border='0' cellborder='1' color='blue' cellspacing='0'>\n"
+        self.str += "<tr><td>Key</td></tr>\n"
+        self.str += "<tr><td cellpadding='0'>\n<table color='black' cellspacing='2'>\n"
+        self.str += "<tr><td>one  </td><td>two  </td><td>three</td></tr>\n"
+        self.str += "<tr><td>four </td><td>five </td><td>six  </td></tr>\n"
+        self.str += "<tr><td>seven</td><td>eight</td><td>nine </td></tr>\n"
+
+        # for i in
+        #     self.str +=
+        self.str += "\n</table>\n</td>\n</tr>\n </table>\n>];\n}"
 
     def process_action(self, a):
         act_id = f"\"{a.src}_{a.label}\""
