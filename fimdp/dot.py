@@ -52,9 +52,9 @@ class consMDP2dot:
         self.mdp = mdp
         self.str = ""
 
-        if options[0] ==".":
+        if options is not "" and options[0] ==".":
             self.options = default_options + options[1:]
-        else
+        else:
             self.options = default_options
 
 
@@ -126,7 +126,8 @@ class consMDP2dot:
         return name
     
     def process_state(self, s):
-        self.str += f"\n  {s} ["
+
+        self.str += f"\n  {s} [shape=rectangle, style=rounded"
 
         # name
         state_str = self.get_state_name(s)
