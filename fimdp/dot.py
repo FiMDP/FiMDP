@@ -12,7 +12,7 @@ import pygraphviz as pgv
 
 from math import inf
 
-tab_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
+default_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
                        ' cellpadding="1" align="center" valign="middle"' +\
                        ' style="rounded" bgcolor="#ffffff50"'
 if debug:
@@ -23,27 +23,21 @@ tab_state_cell_style = ' rowspan="{}"'
 cell_style    = ' align="center" valign="middle"'
 tab_MI_cell_font     = ' color="orange" point-size="10"'
 
-tab_SR_cell_style    = tab_MI_cell_style
 tab_SR_cell_font     = ' color="red" point-size="10"'
 
 # Positive reachability
-tab_PR_cell_style    = tab_MI_cell_style
 tab_PR_cell_font     = ' color="deepskyblue" point-size="10"'
 
 # Almost sure reachability
-tab_AR_cell_style    = tab_MI_cell_style
 tab_AR_cell_font     = ' color="dodgerblue4" point-size="10"'
 
 # Reachability-safe
-tab_RS_cell_style    = tab_MI_cell_style
 tab_RS_cell_font     = ' color="blue4" point-size="10"'
 
 # Büchi
-tab_BU_cell_style    = tab_MI_cell_style
 tab_BU_cell_font     = ' color="forestgreen" point-size="10"'
 
 # Büchi-safe
-tab_BS_cell_style    = tab_MI_cell_style
 tab_BS_cell_font     = ' color="darkgreen" point-size="10"'
 
 targets_style        = ', style="filled", fillcolor="#0000ff20"'
@@ -217,8 +211,8 @@ class consMDP2dot:
         self.str += "<tr><td>four </td><td>five </td><td>six  </td></tr>\n"
         self.str += "<tr><td>seven</td><td>eight</td><td>nine </td></tr>\n"
         for opt in self.options_list:
-            name = opt[name]
-            color = opt[color]
+            name = opt["name"]
+            color = opt["color"]
             self.str += "<tr>"
             self.str += f"<tr>{name.format(color)}</td>"
             self.str += "</tr>\n"
