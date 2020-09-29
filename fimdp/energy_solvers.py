@@ -579,8 +579,11 @@ class BasicES:
     def _repr_svg_(self):
         return dot.dot_to_svg(self._get_dot())
 
-    def show(self, options=""):
-        return display(SVG(dot.dot_to_svg(self._get_dot(options))))
+    def show(self, *args, options=""):
+        for arg in args:
+            if callable(getattr(self, arg, None)):
+                getattr(self, arg, None)()
+        return SVG(dot.dot_to_svg(self._get_dot(options)))
 
 
 class GoalLeaningES(BasicES):
