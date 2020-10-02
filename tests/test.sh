@@ -2,6 +2,7 @@
 set -e
 
 python3 test_buchi.py
+python3 test_storm_io.py
 python3 test_lcmdp.py
 python3 test_mecs.py
 python3 test_mincap.py

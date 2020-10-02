@@ -127,6 +127,7 @@ print("Passed test 1 for CounterSelector (update) in file test_strategy.py")
 
 try:
     selector.update(1, 1, m.actions[8])
+    assert False
 except ValueError as e:
     assert e.args[0] == "The action 6——t[6]——>{3: 0.5, 7: 0.5} is not valid for the state 1."
     print("Passed test 2 for CounterSelector (update with incorrect source) in file test_strategy.py")
