@@ -1,6 +1,8 @@
-from fimdp.io import prism_to_consmdp, parse_cap_from_prism
+from fimdp.io import prism_to_consmdp, parse_cap_from_prism, \
+    consmdp_to_storm_consmdp, storm_sparsemdp_to_consmdp
 from fimdp.energy_solvers import BasicES
 from fimdp.objectives import BUCHI
+from fimdp.examples.reachability_examples import little_alsure
 
 mdp = prism_to_consmdp("prism_models/gw_50_full.prism")
 assert mdp.num_states == 2500, ("Wrong number of states: "
@@ -49,3 +51,78 @@ result = solver.get_min_levels(BUCHI)
 assert result == expected, "Wrong minimal levels."
 
 print("Passed test 5 for prism_to_consmdp (targets)")
+
+# ConsMDP to Storm
+m, T = little_alsure()
+storm = consmdp_to_storm_consmdp(m)
+result = storm.to_dot()
+expected = """digraph model {
+	0 [ label = "0: {}" ];
+	1 [ label = "1: {}" ];
+	2 [ label = "2: {}" ];
+	3 [ label = "3: {reload}" ];
+	"0c0" [shape = "point"];
+	0 -> "0c0" [ label = "{t}"]
+;
+	"0c0" -> 1 [ label= "0.5" ];
+	"0c0" -> 2 [ label= "0.5" ];
+	"0c1" [shape = "point"];
+	0 -> "0c1" [ label = "{pos}"]
+;
+	"0c1" -> 1 [ label= "0.5" ];
+	"0c1" -> 3 [ label= "0.5" ];
+	"1c0" [shape = "point"];
+	1 -> "1c0" [ label = "{r}"]
+;
+	"1c0" -> 3 [ label= "1" ];
+	"2c0" [shape = "point"];
+	2 -> "2c0" [ label = "{r}"]
+;
+	"2c0" -> 3 [ label= "1" ];
+	"3c0" [shape = "point"];
+	3 -> "3c0" [ label = "{r}"]
+;
+	"3c0" -> 3 [ label= "1" ];
+}
+"""
+assert result == expected, "The output for storm does not match the expected one"
+
+print("Passed test 1 for consmdp_to_storm_consmdp")
+
+storm = consmdp_to_storm_consmdp(m, T)
+result = storm.to_dot()
+expected = """digraph model {
+	0 [ label = "0: {}" ];
+	1 [ label = "1: {target}" ];
+	2 [ label = "2: {target}" ];
+	3 [ label = "3: {reload}" ];
+	"0c0" [shape = "point"];
+	0 -> "0c0" [ label = "{t}"]
+;
+	"0c0" -> 1 [ label= "0.5" ];
+	"0c0" -> 2 [ label= "0.5" ];
+	"0c1" [shape = "point"];
+	0 -> "0c1" [ label = "{pos}"]
+;
+	"0c1" -> 1 [ label= "0.5" ];
+	"0c1" -> 3 [ label= "0.5" ];
+	"1c0" [shape = "point"];
+	1 -> "1c0" [ label = "{r}"]
+;
+	"1c0" -> 3 [ label= "1" ];
+	"2c0" [shape = "point"];
+	2 -> "2c0" [ label = "{r}"]
+;
+	"2c0" -> 3 [ label= "1" ];
+	"3c0" [shape = "point"];
+	3 -> "3c0" [ label = "{r}"]
+;
+	"3c0" -> 3 [ label= "1" ];
+}
+"""
+assert result == expected, "The output for storm does not match the expected one"
+
+print("Passed test 2 for consmdp_to_storm_consmdp")
+
+assert m.get_dot() == storm_sparsemdp_to_consmdp(storm).get_dot()
+print("Passed test for consmdp_to_storm_consmdp and storm_sparsemdp_to_consmdp")
