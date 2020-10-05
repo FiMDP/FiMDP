@@ -1,4 +1,4 @@
-from fimdp.io import prism_to_consmdp
+from fimdp.io import prism_to_consmdp, parse_cap_from_prism
 from fimdp.energy_solvers import BasicES
 from fimdp.objectives import BUCHI
 
@@ -30,9 +30,22 @@ except ValueError as e:
 mdp = prism_to_consmdp("prism_models/gw_5_full.prism")
 assert mdp.num_states == 25, ("Wrong number of states: "
                               f"{mdp.num_states} instead of 2500.")
-solver = BasicES(mdp, cap=10, targets=[18])
+solver = BasicES(mdp, cap=10, targets=[21])
 expected = [8, 7, 6, 7, 6, 3, 0, 6, 3, 7, 6, 3, 6, 6, 3, 7, 8, 7, 6, 7, 8, 6, 7, 8, 7]
 result = solver.get_min_levels(BUCHI)
 assert result == expected, "Wrong minimal levels."
 
 print("Passed test 4 for prism_to_consmdp.")
+
+cap = parse_cap_from_prism("prism_models/gw_5_full.prism")
+assert cap == 10
+
+print("Passed test 1 for parse_cap_from_prism")
+
+mdp, targets = prism_to_consmdp("prism_models/gw_5_full.prism",
+                                return_targets=True)
+solver = BasicES(mdp, cap, targets)
+result = solver.get_min_levels(BUCHI)
+assert result == expected, "Wrong minimal levels."
+
+print("Passed test 5 for prism_to_consmdp (targets)")

@@ -17,7 +17,8 @@ def get_state_name(model, state):
 
 def storm_sparsemdp_to_consmdp(sparse_mdp,
                                state_valuations=True,
-                               action_labels=True):
+                               action_labels=True,
+                               return_targets=False):
     """
     Convert Storm's sparsemdp model to ConsMDP.
 
@@ -39,7 +40,11 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
     Otherwise, the actions are labeled by thier id.
     :type action_labels: Bool
 
-    :return: ConsMDP object
+    :param return_targets: If True (default False), parse also target states
+    (from labels).
+
+    :return: `ConsMDP` object or
+             `ConsMDP, list of targets` if `return_targets`
     """
     if "consumption" not in sparse_mdp.reward_models:
         raise ValueError("The supplied `sparse_mdp` does not have the "
@@ -47,6 +52,9 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
     if "reload" not in sparse_mdp.labeling.get_labels():
         raise ValueError("The supplied `sparse_mdp` does not have the "
                          "`reload` state-label defined")
+    if return_targets and "target" not in sparse_mdp.labeling.get_labels():
+        raise ValueError("The supplied `sparse_mdp` does not have the "
+                         "`target` state-label defined")
     decimal.getcontext().prec = 4
 
     state_valuations = state_valuations and sparse_mdp.has_state_valuations()
@@ -62,6 +70,8 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
     mdp.new_states(sparse_mdp.nr_states)
     for rel in sparse_mdp.labeling.get_states("reload"):
         mdp.set_reload(rel)
+    if return_targets:
+        targets = sparse_mdp.labeling.get_states("target")
 
     # Add actions
     for state in sparse_mdp.states:
@@ -84,10 +94,14 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
                      for entry in action.transitions}
             mdp.add_action(state.id, distr, a_label, int(a_cons))
 
-    return mdp
+    if return_targets:
+        return mdp, list(targets)
+    else:
+        return mdp
 
 
-def prism_to_consmdp(filename, state_valuations=True, action_labels=True):
+def prism_to_consmdp(filename, state_valuations=True, action_labels=True,
+                     return_targets=False):
     """
     Build a ConsMDP from a PRISM symbolic description using Stormpy.
 
@@ -108,16 +122,36 @@ def prism_to_consmdp(filename, state_valuations=True, action_labels=True):
     :param action_labels: If True (default), copies the choice labels in the
     PRISM model into the ConsMDP as action labels.
 
-    :return: ConsMDP object for the given model.
+    :param return_targets: If True (default False), return also the list of
+    states labeled by the label `target`.
+
+    :return: ConsMDP object for the given model, or
+             `ConsMDP, targets` if `return_targets`
     """
     prism_prog = stormpy.parse_prism_program(filename)
+
     options = stormpy.BuilderOptions()
     if state_valuations:
         options.set_build_state_valuations()
     if action_labels:
         options.set_build_choice_labels()
+
     model = stormpy.build_sparse_model_with_options(prism_prog, options)
 
-    return storm_sparsemdp_to_consmdp(model,
-                                      state_valuations=state_valuations,
-                                      action_labels=action_labels)
+    res = storm_sparsemdp_to_consmdp(model,
+                                     state_valuations=state_valuations,
+                                     action_labels=action_labels,
+                                     return_targets=return_targets)
+
+    return res
+
+
+def parse_cap_from_prism(filename):
+    prism_prog = stormpy.parse_prism_program(filename)
+
+    for cons in prism_prog.constants:
+        if cons.name == "capacity":
+            return cons.definition.evaluate_as_int()
+
+    return None
+
