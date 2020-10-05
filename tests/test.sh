@@ -12,5 +12,5 @@ python3 test_safety.py
 python3 test_strategy.py
 python3 test_strategy_old.py
 jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb --to html
-jupyter nbconvert --execute ../tut/ProductDBA.ipynb --to html
+jupyter nbconvert --execute ../tut/Labeled.ipynb --to html
 jupyter nbconvert --execute ../tut/Solvers.ipynb --to html

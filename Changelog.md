@@ -23,6 +23,10 @@
      function. The keys in this `dict` are lower bounds of intervals that are
      mapped to the corresponding values. `select_action` takes care of the
      translation of lower bounds to intervals.
+ * Ability to reason about Consumption MDPs with state labeled by sets of atomic propositions. 
+   This is implemented in the module `labeled.py`. The labeled ConsMDPs can be checked against
+   specifications given by deterministic DBAs or the recurrence fragment of LTL. This requires
+   [Spot] to be installed. See [tut/Labeled](tut/Labeled.ipynb) for more details.
  
 ### Changed
 
@@ -50,3 +54,4 @@
 [1.0.2]: https://github.com/xblahoud/FiMDP/tree/v1.0.2
 
 [nbviewer]: https://nbviewer.jupyter.org/
+[Spot]: https://spot.lrde.epita.fr/
