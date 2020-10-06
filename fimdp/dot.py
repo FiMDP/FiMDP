@@ -211,26 +211,21 @@ class consMDP2dot:
         if self.targets is not None and s in self.targets and \
                 (self.opt_pr["enabled"] or \
                  self.opt_ar["enabled"] or \
-                 self.opt_bu):
+                 self.opt_bu["enabled"]):
             self.str += targets_style
         self.str += "]\n"
 
-
     def add_key(self):
-        self.str += "subgraph {\n\ntbl [\n\nshape=plaintext\n\nlabel=<\n\n<table border='0' cellborder='1' color='blue' cellspacing='0'>\n"
+        self.str += "subgraph {\n\ntbl [\n\nshape=rounded\n\nlabel=<\n\n<table border='0' cellborder='1' color='blue' cellspacing='0'>\n"
         self.str += "<tr><td>Key</td></tr>\n"
-        self.str += "<tr><td cellpadding='0'>\n<table color='black' cellspacing='2'>\n"
-        self.str += "<tr><td>one  </td><td>two  </td><td>three</td></tr>\n"
-        self.str += "<tr><td>four </td><td>five </td><td>six  </td></tr>\n"
-        self.str += "<tr><td>seven</td><td>eight</td><td>nine </td></tr>\n"
         for opt in self.options_list:
             name = opt["name"]
             color = opt["color"]
             self.str += "<tr>"
-            self.str += f"<td>{name.format(color)}</td>"
+            self.str += f"<td>{name.format(color=color)}</td>"
             self.str += "</tr>\n"
 
-        self.str += "\n</table>\n</td>\n</tr>\n </table>\n>];\n}"
+        self.str += "\n</table>\n>];\n}"
 
     def process_action(self, a):
         act_id = f"\"{a.src}_{a.label}\""
