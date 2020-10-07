@@ -6,6 +6,7 @@ from fimdp.mincap import bin_search
 from fimdpenv.MarsEnv import MarsEnv
 import matplotlib.pyplot as plt
 from networkx.algorithms import tournament
+from networkx.algorithms import cycles
 #import MarsEnv
 import numpy as np
 import scipy.optimize
@@ -13,6 +14,7 @@ from scipy.optimize import linear_sum_assignment
 import networkx as nx
 import math
 from networkx.algorithms import bipartite
+from networkx.algorithms import traversal
 # In the following example, the minimal capacity is 15 for Buchi objective defined by the blue states.
 
 
@@ -197,7 +199,9 @@ def generate_minimumspanning_tree_edmonds(Agent_graph):
     """
     G=nx.algorithms.tree.branchings.Edmonds(Agent_graph)
 
-    Tree = G.find_optimum(attr="weight",kind="min",style="arbroescence")
+    Tree = G.find_optimum(attr="weight",kind="min",style="arborescence")
+    #print(Tree.edges)
+    #print(Tree)
     return Tree
 
 #Compute the bottleneck cost of the overall path
@@ -237,6 +241,7 @@ def compute_cost_assignments(Agent_graph,tour):
             #update the cost if the capacity is higher than the max capacity so far
             if Agent_graph[tour[i][j]][tour[i][j+1]]['weight']>cost[i]:
                 cost[i]=Agent_graph[tour[i][j]][tour[i][j+1]]['weight']
+            #print(cost,[tour[i][j]],[tour[i][j+1]],tour,Agent_graph[tour[i][j]][tour[i][j+1]]['weight'],Agent_graph[tour[i][j+1]][tour[i][j]]['weight'])
 
     return cost
 
@@ -254,9 +259,11 @@ def augment_matching(matching,agent_lists,init_state,Bottleneckgraph):
     costs=[]
     #go over agents
     for i in range(len(init_state)):
+
         for item in matching.items():
             # if matching found
             if item[0]==init_state[i]:
+
                 for k in range(len(agent_lists)):
                     # add edge between initial state of the agent, and initial element of the target
                     if item[1] in agent_lists[k]:
@@ -292,5 +299,96 @@ def bottleneckassignment(Bottleneckgraph):
         except nx.exception.AmbiguousSolution:
             costlow=cost_bisec
     return matching
+
+
+def tarjan_scc(Graph_cost,num_agent):
+    """
+    :param Graph_cost: networkx graph between initial states of the agent and initial elements of the targets
+    :param num_agent: number of agents
+    :return:
+    saveitem: assignments for each agent with minimal cots
+    costsitem: bottleneck costs for each assignment
+    """
+    costlow=0
+    costhigh=1e4
+    saveitem=[]
+    #compute tarjan
+    while costhigh-costlow>1e-6:
+        aux_graph=Graph_cost.copy()
+        cost_bisec=(costhigh+costlow)/2
+        #remove edges if the cost is larger than the current cost
+        for item in aux_graph.nodes:
+            for item2 in aux_graph.nodes:
+                try:
+                    if aux_graph[item][item2]['weight']>cost_bisec:
+                       aux_graph.remove_edge(item,item2)
+                    if aux_graph[item2][item]['weight']>cost_bisec:
+                       aux_graph.remove_edge(item2,item)
+                except KeyError:
+                    pass
+        #computes a set of strongly connected component
+        scc_set=list(sorted(nx.strongly_connected_components(aux_graph), key=len, reverse=True))
+
+        #convert the set into a list for future computations
+        scc_list=[[] for i in range(len(scc_set))]
+        for i in  range(len(scc_set)):
+
+            if len(scc_set[i])==1:
+                singleitem=next(iter(scc_set[i]))
+                scc_list[i].append(singleitem)
+            else:
+                for item in (scc_set[i]):
+
+                    scc_list[i].append(item)
+
+
+
+        #increase threshold if more SCC's then number of agents
+
+        if len(scc_list)>num_agent:
+            costlow=cost_bisec
+        else:
+            costhigh=cost_bisec
+            saveitem=[]
+            costsitem=[0 for _ in range(num_agent)]
+            items_save = [[] for _ in range(num_agent)]
+            #iterate over the path
+            for i in range(len(scc_list)):
+                #if the length is greater or equal to 2
+                if len(scc_list[i])>=2:
+                    aux_graph2 = aux_graph.copy()
+                    #remove unused nodes from the graph
+                    for node in aux_graph.nodes:
+                        if not node in scc_list[i]:
+                            aux_graph2.remove_node(node)
+
+                    #computes a path in the SCC, needs to be checked
+                    dfs_path = list(nx.dfs_edges(aux_graph2))
+                    #add elements to the path
+                    for j in range(len(dfs_path)):
+                        if not dfs_path[j][0] in items_save[i]:
+                            items_save[i].append(dfs_path[j][0])
+                        if not dfs_path[j][1] in items_save[i]:
+                            items_save[i].append(dfs_path[j][1])
+                        #update cost of the path
+                        if aux_graph[dfs_path[j][0]][dfs_path[j][1]]['weight']>costsitem[i]:
+                            costsitem[i]=aux_graph[dfs_path[j][0]][dfs_path[j][1]]['weight']
+                #add the element if the scc is singular
+                elif len(scc_list[i])==1:
+                    items_save[i].append(scc_list[i][0])
+
+            #save the best elements
+            for item in items_save:
+
+                saveitem.append(item)
+            while len(saveitem)<num_agent:
+                saveitem.append(list([]))
+            while len(costsitem)<num_agent:
+                costsitem.append(0)
+    #return elements
+    return saveitem,costsitem
+
+
+
 
 
