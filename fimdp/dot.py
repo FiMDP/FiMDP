@@ -12,7 +12,6 @@ from math import inf
 
 from .objectives import *
 
-#TODO build a list and join it in the end into string
 
 default_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
                        ' cellpadding="1" align="center" valign="middle"' +\
@@ -21,7 +20,6 @@ if debug:
     default_MI_style         = ' border="1" cellborder="1" cellspacing="0" cellpadding="0"'
 
 tab_state_cell_style = ' rowspan="{}"'
-
 cell_style    = ' align="center" valign="middle"'
 tab_MI_cell_font     = ' color="orange" point-size="10"'
 
@@ -50,8 +48,9 @@ default_options = "msrRb"
 class consMDP2dot:
     """Convert consMDP to dot"""
 
-    def __init__(self, mdp, solver=None, options=""):
+    def __init__(self, mdp, solver=None, options="", disable_key=False):
         self.mdp = mdp
+        self.disable_key = disable_key
         self.str = ""
 
         if options != "" and options[0] == ".":
@@ -66,11 +65,10 @@ class consMDP2dot:
 
 
         self.opt_mi = {"name": "MinInitCons", "enabled": False, "color": "orange"}
-        self.opt_sr = {"name": "Safe levels", "enabled": False, "color": "color"}
+        self.opt_sr = {"name": "Safe levels", "enabled": False, "color": "red"}
         self.opt_pr = {"name": "Positive reachability", "enabled": False, "color": "deepskyblue"}
         self.opt_ar = {"name": "Almost-sure reachability", "enabled": False, "color": "dodgerblue4"}
         self.opt_bu = {"name": "Büchi", "enabled": False, "color": "forestgreen"}
-        # ?? reachability safe  - buchi safe
 
         self.options_list = []
 
@@ -111,7 +109,8 @@ class consMDP2dot:
             self.process_state(s)
             for a in m.actions_for_state(s):
                 self.process_action(a)
-        self.add_key()
+        if not self.disable_key:
+            self.add_key()
         self.finish()
         return self.str
 
@@ -129,7 +128,7 @@ class consMDP2dot:
         return name
     
     def process_state(self, s):
-        self.str += f"\n  {s} [shape=rectangle, style=rounded, "
+        self.str += f"\n  {s} ["
 
         # name
         state_str = self.get_state_name(s)
@@ -216,15 +215,18 @@ class consMDP2dot:
         self.str += "]\n"
 
     def add_key(self):
-        self.str += "subgraph {\n\ntbl [\n\nshape=rounded\n\nlabel=<\n\n<table border='0' cellborder='1' color='blue' cellspacing='0'>\n"
-        self.str += "<tr><td>Key</td></tr>\n"
+        if not self.options_list:
+            return
+        self.str += "subgraph {\n\ntbl [color = white,\n\nlabel=<\n\n<table border='0' cellborder='1' color='black' cellspacing='0'>\n"
+        self.str += "<tr><td colspan='2'>Key</td></tr>\n"
         for opt in self.options_list:
             name = opt["name"]
             color = opt["color"]
+            color = f"'{color}'"
             self.str += "<tr>"
-            self.str += f"<td>{name.format(color=color)}</td>"
+            self.str += f"<td><font point-size='10'>{name}</font></td>"
+            self.str += f"<td bgcolor={color}></td>"
             self.str += "</tr>\n"
-
         self.str += "\n</table>\n>];\n}"
 
     def process_action(self, a):
