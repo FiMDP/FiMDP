@@ -3,6 +3,7 @@ import json
 
 import stormpy
 from .core import ConsMDP
+from .explicit import product_energy
 
 decimal.getcontext().prec=4
 
@@ -262,3 +263,23 @@ def consmdp_to_storm_consmdp(cons_mdp, targets=None):
     st_mdp = stormpy.storage.SparseMdp(components)
 
     return st_mdp
+
+
+def encode_to_stormpy(cons_mdp, capacity, targets=None):
+    """
+    Convert a ConsMDP object from FiMDP into a Storm's SparseMDP representation
+    that is semantically equivalent.
+
+    Running analysis on this object should yield the same results as FiMDP. The
+    energy is encoded explicitly into the state space of the resulting MDP.
+
+    The target states (if given) are encoded using state-label "target".
+
+    :param cons_mdp: ConsMDP object to be converted
+    :param capacity: capacity
+    :param targets: A list of targets (default None). If specified, each state
+    in this list is labeled with the label `target`.
+    :return: SparseMDP representation from Stormpy of the cons_mdp.
+    """
+    product, product_targets = product_energy(cons_mdp, capacity, targets)
+    return consmdp_to_storm_consmdp(product, product_targets)

@@ -1,8 +1,11 @@
 from fimdp.io import prism_to_consmdp, parse_cap_from_prism, \
-    consmdp_to_storm_consmdp, storm_sparsemdp_to_consmdp
+    consmdp_to_storm_consmdp, storm_sparsemdp_to_consmdp, \
+    encode_to_stormpy
 from fimdp.energy_solvers import BasicES
-from fimdp.objectives import BUCHI
+from fimdp.objectives import BUCHI, AS_REACH
 from fimdp.examples.reachability_examples import little_alsure
+from fimdp.explicit import product_energy
+import stormpy
 
 mdp = prism_to_consmdp("prism_models/gw_50_full.prism")
 assert mdp.num_states == 2500, ("Wrong number of states: "
@@ -156,3 +159,47 @@ assert result == expected, "The output parametric model has a wrong number of" \
                            f"states. Is {result}, expected {expected}"
 
 print("Passed test 2 for parametric models")
+
+constants = {
+    "size_x" : 15,
+    "size_y" : "size_x",
+    "capacity" : 35,
+    "cons_w_ex" : 1,
+    "cons_s_ex" : 3,
+}
+mdp = prism_to_consmdp("prism_models/gw_param.prism", constants=constants)
+
+print("Passed test 3 for parametric models")
+
+constants = {
+    "size_x" : 10,
+    "size_y" : "size_x",
+    "capacity" : 18,
+    "cons_w_ex" : 0,
+    "cons_s_ex" : 0,
+}
+mdp, targets = prism_to_consmdp("prism_models/gw_param.prism",
+                                constants=constants,
+                                return_targets=True)
+capacity = constants["capacity"]
+storm_mdp = encode_to_stormpy(mdp, capacity, targets)
+
+# Get the FiMDP result
+solver = BasicES(mdp, capacity, targets)
+fimdp_res = solver.get_min_levels(AS_REACH)
+
+# Get the Storm result
+formula = 'Pmax>=1 [F "target" & Pmax>=1 [F "reload"]]'
+prop = stormpy.parse_properties(formula)
+storm_result = stormpy.model_checking(storm_mdp, prop[0])
+
+# Check equivalence of results
+product, _ = product_energy(mdp, capacity)
+for s in range(product.num_states):
+    state, energy = product.components[s]
+    if energy == "-∞":
+        assert not storm_result.at(s)
+        continue
+    assert storm_result.at(s) == (int(energy) >= fimdp_res[state])
+
+print("Passed test 1 for encode_to_stormpy")
