@@ -253,7 +253,7 @@ class LabeledConsMDP(ConsMDP):
             raise ValueError("The formula must be from the recurrence fragment"
                              "of LTL. See https://spot.lrde.epita.fr/hierarchy.html"
                              f"for more details. The formula {f} was given.")
-        dba = spot.translate(f, "BA", "deterministic", "complete")
+        dba = spot.translate(f, "Buchi", "SBAcc", "deterministic", "complete")
         return self.selector_for_dba(aut=dba, init_states=init_states,
                                      cap=cap, SolverClass=SolverClass,
                                      keep_product=keep_product)
