@@ -64,9 +64,9 @@ def create_costs_for_agents(Agent_graph,consmdp,targets):
         for item2 in targets:
             if not item==item2:
                 #compute the capacity by bin_search
-                result = bin_search(consmdp, item, item2 ,objective=AS_REACH)
-                #result=np.random.uniform(0,1)
-                #print(item,item2,result)
+                #result = bin_search(consmdp, item, item2 ,objective=BUCHI)
+                result=np.random.uniform(0,1)
+                print(item,item2,result)
                 #add the edge with capacity
                 Agent_graph.add_edge(item, item2, weight=result)
 
@@ -97,12 +97,13 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
             #if target exists
             if len(agent_lists[j]) >= 1:
 
+
                 item1=init_state[i]
                 item2=agent_lists[j][0]
                 #compute the capacity between initial agent states and initial targets
-                result = bin_search(consmdp, item1, item2, objective=AS_REACH)
-                #result=np.random.uniform(0,0.5)
-                #print(result,item1,item2)
+                #result = bin_search(consmdp, item1, item2, objective=BUCHI)
+                result=np.random.uniform(0,0.5)
+                print(result,item1,item2)
                 #update the cost if the capacity is higher
                 if result> cost_lists[j]:
                     Bottleneckgraph.add_edge(item1, item2, weight=result)
@@ -110,8 +111,6 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
                     Bottleneckgraph.add_edge(item1, item2, weight=cost_lists[j])
 
     return Bottleneckgraph
-
-
 
 
 if __name__ == "__main__":

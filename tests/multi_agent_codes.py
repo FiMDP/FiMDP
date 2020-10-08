@@ -298,6 +298,7 @@ def bottleneckassignment(Bottleneckgraph):
 
         except nx.exception.AmbiguousSolution:
             costlow=cost_bisec
+
     return matching
 
 
@@ -344,7 +345,7 @@ def tarjan_scc(Graph_cost,num_agent):
 
 
         #increase threshold if more SCC's then number of agents
-
+        #print(scc_list,cost_bisec)
         if len(scc_list)>num_agent:
             costlow=cost_bisec
         else:
@@ -352,8 +353,11 @@ def tarjan_scc(Graph_cost,num_agent):
             saveitem=[]
             costsitem=[0 for _ in range(num_agent)]
             items_save = [[] for _ in range(num_agent)]
+            paths_save = [[] for _ in range(num_agent)]
+
             #iterate over the path
             for i in range(len(scc_list)):
+                #print(scc_list[i])
                 #if the length is greater or equal to 2
                 if len(scc_list[i])>=2:
                     aux_graph2 = aux_graph.copy()
@@ -371,14 +375,26 @@ def tarjan_scc(Graph_cost,num_agent):
                         if not dfs_path[j][1] in items_save[i]:
                             items_save[i].append(dfs_path[j][1])
                         #update cost of the path
-                        if aux_graph[dfs_path[j][0]][dfs_path[j][1]]['weight']>costsitem[i]:
-                            costsitem[i]=aux_graph[dfs_path[j][0]][dfs_path[j][1]]['weight']
+                    for j in range(len(items_save[i])-1):
+                        #print(items_save[i][j],items_save[i][j+1])
+                        path=nx.dijkstra_path(aux_graph2,items_save[i][j],items_save[i][j+1])
+                        for k  in range(len(path)-1):
+                            paths_save[i].append(path[k])
+                    #print(paths_save[i])
+                    for k in range(len(paths_save[i])-1):
+                        if aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']>costsitem[i]:
+                           costsitem[i]=aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']
+                    try:
+                        if aux_graph[paths_save[i][len(paths_save[i])-1]][paths_save[i][0]]['weight'] > costsitem[i]:
+                            costsitem[i] = aux_graph[paths_save[i][len(paths_save[i])-1]][paths_save[i][0]]['weight']
+                    except KeyError:
+                        pass
                 #add the element if the scc is singular
                 elif len(scc_list[i])==1:
-                    items_save[i].append(scc_list[i][0])
+                    paths_save[i].append(scc_list[i][0])
 
             #save the best elements
-            for item in items_save:
+            for item in paths_save:
 
                 saveitem.append(item)
             while len(saveitem)<num_agent:
@@ -387,7 +403,6 @@ def tarjan_scc(Graph_cost,num_agent):
                 costsitem.append(0)
     #return elements
     return saveitem,costsitem
-
 
 
 
