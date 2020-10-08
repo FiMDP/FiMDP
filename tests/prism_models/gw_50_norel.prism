@@ -1,0 +1,81 @@
+mdp
+
+const int size_x = 50;
+const int size_y = 50;
+const int border_x = size_x-1;
+const int border_y = size_y-1;
+
+const double succ_p = 0.9;
+const double fail_left_p = 0.04;
+const double fail_right_p = 0.06;
+
+// Conditions for hitting walls — robot
+formula wall_north = (y = border_y);
+formula wall_east = (x = border_x); 
+formula wall_south = (y = 0);
+formula wall_west = (x = 0);
+
+module robot
+  x : [0..size_x-1] init 0;
+  y : [0..size_y-1] init 0;
+
+  [strong_north] !wall_north -> (y'=y+1);
+  [north] !wall_north & !wall_east & !wall_west -> 
+	succ_p: (y'=y+1) + 
+	fail_left_p: (y'=y+1)&(x'=x-1) + 
+	fail_right_p: (y'=y+1)&(x'=x+1);
+  [north] !wall_north &  wall_east & !wall_west -> 
+	succ_p: (y'=y+1) + 
+	1-succ_p: (y'=y+1)&(x'=x-1); 
+  [north] !wall_north & !wall_east &  wall_west -> 
+	succ_p: (y'=y+1) + 
+	1-succ_p: (y'=y+1)&(x'=x+1);
+
+  [strong_south] !wall_south -> (y'=y-1);
+  [south] !wall_south & !wall_east & !wall_west -> 
+	succ_p: (y'=y-1) + 
+	fail_left_p: (y'=y-1)&(x'=x-1) + 
+	fail_right_p: (y'=y-1)&(x'=x+1);
+  [south] !wall_south &  wall_east & !wall_west -> 
+	succ_p: (y'=y-1) + 
+	1-succ_p: (y'=y-1)&(x'=x-1); 
+  [south] !wall_south & !wall_east &  wall_west -> 
+	succ_p: (y'=y-1) + 
+	1-succ_p: (y'=y-1)&(x'=x+1); 
+
+  [strong_east] !wall_east -> (x'=x+1);
+  [east] !wall_east & !wall_north & !wall_south -> 
+	succ_p: (x'=x+1) + 
+	fail_left_p: (x'=x+1)&(y'=y-1) + 
+	fail_right_p: (x'=x+1)&(y'=y+1);
+  [east] !wall_east &  wall_north & !wall_south -> 
+	succ_p: (x'=x+1) + 
+	1-succ_p: (x'=x+1)&(y'=y-1); 
+  [east] !wall_east & !wall_north &  wall_south -> 
+	succ_p: (x'=x+1) + 
+	1-succ_p: (x'=x+1)&(y'=y+1); 
+
+  [strong_west] !wall_west -> (x'=x-1);
+  [west] !wall_west & !wall_north & !wall_south -> 
+	succ_p: (x'=x-1) + 
+	fail_left_p: (x'=x-1)&(y'=y-1) + 
+	fail_right_p: (x'=x-1)&(y'=y+1);
+  [west] !wall_west &  wall_north & !wall_south -> 
+	succ_p: (x'=x-1) + 
+	1-succ_p: (x'=x-1)&(y'=y-1); 
+  [west] !wall_west & !wall_north &  wall_south -> 
+	succ_p: (x'=x-1) + 
+	1-succ_p: (x'=x-1)&(y'=y+1); 
+
+endmodule
+
+rewards "consumption"
+	[north] true : 1;
+	[south] true : 1;
+	[east] true : 1;
+	[west] true : 1;
+	[strong_north] true : 3;
+	[strong_south] true : 3;
+	[strong_east] true : 3;
+	[strong_west] true : 3;
+endrewards
