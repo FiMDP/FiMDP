@@ -7,7 +7,6 @@
    `GoalLeaningES` of the `energy_solver.py` module. See [tut/Solvers](tut/Solvers.ipynb)
    notebook for more details. Use [nbviewer] for the rendered notebook if you don't want
    to run the notebook locally; it renders the animations correctly.
- * Binary search for detection of minimal capacity needed for a task (function `mincap.bin_search`).
  * Support for full-featured strategies that resolve the next action to play based on the history. See `Strategy`
    for the interface. See [tut/Strategies](tut/Strategies.ipynb) for more details.
      - `CounterStrategy` implements strategies with a limited memory. The class only
@@ -23,6 +22,11 @@
      function. The keys in this `dict` are lower bounds of intervals that are
      mapped to the corresponding values. `select_action` takes care of the
      translation of lower bounds to intervals.
+ * Integration with Stormpy for reading PRISM and Storm models into FiMDP and for
+   translation of FiMDP models into equivalent models in Stormpy. See 
+   [tut/Storm_and_prism](tut/Storm_and_prism.ipynb) for more details.
+ * Binary search for detection of minimal capacity needed for a task
+   (function `mincap_solvers.bin_search`).
  
 ### Changed
 
