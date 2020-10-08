@@ -12,36 +12,15 @@ from math import inf
 
 from .objectives import *
 
-
+tab_state_cell_style = ' rowspan="{}"'
+cell_style    = ' align="center" valign="middle"'
+targets_style        = ', style="filled", fillcolor="#0000ff20"'
+targets_Buchi_style  = ', style="filled", fillcolor="#00ff0020"'
 default_MI_style         = ' border="0" cellborder="0" cellspacing="0"' +\
                        ' cellpadding="1" align="center" valign="middle"' +\
                        ' style="rounded" bgcolor="#ffffff50"'
 if debug:
     default_MI_style         = ' border="1" cellborder="1" cellspacing="0" cellpadding="0"'
-
-tab_state_cell_style = ' rowspan="{}"'
-cell_style    = ' align="center" valign="middle"'
-tab_MI_cell_font     = ' color="orange" point-size="10"'
-
-tab_SR_cell_font     = ' color="red" point-size="10"'
-
-# Positive reachability
-tab_PR_cell_font     = ' color="deepskyblue" point-size="10"'
-
-# Almost sure reachability
-tab_AR_cell_font     = ' color="dodgerblue4" point-size="10"'
-
-# Reachability-safe
-tab_RS_cell_font     = ' color="blue4" point-size="10"'
-
-# Büchi
-tab_BU_cell_font     = ' color="forestgreen" point-size="10"'
-
-# Büchi-safe
-tab_BS_cell_font     = ' color="darkgreen" point-size="10"'
-
-targets_style        = ', style="filled", fillcolor="#0000ff20"'
-targets_Buchi_style  = ', style="filled", fillcolor="#00ff0020"'
 
 default_options = "msrRb"
 
@@ -67,8 +46,10 @@ class consMDP2dot:
         self.opt_mi = {"name": "MinInitCons", "enabled": False, "color": "orange"}
         self.opt_sr = {"name": "Safe levels", "enabled": False, "color": "red"}
         self.opt_pr = {"name": "Positive reachability", "enabled": False, "color": "deepskyblue"}
+        self.opt_rs = {"name": "Reachability-safe", "enabled": False, "color": "blue4"}
         self.opt_ar = {"name": "Almost-sure reachability", "enabled": False, "color": "dodgerblue4"}
         self.opt_bu = {"name": "Büchi", "enabled": False, "color": "forestgreen"}
+        self.opt_bs = {"name": "Büchi-safe", "enabled": False, "color": "darkgreen"}
 
         self.options_list = []
 
@@ -91,6 +72,8 @@ class consMDP2dot:
         if "R" in self.options:
             self.opt_ar["enabled"] = self.el is not None and AS_REACH in self.el.min_levels
             self.options_list.append(self.opt_ar)
+            self.opt_rs["enabled"] = self.el is not None and AS_REACH in self.el.min_levels
+            self.options_list.append(self.opt_rs)
         elif "r" in self.options:
             self.opt_ar["enabled"] = self.el is not None and AS_REACH in self.el.min_levels
             self.options_list.append(self.opt_ar)
@@ -98,6 +81,8 @@ class consMDP2dot:
         if "b" in self.options:
             self.opt_bu["enabled"] = self.el is not None and BUCHI in self.el.min_levels
             self.options_list.append(self.opt_bu)
+            self.opt_bs["enabled"] = self.el is not None and BUCHI in self.el.min_levels
+            self.options_list.append(self.opt_bs)
             if self.opt_bu:
                 self.label_row_span = 3
 
@@ -145,14 +130,16 @@ class consMDP2dot:
         if self.opt_mi["enabled"]:
             val = self.el.get_min_levels(MIN_INIT_CONS)[s]
             val = "∞" if val == inf else val
+            color = self.opt_mi["color"]
             state_str += f"<td{cell_style}>" + \
-                f"<font{tab_MI_cell_font}>{val}</font></td>"
+                f"<font color='{color}' point-size='10'>{val}</font></td>"
 
         if self.opt_sr["enabled"]:
             val = self.el.get_min_levels(SAFE)[s]
             val = "∞" if val == inf else val
+            color = self.opt_sr["color"]
             state_str += f"<td{cell_style}>" + \
-                f"<font{tab_SR_cell_font}>{val}</font></td>"
+                f"<font color='{color}' point-size='10'>{val}</font></td>"
 
         if self.opt_mi["enabled"] or \
                 self.opt_sr["enabled"] or \
@@ -166,20 +153,23 @@ class consMDP2dot:
                 empty_row = False
                 val = self.el.get_min_levels(POS_REACH)[s]
                 val = "∞" if val == inf else val
+                color = self.opt_pr["color"]
                 state_str += f"<td{cell_style}>" + \
-                    f"<font{tab_PR_cell_font}>{val}</font></td>"
+                    f"<font color='{color}' point-size='10'>{val}</font></td>"
 
             # almost-sure reachability
             if self.opt_ar["enabled"]:
                 empty_row = False
                 val = self.el.get_min_levels(AS_REACH)[s]
                 val = "∞" if val == inf else val
+                color = self.opt_ar["color"]
                 state_str += f"<td{cell_style}>" + \
-                    f"<font{tab_AR_cell_font}>{val}</font></td>"
+                    f"<font color='{color}' point-size='10'>{val}</font></td>"
                 val = self.el.helper_levels[AS_REACH][s]
                 val = "∞" if val == inf else val
+                color = self.opt_rs["color"]
                 state_str += f"<td{cell_style}>" + \
-                    f"<font{tab_RS_cell_font}>{val}</font></td>"
+                    f"<font color='{color}' point-size='10'>{val}</font></td>"
 
             if empty_row:
                 state_str += "<td></td>"
@@ -190,12 +180,14 @@ class consMDP2dot:
                 empty_row = False
                 val = self.el.get_min_levels(BUCHI)[s]
                 val = "∞" if val == inf else val
+                color = self.opt_bu["color"]
                 state_str += f"<td{cell_style}>" + \
-                    f"<font{tab_BU_cell_font}>{val}</font></td>"
+                    f"<font color='{color}' point-size='10'>{val}</font></td>"
                 val = self.el.helper_levels[BUCHI][s]
                 val = "∞" if val == inf else val
+                color = self.opt_bs["color"]
                 state_str += f"<td{cell_style}>" + \
-                    f"<font{tab_BS_cell_font}>{val}</font></td>"
+                    f"<font color='{color}' point-size='10'>{val}</font></td>"
 
             if empty_row:
                 state_str += "<td></td>"
