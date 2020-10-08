@@ -264,14 +264,17 @@ def augment_matching(matching,agent_lists,init_state,Bottleneckgraph):
             # if matching found
             if item[0]==init_state[i]:
 
-                for k in range(len(agent_lists)):
-                    # add edge between initial state of the agent, and initial element of the target
-                    if item[1] in agent_lists[k]:
-                        assignments.append(agent_lists[k])
-                        costs.append(Bottleneckgraph[item[0]][agent_lists[k][0]]['weight'])
+                #add weights if there is a path
+                assignments.append(agent_lists[-1*item[1]-1])
+                if Bottleneckgraph[item[0]][item[1]]['weight']>0:
+                    costs.append(Bottleneckgraph[item[0]][item[1]]['weight'])
+                else:
+                    costs.append(Bottleneckgraph[0])
+
     #add empty assignment if agents are not necessary
     while len(assignments)<len(agent_lists):
         assignments.append([])
+    #print(costs)
     return(assignments,costs)
 
 def bottleneckassignment(Bottleneckgraph):
@@ -281,11 +284,14 @@ def bottleneckassignment(Bottleneckgraph):
     matching: optimal bottleneck matching between agents and assignments
     """
     costlow=0
-    costhigh=1e4
+    costhigh=1e6
     #compute optimal bottleneck matching
     while costhigh-costlow>1e-6:
         aux_graph=Bottleneckgraph.copy()
         cost_bisec=(costhigh+costlow)/2
+        #print(aux_graph.edges)
+        #print(aux_graph.nodes)
+
         #remove edges if the cost is larger than the current cost
         for item in aux_graph.edges:
             if aux_graph[item[0]][item[1]]['weight']>cost_bisec:
@@ -293,6 +299,7 @@ def bottleneckassignment(Bottleneckgraph):
         #try if there exists a matching, if not, do not return it
         try:
             matching=nx.bipartite.maximum_matching(aux_graph)
+            #print(matching)
             costhigh=cost_bisec
             #print(matching,cost_bisec)
 
@@ -342,8 +349,6 @@ def tarjan_scc(Graph_cost,num_agent):
 
                     scc_list[i].append(item)
 
-
-
         #increase threshold if more SCC's then number of agents
         #print(scc_list,cost_bisec)
         if len(scc_list)>num_agent:
@@ -366,7 +371,7 @@ def tarjan_scc(Graph_cost,num_agent):
                         if not node in scc_list[i]:
                             aux_graph2.remove_node(node)
 
-                    #computes a path in the SCC, needs to be checked
+                    #generates a list of edges
                     dfs_path = list(nx.dfs_edges(aux_graph2))
                     #add elements to the path
                     for j in range(len(dfs_path)):
@@ -374,13 +379,13 @@ def tarjan_scc(Graph_cost,num_agent):
                             items_save[i].append(dfs_path[j][0])
                         if not dfs_path[j][1] in items_save[i]:
                             items_save[i].append(dfs_path[j][1])
-                        #update cost of the path
+                    # generate path using dijkstra
                     for j in range(len(items_save[i])-1):
                         #print(items_save[i][j],items_save[i][j+1])
                         path=nx.dijkstra_path(aux_graph2,items_save[i][j],items_save[i][j+1])
                         for k  in range(len(path)-1):
                             paths_save[i].append(path[k])
-                    #print(paths_save[i])
+                    # go through edges, add costs
                     for k in range(len(paths_save[i])-1):
                         if aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']>costsitem[i]:
                            costsitem[i]=aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']
@@ -395,7 +400,6 @@ def tarjan_scc(Graph_cost,num_agent):
 
             #save the best elements
             for item in paths_save:
-
                 saveitem.append(item)
             while len(saveitem)<num_agent:
                 saveitem.append(list([]))

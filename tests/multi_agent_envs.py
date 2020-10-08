@@ -38,10 +38,10 @@ def create_multiagent_env():
     setup()
     #generate environment
     num_agents=3
-    init_state=[350, 178, 65]
-    target = [24, 44, 57, 71, 87, 102, 191, 156, 232, 345]
+    init_state=[123, 178, 65]
+    target = [24, 44, 57, 71, 87, 102, 191, 156, 217,232]
     e = SynchronousMultiAgentEnv(num_agents=num_agents, grid_size=[20, 20], capacity=[100, 100, 100], reload=[22, 297],
-                                   target=[24, 44, 57, 71, 87, 102, 191, 156, 232, 345], init_state=init_state,
+                                   target=[24, 44, 57, 71, 87, 102, 191, 156, 217, 232], init_state=init_state,
                                  enhanced_actionspace=0)    #generate consumption MDP
     #generate consumption mdp
     e.create_consmdp()
@@ -64,9 +64,9 @@ def create_costs_for_agents(Agent_graph,consmdp,targets):
         for item2 in targets:
             if not item==item2:
                 #compute the capacity by bin_search
-                #result = bin_search(consmdp, item, item2 ,objective=BUCHI)
-                result=np.random.uniform(0,1)
-                print(item,item2,result)
+                result = bin_search(consmdp, item, item2 ,objective=AS_REACH)
+                #result=np.random.uniform(0,1)
+                #print(item,item2,result)
                 #add the edge with capacity
                 Agent_graph.add_edge(item, item2, weight=result)
 
@@ -79,36 +79,43 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
     :param cost_lists: list of the cost of each path
     :param init_state: set of initial states
     :return:
-    Bottleneckgraph networkx graph between initial states of the agent and initial elements of the targets
+    Bottleneckgraph: networkx graph between initial states of the agent and initial elements of the targets
     """
 
     #generate bipartite graph with the set of initial states and initial targets for each agent
     Bottleneckgraph=nx.Graph()
+    dict_costs=dict()
     for i in range(len(init_state)):
+        for j in range(len(agent_lists)):
+            dict_costs[init_state[i],j]=[1e4,-1]
 
+    for i in range(len(init_state)):
         Bottleneckgraph.add_node(init_state[i])
+
     for j in range(len(agent_lists)):
-        if len(agent_lists[j])>=1:
-            Bottleneckgraph.add_node(agent_lists[j][0])
+        Bottleneckgraph.add_node(-1*j-1)
 
     #go over initial agent states and initial targets for each agent
     for i in range(len(init_state)):
         for j in range(len(agent_lists)):
             #if target exists
             if len(agent_lists[j]) >= 1:
+                for k in range(len(agent_lists[j])):
 
-
-                item1=init_state[i]
-                item2=agent_lists[j][0]
-                #compute the capacity between initial agent states and initial targets
-                #result = bin_search(consmdp, item1, item2, objective=BUCHI)
-                result=np.random.uniform(0,0.5)
-                print(result,item1,item2)
-                #update the cost if the capacity is higher
-                if result> cost_lists[j]:
-                    Bottleneckgraph.add_edge(item1, item2, weight=result)
-                else:
-                    Bottleneckgraph.add_edge(item1, item2, weight=cost_lists[j])
+                    item1=init_state[i]
+                    item2=agent_lists[j][k]
+                    #compute the capacity between initial agent states and initial targets
+                    result = bin_search(consmdp, item1, item2, objective=AS_REACH)
+                    #update the cost if the capacity is higher
+                    if result>cost_lists[j] and result <dict_costs[init_state[i],j][0]:
+                        dict_costs[init_state[i], j]=[result,item2]
+                    elif result<=cost_lists[j] and cost_lists[j] <dict_costs[init_state[i],j][0]:
+                        dict_costs[init_state[i], j]=[cost_lists[j],item2]
+                #add min of the all edge costs if a transition exist
+                Bottleneckgraph.add_edge(init_state[i], -j-1, weight=dict_costs[init_state[i], j][0])
+            else:
+                #add -1 if the path is singular
+                Bottleneckgraph.add_edge(init_state[i], -j-1, weight=-1)
 
     return Bottleneckgraph
 
