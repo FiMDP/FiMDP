@@ -7,7 +7,7 @@ from fimdp.examples.reachability_examples import little_alsure
 mdp = prism_to_consmdp("prism_models/gw_50_full.prism")
 assert mdp.num_states == 2500, ("Wrong number of states: "
                                 f"{mdp.num_states} instead of 2500.")
-solver = BasicES(mdp, cap=80, targets=[620])
+solver = BasicES(mdp, cap=180, targets=[620])
 solver.get_min_levels(BUCHI)
 
 expected = "0: x=0 y=0"
@@ -31,7 +31,7 @@ except ValueError as e:
 
 mdp = prism_to_consmdp("prism_models/gw_5_full.prism")
 assert mdp.num_states == 25, ("Wrong number of states: "
-                              f"{mdp.num_states} instead of 2500.")
+                              f"{mdp.num_states} instead of 25.")
 solver = BasicES(mdp, cap=10, targets=[21])
 expected = [8, 7, 6, 7, 6, 3, 0, 6, 3, 7, 6, 3, 6, 6, 3, 7, 8, 7, 6, 7, 8, 6, 7, 8, 7]
 result = solver.get_min_levels(BUCHI)
@@ -126,3 +126,33 @@ print("Passed test 2 for consmdp_to_storm_consmdp")
 
 assert m.get_dot() == storm_sparsemdp_to_consmdp(storm).get_dot()
 print("Passed test for consmdp_to_storm_consmdp and storm_sparsemdp_to_consmdp")
+
+constants = {
+    "size_x" : 10,
+    "size_y" : "size_x",
+    "capacity" : 18,
+    "cons_w_ex" : 0,
+    "cons_s_ex" : 0,
+}
+mdp = prism_to_consmdp("prism_models/gw_param.prism", constants=constants)
+expected = pow(constants["size_x"], 2)
+result = mdp.num_states
+assert result == expected, "The output parametric model has a wrong number of" \
+                           f"states. Is {result}, expected {expected}"
+
+print("Passed test 1 for parametric models")
+
+constants = {
+    "size_x" : 100,
+    "size_y" : "size_x",
+    "capacity" : 250,
+    "cons_w_ex" : 0,
+    "cons_s_ex" : 0,
+}
+mdp = prism_to_consmdp("prism_models/gw_param.prism", constants=constants)
+expected = pow(constants["size_x"], 2)
+result = mdp.num_states
+assert result == expected, "The output parametric model has a wrong number of" \
+                           f"states. Is {result}, expected {expected}"
+
+print("Passed test 2 for parametric models")

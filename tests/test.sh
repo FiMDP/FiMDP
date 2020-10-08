@@ -15,3 +15,4 @@ python3 test_strategy_old.py
 jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb --to html
 jupyter nbconvert --execute ../tut/ProductDBA.ipynb --to html
 jupyter nbconvert --execute ../tut/Solvers.ipynb --to html
+jupyter nbconvert --execute ../tut/Storm_and_prism.ipynb --to html

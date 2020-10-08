@@ -1,0 +1,130 @@
+mdp
+
+const int size_x;
+const int size_y;
+
+const int capacity;
+
+const int cons_w = 1;
+const int cons_s = 3;
+// Consumption for the explicit encoding is left intentionally
+// uninitialized. When set to 0, just the grid is built,
+// if set to cons_w and cons_s, the product is built.
+const int cons_w_ex;
+const int cons_s_ex;
+
+const int border_x = size_x-1;
+const int border_y = size_y-1;
+
+formula is_reload = (x=round(border_x/2) & y=round(border_y/2)) |
+                    (x=5 & y=5) |
+                    (x=round(border_x/3) & mod(y,15)=7);
+
+const double succ_p = 0.9;
+const double fail_left_p = 0.04;
+const double fail_right_p = 0.06;
+
+
+// Conditions for hitting walls — robot
+formula wall_north = (y = border_y);
+formula wall_east = (x = border_x); 
+formula wall_south = (y = 0);
+formula wall_west = (x = 0);
+
+// Conditions for weak and strong actions
+formula allowed_w = (e-cons_w_ex >=0);
+formula allowed_s = (e-cons_s_ex >=0);
+formula allowed_w_r = (capacity-cons_w_ex >=0);
+formula allowed_s_r = (capacity-cons_s_ex >=0);
+
+module movement
+  x : [0..size_x-1] init 0;
+  y : [0..size_y-1] init 0;
+
+  [strong_north] !wall_north -> (y'=y+1);
+  [north] !wall_north & !wall_east & !wall_west ->
+	succ_p: (y'=y+1) + 
+	fail_left_p: (y'=y+1)&(x'=x-1) + 
+	fail_right_p: (y'=y+1)&(x'=x+1);
+  [north] !wall_north &  wall_east & !wall_west ->
+	succ_p: (y'=y+1) + 
+	1-succ_p: (y'=y+1)&(x'=x-1); 
+  [north] !wall_north & !wall_east &  wall_west ->
+	succ_p: (y'=y+1) + 
+	1-succ_p: (y'=y+1)&(x'=x+1);
+
+  [strong_south] !wall_south -> (y'=y-1);
+  [south] !wall_south & !wall_east & !wall_west -> 
+	succ_p: (y'=y-1) + 
+	fail_left_p: (y'=y-1)&(x'=x-1) + 
+	fail_right_p: (y'=y-1)&(x'=x+1);
+  [south] !wall_south &  wall_east & !wall_west -> 
+	succ_p: (y'=y-1) + 
+	1-succ_p: (y'=y-1)&(x'=x-1); 
+  [south] !wall_south & !wall_east &  wall_west -> 
+	succ_p: (y'=y-1) + 
+	1-succ_p: (y'=y-1)&(x'=x+1); 
+
+  [strong_east] !wall_east -> (x'=x+1);
+  [east] !wall_east & !wall_north & !wall_south -> 
+	succ_p: (x'=x+1) + 
+	fail_left_p: (x'=x+1)&(y'=y-1) + 
+	fail_right_p: (x'=x+1)&(y'=y+1);
+  [east] !wall_east &  wall_north & !wall_south -> 
+	succ_p: (x'=x+1) + 
+	1-succ_p: (x'=x+1)&(y'=y-1); 
+  [east] !wall_east & !wall_north &  wall_south -> 
+	succ_p: (x'=x+1) + 
+	1-succ_p: (x'=x+1)&(y'=y+1); 
+
+  [strong_west] !wall_west -> (x'=x-1);
+  [west] !wall_west & !wall_north & !wall_south -> 
+	succ_p: (x'=x-1) + 
+	fail_left_p: (x'=x-1)&(y'=y-1) + 
+	fail_right_p: (x'=x-1)&(y'=y+1);
+  [west] !wall_west &  wall_north & !wall_south -> 
+	succ_p: (x'=x-1) + 
+	1-succ_p: (x'=x-1)&(y'=y-1); 
+  [west] !wall_west & !wall_north &  wall_south -> 
+	succ_p: (x'=x-1) + 
+	1-succ_p: (x'=x-1)&(y'=y+1); 
+
+endmodule
+
+module energy
+  e : [0..capacity] init capacity;
+
+  // NO RELOADS
+  [strong_north] !is_reload & allowed_s -> (e'=e-cons_s_ex);
+  [strong_south] !is_reload & allowed_s -> (e'=e-cons_s_ex);
+  [strong_east] !is_reload & allowed_s -> (e'=e-cons_s_ex);
+  [strong_west] !is_reload & allowed_s -> (e'=e-cons_s_ex);
+  [north] !is_reload & allowed_w -> (e'=e-cons_w_ex);
+  [south] !is_reload & allowed_w -> (e'=e-cons_w_ex);
+  [east] !is_reload & allowed_w -> (e'=e-cons_w_ex);
+  [west] !is_reload & allowed_w -> (e'=e-cons_w_ex);
+
+  //RELOADS
+  [strong_north] is_reload & allowed_s_r -> (e'=capacity-cons_s_ex);
+  [strong_south] is_reload & allowed_s_r -> (e'=capacity-cons_s_ex);
+  [strong_east] is_reload & allowed_s_r -> (e'=capacity-cons_s_ex);
+  [strong_west] is_reload & allowed_s_r -> (e'=capacity-cons_s_ex);
+  [north] is_reload & allowed_w_r -> (e'=capacity-cons_w_ex);
+  [south] is_reload & allowed_w_r -> (e'=capacity-cons_w_ex);
+  [east] is_reload & allowed_w_r -> (e'=capacity-cons_w_ex);
+  [west] is_reload & allowed_w_r -> (e'=capacity-cons_w_ex);
+endmodule
+
+rewards "consumption"
+	[north] true : cons_w;
+	[south] true : cons_w;
+	[east] true : cons_w;
+	[west] true : cons_w;
+	[strong_north] true : cons_s;
+	[strong_south] true : cons_s;
+	[strong_east] true : cons_s;
+	[strong_west] true : cons_s;
+endrewards
+                                     
+label "reload" = is_reload;
+label "target" = (x=border_x-2) & (y=border_y);

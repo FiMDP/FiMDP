@@ -100,8 +100,8 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
         return mdp
 
 
-def prism_to_consmdp(filename, state_valuations=True, action_labels=True,
-                     return_targets=False):
+def prism_to_consmdp(filename, constants=None, state_valuations=True,
+                     action_labels=True, return_targets=False):
     """
     Build a ConsMDP from a PRISM symbolic description using Stormpy.
 
@@ -116,7 +116,18 @@ def prism_to_consmdp(filename, state_valuations=True, action_labels=True,
     >>>	endrewards
     >>> label "reload" = (rel=1);
 
+    The dict `constants` must be given if a parametric prism model is to be
+    read. It must defined all unused constants of the parametric model that
+    affect the model's state space. On the other hand, it must not be defined
+    if the model is not parametric. The format of the dictionary is
+    `{ "constant_name" : constant_value }` where constant value is either an
+    integer or a string that contains a name of other constant.
+
     :param filename: Path to the PRISM model. Must be an mdp.
+
+    :param constants: Dictionary for uninitialized constant initialization.
+    :type: constants: dict[str(constant_names) -> int/str(constant_names)]
+
     :param state_valuations: If True (default), set the valuation of states as
     names in the resulting ConsMDP.
     :param action_labels: If True (default), copies the choice labels in the
@@ -129,6 +140,29 @@ def prism_to_consmdp(filename, state_valuations=True, action_labels=True,
              `ConsMDP, targets` if `return_targets`
     """
     prism_prog = stormpy.parse_prism_program(filename)
+
+    if constants is None:
+        constants = {}
+    elif not prism_prog.has_undefined_constants and len(constants) > 0:
+        raise ValueError("There are no constants to be defined")
+
+    prism_constants = {}
+    man = prism_prog.expression_manager
+    for const, value in constants.items():
+        var = man.get_variable(const)
+        if type(value) == int:
+            expression = man.create_integer(value)
+        elif type(value) == str:
+            expression = man.get_variable(value).get_expression()
+        # elif type(value) == stormpy.storage.Expression:
+        #     expression = value
+        else:
+            raise ValueError("Constants values must be either int, "
+                             "str (a name of another constant), or "
+                             "a stormpy Expression.")
+        prism_constants[var] = expression
+
+    prism_prog = prism_prog.define_constants(prism_constants)
 
     options = stormpy.BuilderOptions()
     if state_valuations:

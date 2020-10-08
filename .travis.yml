@@ -39,6 +39,7 @@ script:
   - cd tests
 #  - ./test.sh
   - python3 test_buchi.py
+# - python3 test_storm_io.py
   - python3 test_lcmdp.py
   - python3 test_mecs.py
   - python3 test_mincap.py
@@ -51,3 +52,4 @@ script:
   - jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb --to html
   - jupyter nbconvert --execute ../tut/ProductDBA.ipynb --to html
   - jupyter nbconvert --execute ../tut/Solvers.ipynb --to html
+# - jupyter nbconvert --execute ../tut/Storm_and_prism.ipynb --to html

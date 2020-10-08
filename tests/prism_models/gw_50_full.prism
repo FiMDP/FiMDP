@@ -81,3 +81,5 @@ rewards "consumption"
 endrewards
 
 label "reload" = (x=round(border_x/2) & y=round(border_y/2)) | (x=5 & y=5);
+label "target" = (x=border_x-2) & (y=border_y);
+const int capacity = 180;
