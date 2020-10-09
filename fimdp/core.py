@@ -61,6 +61,7 @@ states of a ProductConsMDP into states and actions of the original ConsMDP.
 """
 
 import math
+import random
 from IPython.display import display, SVG
 
 from .distribution import is_distribution
@@ -1005,3 +1006,50 @@ class PickFirstStrategy(Strategy):
         actions = self.mdp.actions
         a_id = self.mdp.actions_for_state(self._current_state).next
         return actions[a_id]
+
+class Simulator():
+    """Class for simulating a strategy object on a ConsMDP.
+    
+    Picks actions based on given strategy for `duration` number of simulation
+    steps and stores the state and action history for further analysis. Interface
+    allows for extending simulation and resetting given instance using `simulate`
+    and `reset` methods.
+    """
+    
+    def __init__(self, strategy, duration):
+        
+        self.state_history = [strategy._current_state]
+        self.action_history = []
+        self.strategy = strategy
+        self.simulate(duration)
+        
+    def simulate(self, duration):
+        for step in range(duration):
+            actionobj = self.strategy.next_action()
+            next_state = self._next_state(actionobj)
+            self.strategy.update_state(next_state)
+            self.state_history.append(next_state)
+            self.action_history.append(actionobj.label)
+                
+    def reset(self, strategy=None):
+        if strategy==None:
+            strategy=self.strategy
+        self.state_history = [strategy._current_state]
+        self.action_history = []
+        self.strategy = strategy
+        
+    def _next_state(self, actionobj):
+        sum_prob = 0
+        rand = random.random()
+        for k, v in actionobj.distr.items():
+            sum_prob += v
+            if rand <= sum_prob:
+                return k
+            
+        
+            
+                
+            
+        
+    
+    
