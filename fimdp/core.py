@@ -61,6 +61,7 @@ states of a ProductConsMDP into states and actions of the original ConsMDP.
 """
 
 import math
+import random
 from IPython.display import display, SVG
 
 from .distribution import is_distribution
@@ -565,6 +566,8 @@ class Strategy:
 
     def __init__(self, mdp, init_state=None, *args, **kwargs):
         self.mdp = mdp
+        self._current_state = None
+        self._current_action = None
         self.reset(init_state, *args, **kwargs)
 
     def next_action(self, outcome=None):
@@ -1005,3 +1008,60 @@ class PickFirstStrategy(Strategy):
         actions = self.mdp.actions
         a_id = self.mdp.actions_for_state(self._current_state).next
         return actions[a_id]
+
+class Simulator():
+    """Class for simulating a strategy object on a ConsMDP.
+    
+    Picks actions based on given strategy for `num_steps` of simulation steps
+    and stores the state and action history for further analysis. Interface
+    allows for extending simulation and resetting given instance using
+    `simulate` and `reset` methods.
+    """
+    
+    def __init__(self, strategy, num_steps=0):
+        self.state_history = [strategy._current_state]
+        self.action_history = []
+        self.strategy = strategy
+        self.simulate(num_steps)
+        
+    def simulate(self, num_steps):
+        """Continue the simulation for additional `num_steps` steps."""
+        for step in range(num_steps):
+            action = self.strategy.next_action()
+            next_state = self._next_state(action)
+
+            self.strategy.update_state(next_state)
+            self.state_history.append(next_state)
+            self.action_history.append(action.label)
+                
+    def reset(self, init_state=None, *args, **kwargs):
+        """
+        Prepare a new simulation with the same strategy.
+
+        The arguments are passed to `strategy.reset` functions. We can thus
+        change the initial state or the initial energy in the case of Counter
+        strategies.
+
+        If no init_state is given, the previous initial state is reused
+        """
+        if init_state is None:
+            init_state = self.state_history[0]
+        self.strategy.reset(init_state, *args, **kwargs)
+        self.state_history = [self.strategy._current_state]
+        self.action_history = []
+        
+    def _next_state(self, actionobj):
+        sum_prob = 0
+        rand = random.random()
+        for k, v in actionobj.distr.items():
+            sum_prob += v
+            if rand <= sum_prob:
+                return k
+            
+        
+            
+                
+            
+        
+    
+    
