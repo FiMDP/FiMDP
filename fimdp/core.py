@@ -1057,11 +1057,3 @@ class Simulator():
             sum_prob += v
             if rand <= sum_prob:
                 return k
-            
-        
-            
-                
-            
-        
-    
-    

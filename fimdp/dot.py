@@ -5,6 +5,8 @@ Process from consMDP model to dot representation and present it.
 
 import subprocess
 import sys
+import math
+
 dotpr = 'dot'
 
 from .objectives import *
@@ -17,7 +19,7 @@ default_table_style         = ' border="0" cellborder="0" cellspacing="0"' +\
                        ' cellpadding="1" align="center" valign="middle"' +\
                        ' style="rounded" bgcolor="#ffffff50"'
 
-default_options = "sprb"
+default_options = "sprb<50"
 
 # For each letter set a list of objectives that should be displayed
 opt_to_objs = {
@@ -48,22 +50,60 @@ class consMDP2dot:
             else:
                 self.opt_string = options
 
+        max_states = math.inf
+        max_i = self.opt_string.find("<")
+        if max_i > -1:
+            pos = max_i + 1
+            max_v = ""
+            while pos < len(self.opt_string) and self.opt_string[pos].isdigit():
+                max_v += self.opt_string[pos]
+                pos += 1
+            max_states = int(max_v)
+
         self._opts = {
             "print_legend" : "l" in self.opt_string,
             "print_MELs" : False,
+            "max_states" : max_states
         }
 
         self.act_color = "black"
         self.prob_color = "gray52"
 
-        # Set solvers and minimal energy levels (MEL) values
         self.solver = solver
-        self.targets = None if solver is None else solver.targets
+        self.targets = [] if solver is None else solver.targets
+
+        # Trim the mdp if needed
+        self.incomplete = set()
+        if self.mdp.num_states > max_states:
+            from .utils import copy_consmdp
+            self.mdp, state_map = copy_consmdp(self.mdp,
+                                               max_states=max_states,
+                                               solver=solver)
+            self.incomplete = self.mdp.incomplete
+            # Update targets accordingly
+            self.targets = [state_map[s] for s in state_map if s in self.targets]
+
         if solver is None:
             self.mel_values = None
         else:
             self.mel_values = solver.min_levels.copy()
-            helpers = solver.helper_levels
+            helpers = solver.helper_levels.copy()
+
+            # Rename states for trimmed automata
+            if self.incomplete:
+                for objective in self.mel_values:
+                    vals = self.mel_values[objective]
+                    new_vals = []
+                    for s, p in state_map.items():
+                        new_vals.append(vals[s])
+                    self.mel_values[objective] = new_vals
+                for objective in helpers:
+                    vals = helpers[objective]
+                    new_vals = []
+                    for s, p in state_map.items():
+                        new_vals.append(vals[s])
+                    helpers[objective] = new_vals
+
             if AS_REACH in helpers:
                 self.mel_values[_HELPER_AS_REACH] = helpers[AS_REACH]
             if BUCHI in helpers:
@@ -152,6 +192,8 @@ class consMDP2dot:
             self.process_state(s)
             for a in m.actions_for_state(s):
                 self.process_action(a)
+            if s in self.incomplete:
+                self.add_incomplete(s)
         if self._opts["print_legend"]:
             self.add_key()
         self.finish()
@@ -199,6 +241,8 @@ class consMDP2dot:
 
                     color = settings["color"]
                     val = self.mel_values[objective][s]
+                    if val == math.inf:
+                        val = "∞"
                     state_str += f"<td{cell_style}>" \
                                  f"<font color='{color}' point-size='10'>" \
                                  f"{val}</font></td>"
@@ -217,6 +261,14 @@ class consMDP2dot:
         if self.targets is not None and s in self.targets:
             self.res += targets_style
         self.res += "]\n"
+
+    def add_incomplete(self, s):
+        """
+        Adds a dashed line from s to a dummy ... node for the given state s.
+        """
+        self.res += f'\n  u{s} [label="...", shape=none, width=0, height=0, ' \
+                    f'tooltip="hidden successors"]\n  {s} -> u{s} ' \
+                    f'[style=dashed, tooltip="hidden successors"]'
 
     def add_key(self):
         if not self._opts["print_MELs"]:

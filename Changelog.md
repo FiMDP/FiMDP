@@ -31,6 +31,10 @@
    [Spot] to be installed. See [tut/Labeled](tut/Labeled.ipynb) for more details.
  * Binary search for detection of minimal capacity needed for a task
    (function `mincap_solvers.bin_search`).
+ * Solvers can now be visualized. Legend for the semantics of the minimal levels can be 
+   requested by calling `solver.show(.l)`
+ * Show now takes `<N` option where the integer `N` marks the maximal number of states that
+   should be drawn.
  
 ### Changed
 
@@ -41,7 +45,10 @@ and split into backward-incompatible and -compatible.
 
 #### Backward incompatible changes
  * `ConsMDP` class does no longer have functions `get_buchi` and similar. Instead,
-   solvers must be used explicitly. See [tut/Basics][Basics] for more details.
+   solvers must be used explicitly. Moreover, they have no solver associated anymore
+   and when visualized, they never show minimal levels for objectives (visualize solver
+   instead). 
+   See [tut/Basics][Basics] for more details.
  * Solvers have new interface. See the corresponding 
    [issue #29](https://github.com/xblahoud/FiMDP/issues/29) or the [Basics] notebook
    for more details.
