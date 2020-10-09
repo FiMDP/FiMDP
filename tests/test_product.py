@@ -15,7 +15,7 @@ from fimdp.objectives import BUCHI
 # ### Test DBAWrapper
 
 f = spot.formula("GF b & GF a")
-aut = spot.translate(f, "BA", "deterministic", "complete")
+aut = spot.translate(f, "Buchi", "SBAcc", "deterministic", "complete")
 
 aut
 
@@ -52,7 +52,7 @@ lmdp.state_labels = [set(), {0}, {1}, set()]
 # Create a deterministic automaton for the desired formula
 
 f = spot.formula("GF s1 & GF s2")
-aut = spot.translate(f, "BA", "deterministic", "complete")
+aut = spot.translate(f, "Buchi", "SBAcc", "deterministic", "complete")
 assert aut.is_deterministic()
 aut
 
@@ -160,7 +160,7 @@ print("Passed test 3 for ProductSelector in file test_product.py")
 
 # +
 f = spot.formula("GF s1 & GF s2")
-aut = spot.translate(f, "BA", "deterministic", "complete")
+aut = spot.translate(f, "Buchi", "SBAcc", "deterministic", "complete")
 mdp, T = product_example()
 lmdp = LabeledConsMDP(AP=["s1", "s2"], mdp=mdp)
 lmdp.state_labels = [set(), {0}, {1}, set()]

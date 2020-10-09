@@ -20,11 +20,10 @@ lmdp
 # Create a deterministic automaton for the desired formula
 
 f = spot.formula("GF s1 & GF s2")
-aut = spot.translate(f, "BA", "deterministic", "complete")
+aut = spot.translate(f, "Buchi", "SBAcc", "deterministic", "complete")
 assert aut.is_deterministic()
 
 # Create product.
-
 product, _ = lmdp.product_with_dba(aut)
 
 # Create ProductSelector and fill a few rules manualy using the product states and actions.
