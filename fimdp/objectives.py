@@ -19,4 +19,8 @@ POS_REACH = 2
 AS_REACH = 3
 BUCHI = 4
 
+# For energy solvers
 max_objective = BUCHI
+_HELPER_AS_REACH = max_objective + 1
+_HELPER_BUCHI = _HELPER_AS_REACH + 1
+_OBJ_COUNT = _HELPER_BUCHI + 1

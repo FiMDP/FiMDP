@@ -24,15 +24,12 @@ from sys import stderr
 
 from IPython.display import SVG, display
 
-from .objectives import MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI, \
-    max_objective
+from .objectives import MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
+from .objectives import _HELPER_AS_REACH, _HELPER_BUCHI, _OBJ_COUNT
 from . import dot
 from .core import CounterSelector
 
 ### HELPER objectives ###
-_HELPER_AS_REACH = max_objective + 1
-_HELPER_BUCHI = _HELPER_AS_REACH + 1
-_OBJ_COUNT = _HELPER_BUCHI + 1
 
 # Control debug info printed after fixpoints iterations
 debug = False
@@ -571,10 +568,7 @@ class BasicES:
         return self.strategy[objective]
 
     def _get_dot(self, options="", disable_key=False):
-        dot_writer = dot.consMDP2dot(mdp=self.mdp,
-                                     solver=self,
-                                     options=options,
-                                     disable_key= disable_key)
+        dot_writer = dot.consMDP2dot(mdp=self.mdp, solver=self, options=options)
         return dot_writer.get_dot()
 
     def _repr_svg_(self):
