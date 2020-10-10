@@ -13,8 +13,8 @@ from ..distribution import uniform
 # 
 # Capacity should be 25
 def basic():
-    dot.dotpr = "neato"
     m = ConsMDP()
+    m.dot_layout = "neato"
 
     m.new_states(9)
     for s in [0, 7]:
@@ -39,8 +39,8 @@ def basic():
 
 
 def explicit():
-    dot.dotpr = "dot"
     mdp = ConsMDP()
+    mdp.dot_layout = "dot"
     mdp.new_states(5)
     mdp.set_reload(4)
     mdp.add_action(0, uniform([1,2]), "α", 1)
@@ -55,8 +55,8 @@ def explicit():
 
 
 def goal_leaning():
-    dot.dotpr = "dot"
     m = ConsMDP()
+    m.dot_layout = "dot"
     m.new_states(3)
     for r in [0, 2]:
         m.set_reload(r)
@@ -70,8 +70,8 @@ def goal_leaning():
 
 
 def goal_leaning_2():
-    dot.dotpr = "dot"
     m = ConsMDP()
+    m.dot_layout = "dot"
     m.new_states(4)
     for r in [0, 2]:
         m.set_reload(r)
@@ -86,8 +86,8 @@ def goal_leaning_2():
 
 
 def little_alsure():
-    dot.dotpr = "dot"
     m = ConsMDP()
+    m.dot_layout = "dot"
     m.new_states(4)
     for r in [3]:
         m.set_reload(r)
@@ -108,6 +108,7 @@ def little_alsure2():
 
 def product_example():
     mdp = ConsMDP()
+    mdp.dot_layout = "dot"
     mdp.new_states(4)
     mdp.set_reload(3)
     mdp.add_action(0, uniform([1,2]), "α", 3)
@@ -118,8 +119,8 @@ def product_example():
     return mdp, {1, 2}
 
 def two_step():
-    dot.dotpr = "neato"
     two_step = ConsMDP()
+    two_step.dot_layout = "neato"
     two_step.new_states(4)
     two_step.set_reload(1)
     two_step.set_reload(3)
@@ -133,8 +134,8 @@ def two_step():
     return two_step, {3}
 
 def ultimate():
-    dot.dotpr="neato"
     m = ConsMDP()
+    m.dot_layout = "neato"
     m.new_states(11)
     for r in [2,4,9]:
         m.set_reload(r)

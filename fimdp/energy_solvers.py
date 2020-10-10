@@ -22,8 +22,6 @@ setting `mdp.EL=solver` and then calling `mdp.show()`.
 from math import inf
 from sys import stderr
 
-from IPython.display import SVG, display
-
 from .objectives import MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
 from .objectives import _HELPER_AS_REACH, _HELPER_BUCHI, _OBJ_COUNT
 from . import dot
@@ -74,6 +72,11 @@ class BasicES:
         self.argmin = argmin
         # Function that computes largest fixpoint
         self.largest_fixpoint = largest_fixpoint
+
+        # Debug hooks used to visualize or print intermediate
+        # results in fixpoints
+        self.debug = False # prints
+        self.debug_vis = False # calls self.show()
 
     ### Helper functions ###
     # * reload_capper     : [v]^cap
@@ -572,10 +575,11 @@ class BasicES:
         return dot_writer.get_dot()
 
     def _repr_svg_(self):
-        return dot.dot_to_svg(self._get_dot())
+        return dot.dot_to_svg(self._get_dot(), mdp=self.mdp)
 
     def show(self, options="", disable_key=False):
-        return SVG(dot.dot_to_svg(self._get_dot(options, disable_key)))
+        from IPython.display import SVG
+        return SVG(dot.dot_to_svg(self._get_dot(options), mdp=self.mdp))
 
 
 class GoalLeaningES(BasicES):
@@ -810,7 +814,8 @@ def largest_fixpoint(solver, values, action_value,
 
     Debug options
     =============
-    We have 2 options that help us debug the code using this function:
+    We have 2 options that help us debug the code using this function.
+    These should be turned on in the respective solver:
      * `debug`     : print `values` at start of each iteration
      * `debug_vis` : display `mdp` using the IPython `display`
     """
@@ -822,8 +827,10 @@ def largest_fixpoint(solver, values, action_value,
     iterate = True
     c = 0
     while iterate:
-        if debug: print(f"it {c}\t:{values}", file=stderr)
-        if debug_vis: display(f"Iteration {c}:", solver.show("msrRb"))
+        if solver.debug: print(f"it {c}\t:{values}", file=stderr)
+        if solver.debug_vis:
+            from IPython.display import display
+            display(f"Iteration {c}:", solver.show(".mspRB"))
         c += 1
         iterate = False
 
@@ -899,10 +906,10 @@ def least_fixpoint(solver, values, action_value,
     iterate = True
     c = 0
     while iterate:
-        if debug: print(f"it {c}\t:{values}", file=stderr)
-        if debug_vis:
-            display(f"Iteration {c}:")
-            solver.show("msrRb")
+        if solver.debug: print(f"it {c}\t:{values}", file=stderr)
+        if solver.debug_vis:
+            from IPython.display import display
+            display(f"Iteration {c}:", solver.show(".mspRB"))
         c += 1
         iterate = False
 

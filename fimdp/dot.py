@@ -7,19 +7,16 @@ import subprocess
 import sys
 import math
 
-dotpr = 'dot'
-
+from . import _dot_pr, _show_default, _dot_options
 from .objectives import *
 from .objectives import _HELPER_AS_REACH, _HELPER_BUCHI
 
 tab_state_cell_style = ' rowspan="{}"'
 cell_style    = ' align="center" valign="middle"'
-targets_style        = ', style="filled", fillcolor="#0000ff20"'
+targets_style        = f', style="filled,rounded", fillcolor="{_dot_options["fillcolor_target"]}"'
 default_table_style         = ' border="0" cellborder="0" cellspacing="0"' +\
                        ' cellpadding="1" align="center" valign="middle"' +\
                        ' style="rounded" bgcolor="#ffffff50"'
-
-default_options = "sprb<50"
 
 # For each letter set a list of objectives that should be displayed
 opt_to_objs = {
@@ -43,28 +40,42 @@ class consMDP2dot:
     def __init__(self, mdp, solver=None, options=""):
         self.mdp = mdp
 
-        self.opt_string = default_options
+        self.opt_string = _show_default
         if options:
             if options[0] == ".":
-                self.opt_string += options[1:]
+                self.opt_string = options[1:] + _show_default
             else:
                 self.opt_string = options
 
-        max_states = math.inf
-        max_i = self.opt_string.find("<")
+        max_states = _dot_options["max_states"]
+        opt_s = self.opt_string
+        max_i = opt_s.find("<")
         if max_i > -1:
             pos = max_i + 1
             max_v = ""
-            while pos < len(self.opt_string) and self.opt_string[pos].isdigit():
-                max_v += self.opt_string[pos]
+            while pos < len(opt_s) and \
+                (opt_s[pos].isdigit() or (pos == max_i + 1 and opt_s[pos] == "-")):
+                max_v += opt_s[pos]
                 pos += 1
-            max_states = int(max_v)
+            max_states = math.inf if max_v[0] == "-" else int(max_v)
 
         self._opts = {
-            "print_legend" : "l" in self.opt_string,
+            "print_legend" : "l" in self.opt_string and "L" not in self.opt_string,
             "print_MELs" : False,
-            "max_states" : max_states
+            "max_states" : max_states,
+            "names" : _dot_options.get("names", True),
+            "labels" : _dot_options.get("state_labels", True) and \
+                       hasattr(self.mdp, "state_labels"),
         }
+        if "n" in options:
+            self._opts["names"] = True
+        if "N" in options:
+            self._opts["names"] = False
+
+        if "a" in options:
+            self._opts["labels"] = True
+        if "A" in options:
+            self._opts["labels"] = False
 
         self.act_color = "black"
         self.prob_color = "gray52"
@@ -179,6 +190,7 @@ class consMDP2dot:
                     if enabled:
                         self.mel_settings[objective]["enabled"] = True
                         self._opts["print_MELs"] = True
+                        self._mel_opts["print"] = True
                         self._mel_opts["rows"][row] = True
                         self._mel_opts["cols"][col] = True
 
@@ -205,12 +217,41 @@ class consMDP2dot:
         self.res += f"digraph \"{gr_name}\" {{\n"
         self.res += "  rankdir=LR\n"
 
+        color = _dot_options.get("fillcolor", None)
+        if color is not None:
+            self.res += f'  node[style="filled", fillcolor="{color}"]\n'
+
+        font = _dot_options.get("font", None)
+        if font is not None:
+            self.res += f'  node[fontname="{font}"]\n'
+            self.res += f'  edge[fontname="{font}"]\n'
+            self.res += f'  fontname="{font}"\n'
+
+        # decide node shapes
+        long_names = False
+        if self._opts["names"]:
+            for s in range(self.mdp.num_states):
+                name = self.mdp.names[s]
+                if name is not None and len(name) > 4:
+                    long_names = True
+                    break
+
+        if self._mel_opts["print"] or long_names or self._opts["labels"]:
+            self.res += f'  node[shape="box", style="rounded,filled", width="0.5"]\n'
+        elif self.mdp.num_states < 10 and not self._opts["names"]:
+            self.res += f'  node[shape="circle"]\n'
+        else:
+            self.res += f'  node[shape ="ellipse", width="0.5", height="0.5"]\n'
+
+
+
     def finish(self):
         self.res += "}\n"
 
     def get_state_name(self, s):
-        name = str(s) if self.mdp.names[s] is None else self.mdp.names[s]
-        return name
+        if not self._opts["names"] or self.mdp.names[s] is None:
+            return str(s)
+        return self.mdp.names[s]
     
     def process_state(self, s):
         self.res += f"\n  {s} ["
@@ -253,7 +294,12 @@ class consMDP2dot:
         else:
             state_str = name
 
-        self.res += f'label=<{state_str}>'
+        label_str = ""
+        if self._opts["labels"]:
+            labels = {self.mdp.AP[ap] for ap in self.mdp.state_labels[s]}
+            label_str = "∅" if not labels else labels.__str__()
+            label_str = f'<BR ALIGN="CENTER" />{label_str}'
+        self.res += f'label=<{state_str}{label_str}>'
 
         # Reload states are double circled and target states filled
         if self.mdp.is_reload(s):
@@ -306,17 +352,22 @@ class consMDP2dot:
         self.res += f", color={self.act_color}, fontcolor={self.act_color}]\n"
         
         # action-node
-        self.res += f"    {act_id}[label=<>,shape=point]\n"
+        self.res += f'    {act_id}[label=<>,shape=point,style="",width=".1",fillcolor="gray52"]\n'
         
         # action-node -> dest
         for dst, p in a.distr.items():
             self.res += f"      {act_id} -> {dst}[label={p}, color={self.prob_color}, fontcolor={self.prob_color}]"
         
 
-def dot_to_svg(dot_str):
+def dot_to_svg(dot_str, mdp=None):
     """
     Send some text to dot for conversion to SVG.
     """
+    if mdp is not None:
+        dotpr = mdp.dot_layout
+    else:
+        dotpr = _dot_pr
+
     try:
         dot_pr = subprocess.Popen([dotpr, '-Tsvg'],
                                stdin=subprocess.PIPE,

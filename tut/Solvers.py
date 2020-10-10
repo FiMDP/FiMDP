@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -47,6 +47,7 @@ e
 
 # +
 import fimdp
+fimdp.setup()
 
 def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
     gw.agent_capacity=capacity
@@ -155,12 +156,11 @@ print("Passed test 2 for values of goal-leaning strategies in file tut/Solvers.i
 
 from fimdp.examples.reachability_examples import two_step
 mdp, T = two_step()
-print(T)
-mdp
 
 basic = BasicES(mdp, cap=40, targets=T)
 goal = GoalLeaningES(mdp, cap=40, targets=T)
 threshold = GoalLeaningES(mdp, cap=40, targets=T, threshold=0.011)
+basic.show()
 
 # Intuitively, if we want to reach the target quickly, we need to take the upper path (via state 2) and we surely reach the target (double circled) in 2 steps. The lower path (via state 1) reaches the target with very low probability; trying infinitely often will lead us to the target almost surely, though.
 #
@@ -181,13 +181,14 @@ print("Passed test 3 for the threshold strategy in file tut/Solvers.ipynb")
 
 # ### Simple goal-leaning example
 
+# +
 from fimdp.examples.reachability_examples import goal_leaning
 gl, T = goal_leaning()
-print(f"Target states: {T}")
-gl
 
 basic = BasicES(gl, 10, targets=T)
 goal = GoalLeaningES(gl, 10, targets=T)
+goal.show()
+# -
 
 # In state 0, the standard solver (`basic`) chooses the `top` action because it is processed first and `bottom` does not yield any better value. You can change the order of the actions in the function that creates the CMDP and see that the result for `basic` changes.
 #
@@ -206,12 +207,13 @@ print("Passed test 4 for goal-leaning solver in file tut/Solvers.ipynb")
 # ### Goal-leaning is just a heuristic
 # We slightly modify the previous example by adding a new state (3), which is a copy of state 1. The `top` action, now named `sure`, does not loop back to 0, instead, it goes either to 1 or 2. This results in a situation where picking the `sure` action surely leads to the targets. But when deciding which action to choose, the solvers always consider only 1 successor. The best the action `sure` can achieve in this view is `0.5` reaching a promising successor. Therefore, the goal-leaning solver still prefers the bottom action, now called `cycle`. The `basic` solver still chooses the action that comes first as they both can achieve the same value.
 
+# +
 from fimdp.examples.reachability_examples import goal_leaning_2
 gl2, T = goal_leaning_2()
-print(f"Target states: {T}")
-gl2
 
 basic2 = BasicES(gl2, 10, targets=T)
 goal2 = GoalLeaningES(gl2, 10, targets=T)
+goal2.show()
+# -
 
 print(basic2.get_selector(BUCHI), goal2.get_selector(BUCHI), sep="\n")

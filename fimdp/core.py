@@ -59,13 +59,11 @@ states of a ProductConsMDP into states and actions of the original ConsMDP.
 
 [CAV paper]: https://link.springer.com/chapter/10.1007/978-3-030-53291-8_22
 """
-
-import math
 import random
-from IPython.display import display, SVG
 
 from .distribution import is_distribution
-from .dot import consMDP2dot, dot_to_svg
+from . import dot
+from . import _dot_pr
 
 
 class ConsMDP:
@@ -139,6 +137,8 @@ class ConsMDP:
         self.reloads = []
 
         self.num_states = 0
+
+        self.dot_layout = _dot_pr
 
     def structure_change(self):
         pass
@@ -296,17 +296,18 @@ class ConsMDP:
         return succs
 
     def get_dot(self, options=""):
-        dwriter = consMDP2dot(self, solver=None, options=options)
+        dwriter = dot.consMDP2dot(self, solver=None, options=options)
         return dwriter.get_dot()
 
     def show(self, options=""):
-        return display(SVG(dot_to_svg(self.get_dot(options))))
+        from IPython.display import SVG
+        return SVG(dot.dot_to_svg(self.get_dot(options), mdp=self))
         
     def _repr_dot_(self):
         return self.get_dot()
 
     def _repr_svg_(self):
-        return dot_to_svg(self._repr_dot_())
+        return dot.dot_to_svg(self._repr_dot_(), mdp=self)
         
         
 class ActionData:

@@ -146,9 +146,9 @@ assert result == expected, "The output parametric model has a wrong number of" \
 print("Passed test 1 for parametric models")
 
 constants = {
-    "size_x" : 100,
+    "size_x" : 50,
     "size_y" : "size_x",
-    "capacity" : 250,
+    "capacity" : 120,
     "cons_w_ex" : 0,
     "cons_s_ex" : 0,
 }

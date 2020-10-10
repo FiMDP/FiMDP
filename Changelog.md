@@ -66,6 +66,7 @@ and split into backward-incompatible and -compatible.
 #### Backward compatible changes
  * `EnergySolvers.get_strategy` returns `CounterSelector` objects instead of `list` of `dict`s
  * `ActionData.__repr__` now prints full information about the action (source state, consumption, label, and successor distribution).
+ * Visualization uses various shapes where appropriate.
 
 ## [1.0.2]
 
