@@ -101,30 +101,17 @@ class ConsMDP:
     Do not modify the two vectors directly. Always use `ConsMDP.add_action`
     to add and `ConsMDP.remove_action` or `ConsMDP.out_iteraser(s)` to remove
     actions.
-    
-    Computation of Safe vector
-    ==========================
-    The :math:`safe^{cap}` vector can be computed in 2 different ways.
-    
-    The variant used by default in consMDP can be controlled by def_EL_class.
-    Currently, the default is 
-    ```
-    self.def_EL_class = BasicES
-    ```
-    The other option is `LeastFixpointES`.
-    
-    The running times between the 2 variants can vary a lot, it hugely
-    depends on the MDP and its structure. See notebook 
-    [Safe-variants](Safe-variants.ipynb) for more details and comparison.
-    
-    Basically, LeastFixpointES is faster on models where the maximal
-    consumption on an action is strictly smaller than the number of states,
-    and the other way.
+
+    Parameters
+    ==========
+    layout: str or None (default)
+        one of the Graphviz engines to compute graph layouts ("dot", "neato",
+        "twopi", "circo"). The engine "dot" is used if `layout` is not
+        specified. The layout can be later changed using the attribute
+        `ConsMDP.dot_layout`.
     """
 
-    def __init__(self):
-        """Constructor method - consMDP class
-        """
+    def __init__(self, layout=None):
         self.name = None
 
         self.succ = []
@@ -136,7 +123,7 @@ class ConsMDP:
 
         self.num_states = 0
 
-        self.dot_layout = None
+        self.dot_layout = layout
 
     def structure_change(self):
         pass
