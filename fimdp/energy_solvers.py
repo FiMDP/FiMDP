@@ -570,16 +570,16 @@ class BasicES:
             self.compute(objective)
         return self.strategy[objective]
 
-    def _get_dot(self, options="", disable_key=False):
+    def get_dot(self, options=""):
         dot_writer = dot.consMDP2dot(mdp=self.mdp, solver=self, options=options)
         return dot_writer.get_dot()
 
     def _repr_svg_(self):
-        return dot.dot_to_svg(self._get_dot(), mdp=self.mdp)
+        return dot.dot_to_svg(self.get_dot(), mdp=self.mdp)
 
     def show(self, options="", disable_key=False):
         from IPython.display import SVG
-        return SVG(dot.dot_to_svg(self._get_dot(options), mdp=self.mdp))
+        return SVG(dot.dot_to_svg(self.get_dot(options), mdp=self.mdp))
 
 
 class GoalLeaningES(BasicES):
