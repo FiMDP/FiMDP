@@ -1,4 +1,4 @@
-__version__ = "1.0.2dev"
+__version__ = "1.99dev"
 
 global _show_default
 _show_default = "sprb"
