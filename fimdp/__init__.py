@@ -1,12 +1,9 @@
 __version__ = "1.99dev"
 
-global _show_default
-_show_default = "sprb"
-global _dot_pr
-_dot_pr = "dot"
-global _dot_options
-_dot_options = {"fillcolor_target": "#ccffcc", "max_states": 50}
-
+from . import core
+from . import energy_solvers
+from . import explicit
+from . import objectives
 
 def setup(**kwargs):
     """
@@ -35,11 +32,10 @@ def setup(**kwargs):
     max_states : int
         maximum number of states in GraphViz output (default: 50)
     """
-    global _show_default
-    _show_default += kwargs.get("show_default", "sprb")
-    global _dot_options
-    _dot_options["font"] = kwargs.get("font", "Lato")
-    _dot_options["fillcolor"] = kwargs.get("fillcolor", "#eeeeffcc")
-    _dot_options["fillcolor_target"] = kwargs.get("fillcolor_target", "#ccffcc")
-    _dot_options["names"] = kwargs.get("show_names", True)
-    _dot_options["state_labels"] = kwargs.get("state_labels", True)
+    from . import dot as _dot
+    _dot._show_default += kwargs.get("show_default", "sprb")
+    _dot._dot_options["font"] = kwargs.get("font", "Lato")
+    _dot._dot_options["fillcolor"] = kwargs.get("fillcolor", "#eeeeffcc")
+    _dot._dot_options["fillcolor_target"] = kwargs.get("fillcolor_target", "#ccffcc")
+    _dot._dot_options["names"] = kwargs.get("show_names", True)
+    _dot._dot_options["state_labels"] = kwargs.get("state_labels", True)

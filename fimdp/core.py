@@ -62,8 +62,6 @@ states of a ProductConsMDP into states and actions of the original ConsMDP.
 import random
 
 from .distribution import is_distribution
-from . import dot
-from . import _dot_pr
 
 
 class ConsMDP:
@@ -138,7 +136,7 @@ class ConsMDP:
 
         self.num_states = 0
 
-        self.dot_layout = _dot_pr
+        self.dot_layout = None
 
     def structure_change(self):
         pass
@@ -296,17 +294,20 @@ class ConsMDP:
         return succs
 
     def get_dot(self, options=""):
+        from . import dot
         dwriter = dot.consMDP2dot(self, solver=None, options=options)
         return dwriter.get_dot()
 
     def show(self, options=""):
         from IPython.display import SVG
+        from . import dot
         return SVG(dot.dot_to_svg(self.get_dot(options), mdp=self))
         
     def _repr_dot_(self):
         return self.get_dot()
 
     def _repr_svg_(self):
+        from . import dot
         return dot.dot_to_svg(self._repr_dot_(), mdp=self)
         
         
@@ -753,6 +754,7 @@ class CounterSelector(list):
         return res
 
     def __deepcopy__(self, memodict={}):
+        from copy import deepcopy
         """Return a deep copy of the CounterSelector"""
         res = type(self)(self.mdp)
         for i, rule in enumerate(self):

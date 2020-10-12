@@ -22,10 +22,9 @@ setting `mdp.EL=solver` and then calling `mdp.show()`.
 from math import inf
 from sys import stderr
 
+from .core import CounterSelector
 from .objectives import MIN_INIT_CONS, SAFE, POS_REACH, AS_REACH, BUCHI
 from .objectives import _HELPER_AS_REACH, _HELPER_BUCHI, _OBJ_COUNT
-from . import dot
-from .core import CounterSelector
 
 ### HELPER objectives ###
 
@@ -570,15 +569,18 @@ class BasicES:
             self.compute(objective)
         return self.strategy[objective]
 
-    def get_dot(self, options=""):
+    def get_dot (self, options=""):
+        from . import dot
         dot_writer = dot.consMDP2dot(mdp=self.mdp, solver=self, options=options)
         return dot_writer.get_dot()
 
     def _repr_svg_(self):
+        from . import dot
         return dot.dot_to_svg(self.get_dot(), mdp=self.mdp)
 
     def show(self, options="", disable_key=False):
         from IPython.display import SVG
+        from . import dot
         return SVG(dot.dot_to_svg(self.get_dot(options), mdp=self.mdp))
 
 

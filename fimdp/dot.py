@@ -7,9 +7,18 @@ import subprocess
 import sys
 import math
 
-from . import _dot_pr, _show_default, _dot_options
 from .objectives import *
 from .objectives import _HELPER_AS_REACH, _HELPER_BUCHI
+
+
+global _show_default
+_show_default = "sprb"
+global _dot_pr
+_dot_pr = "dot"
+global _dot_options
+_dot_options = {"fillcolor_target": "#ccffcc", "max_states": 50}
+
+
 
 tab_state_cell_style = ' rowspan="{}"'
 cell_style    = ' align="center" valign="middle"'
@@ -363,7 +372,7 @@ def dot_to_svg(dot_str, mdp=None):
     """
     Send some text to dot for conversion to SVG.
     """
-    if mdp is not None:
+    if mdp is not None and mdp.dot_layout is not None:
         dotpr = mdp.dot_layout
     else:
         dotpr = _dot_pr
