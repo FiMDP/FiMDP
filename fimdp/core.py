@@ -179,24 +179,18 @@ class ConsMDP:
             self.new_state(name)
         return range(start, start+count)
 
-    def set_reload(self, sid, reload=True):
-        #TODO extend to lists of states
-        """Set reload status of state `sid`.
+    def set_reload(self, s, reload=True):
+        """
+        Set reload status of given state(s).
 
-        Set to True by default."""
-        self.structure_change()
-        self.reloads[sid] = reload
-
-    def unset_reload(self, sid):
-        """Set the state `sid` *not* to be a reload state.
-
-        Equivalent to
-        ``
-        set(sid, False)
-        ``
+        If `s` is a list, set all of them as reloading states. By setting
+        `reload=False`, the states will be removed from reloading staes.
         """
         self.structure_change()
-        self.reloads[sid] = False
+        if isinstance(s, int):
+            s = [s]
+        for state in s:
+            self.reloads[state] = reload
 
     def is_reload(self, sid):
         """Return the reload status of state `sid`."""

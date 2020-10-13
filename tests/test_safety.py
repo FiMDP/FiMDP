@@ -45,7 +45,7 @@ print("Passed test 1 for BasicES.get_min_levels(MIN_INIT_CONS) in test_safety fi
 # If state 11 is not a reload state, we cannot reach reload from 10 for sure.
 
 # +
-m.unset_reload(11)
+m.set_reload(11, False)
 
 result = MI.get_min_levels(MIN_INIT_CONS, recompute=True)
 expected = [0, 3, 2, 1, 3, 9, 14, 1, 1, 0, inf, inf, 1]

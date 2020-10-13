@@ -81,6 +81,7 @@ and split into backward-incompatible and -compatible.
 [Unpublished]: https://github.com/xblahoud/FiMDP/compare/v1.0.2..HEAD
 [1.0.2]: https://github.com/xblahoud/FiMDP/tree/v1.0.2
 
-[nbviewer]: https://nbviewer.jupyter.org/
 [Basics]: tut/Basics.ipynb
+
+[nbviewer]: https://nbviewer.jupyter.org/
 [Spot]: https://spot.lrde.epita.fr/
