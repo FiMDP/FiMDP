@@ -1,0 +1,5 @@
+fimdpenv>=0.0.1
+setuptools~=45.2.0
+stormpy~=1.6.2
+jupyterlab~=2.2.0
+notebook~=6.0.3
