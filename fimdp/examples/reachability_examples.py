@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from .. import dot
-from ..core import ConsMDP
-from ..distribution import uniform
+from fimdp import dot
+from fimdp.core import ConsMDP
+from fimdp.distribution import uniform
 
 
 # ## Almost sure reachability example

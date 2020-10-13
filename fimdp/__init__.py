@@ -5,6 +5,9 @@ from . import energy_solvers
 from . import explicit
 from . import objectives
 
+from .core import ConsMDP
+
+
 def setup(**kwargs):
     """
     Configure FiMDP for nice display.
