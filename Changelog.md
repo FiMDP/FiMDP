@@ -31,6 +31,7 @@
    [Spot] to be installed. See [tut/Labeled](tut/Labeled.ipynb) for more details.
  * Binary search for detection of minimal capacity needed for a task
    (function `mincap_solvers.bin_search`).
+ * `fimdp.setup()` configures FiMDP to create nicer pictures of ConsMDPs.
  * Solvers can now be visualized. Legend for the semantics of the minimal levels can be 
    requested by calling `solver.show(.l)`
  * Show now takes `<N` option where the integer `N` marks the maximal number of states that
