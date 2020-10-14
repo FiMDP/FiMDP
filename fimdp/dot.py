@@ -24,7 +24,7 @@ tab_state_cell_style = ' rowspan="{}"'
 cell_style    = ' align="center" valign="middle"'
 targets_style        = f', style="filled,rounded", fillcolor="{_dot_options["fillcolor_target"]}"'
 default_table_style         = ' border="0" cellborder="0" cellspacing="0"' +\
-                       ' cellpadding="1" align="center" valign="middle"' +\
+                       ' cellpadding="0" align="center" valign="middle"' +\
                        ' style="rounded" bgcolor="#ffffff50"'
 
 # For each letter set a list of objectives that should be displayed
@@ -223,8 +223,8 @@ class consMDP2dot:
     def start(self):
         gr_name = self.mdp.name if self.mdp.name else ""
 
-        self.res += f"digraph \"{gr_name}\" {{\n"
-        self.res += "  rankdir=LR\n"
+        self.res += f'digraph "{gr_name}" {{\n'
+        self.res += '  rankdir=LR\n'
 
         color = _dot_options.get("fillcolor", None)
         if color is not None:
@@ -245,14 +245,17 @@ class consMDP2dot:
                     long_names = True
                     break
 
-        if self._mel_opts["print"] or long_names or self._opts["labels"]:
-            self.res += f'  node[shape="box", style="rounded,filled", width="0.5"]\n'
+        rect = False
+        if self._mel_opts["print"]:
+            rect = sum(self._mel_opts["cols"]) > 1
+
+        rect = rect or long_names or self._opts["labels"]
+        if rect:
+            self.res += f'  node[shape="box", style="rounded,filled", width="0.5", height="0.4"]\n'
         elif self.mdp.num_states < 10 and not self._opts["names"]:
             self.res += f'  node[shape="circle"]\n'
         else:
             self.res += f'  node[shape ="ellipse", width="0.5", height="0.5"]\n'
-
-
 
     def finish(self):
         self.res += "}\n"

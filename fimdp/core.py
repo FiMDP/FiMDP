@@ -176,7 +176,7 @@ class ConsMDP:
         start = self.num_states
         for i in range(count):
             name = None if names is None else names[i]
-            self.new_state(name)
+            self.new_state(name=name)
         return range(start, start+count)
 
     def set_reload(self, s, reload=True):
