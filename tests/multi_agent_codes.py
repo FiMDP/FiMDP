@@ -158,7 +158,6 @@ def min_hamilton(tree):
 
 def generate_Graph(T):
     """
-
     :param T: set of targets: which is a proxy here
     :return:
     Agent_graph: Networkx graph with nodes representing each target, edges representing cost
@@ -191,7 +190,6 @@ def generate_Graph(T):
 
 def generate_minimumspanning_tree_edmonds(Agent_graph):
     """
-
     :param Agent_graph: Networkx graph for the targets
     :type Agent_graph: Networkx undirected graph
     :return:
@@ -245,6 +243,7 @@ def compute_cost_assignments(Agent_graph,tour):
 
     return cost
 
+
 def augment_matching(matching,agent_lists,init_state,Bottleneckgraph):
     """
     :param matching: optimal bottleneck matching between agents and assignments
@@ -258,18 +257,23 @@ def augment_matching(matching,agent_lists,init_state,Bottleneckgraph):
     assignments=[]
     costs=[]
     #go over agents
+    print(matching)
     for i in range(len(init_state)):
-
+        matchingflag=True
         for item in matching.items():
             # if matching found
             if item[0]==init_state[i]:
+                matchingflag=False
 
                 #add weights if there is a path
                 assignments.append(agent_lists[-1*item[1]-1])
                 if Bottleneckgraph[item[0]][item[1]]['weight']>0:
                     costs.append(Bottleneckgraph[item[0]][item[1]]['weight'])
                 else:
-                    costs.append(Bottleneckgraph[0])
+                    costs.append(0)
+        if matchingflag:
+            assignments.append([])
+            costs.append(0)
 
     #add empty assignment if agents are not necessary
     while len(assignments)<len(agent_lists):
@@ -349,6 +353,8 @@ def tarjan_scc(Graph_cost,num_agent):
 
                     scc_list[i].append(item)
 
+
+
         #increase threshold if more SCC's then number of agents
         #print(scc_list,cost_bisec)
         if len(scc_list)>num_agent:
@@ -371,7 +377,7 @@ def tarjan_scc(Graph_cost,num_agent):
                         if not node in scc_list[i]:
                             aux_graph2.remove_node(node)
 
-                    #generates a list of edges
+                    #computes a path in the SCC, needs to be checked
                     dfs_path = list(nx.dfs_edges(aux_graph2))
                     #add elements to the path
                     for j in range(len(dfs_path)):
@@ -379,13 +385,13 @@ def tarjan_scc(Graph_cost,num_agent):
                             items_save[i].append(dfs_path[j][0])
                         if not dfs_path[j][1] in items_save[i]:
                             items_save[i].append(dfs_path[j][1])
-                    # generate path using dijkstra
+                        #update cost of the path
                     for j in range(len(items_save[i])-1):
                         #print(items_save[i][j],items_save[i][j+1])
                         path=nx.dijkstra_path(aux_graph2,items_save[i][j],items_save[i][j+1])
                         for k  in range(len(path)-1):
                             paths_save[i].append(path[k])
-                    # go through edges, add costs
+                    #print(paths_save[i])
                     for k in range(len(paths_save[i])-1):
                         if aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']>costsitem[i]:
                            costsitem[i]=aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']
@@ -397,9 +403,11 @@ def tarjan_scc(Graph_cost,num_agent):
                 #add the element if the scc is singular
                 elif len(scc_list[i])==1:
                     paths_save[i].append(scc_list[i][0])
+                    items_save[i].append(scc_list[i][0])
 
             #save the best elements
-            for item in paths_save:
+            for item in items_save:
+
                 saveitem.append(item)
             while len(saveitem)<num_agent:
                 saveitem.append(list([]))
@@ -407,7 +415,5 @@ def tarjan_scc(Graph_cost,num_agent):
                 costsitem.append(0)
     #return elements
     return saveitem,costsitem
-
-
 
 

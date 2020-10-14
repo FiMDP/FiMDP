@@ -38,10 +38,10 @@ def create_multiagent_env():
     setup()
     #generate environment
     num_agents=3
-    init_state=[123, 178, 65]
-    target = [24, 44, 57, 71, 87, 102, 191, 156, 217,232]
+    init_state=[350, 178, 65]
+    target = [24, 44, 57, 71, 87, 102, 191, 156, 232, 172]
     e = SynchronousMultiAgentEnv(num_agents=num_agents, grid_size=[20, 20], capacity=[100, 100, 100], reload=[22, 297],
-                                   target=[24, 44, 57, 71, 87, 102, 191, 156, 217, 232], init_state=init_state,
+                                   target=[24, 44, 57, 71, 87, 102, 191, 156, 232, 172], init_state=init_state,
                                  enhanced_actionspace=0)    #generate consumption MDP
     #generate consumption mdp
     e.create_consmdp()
@@ -64,9 +64,9 @@ def create_costs_for_agents(Agent_graph,consmdp,targets):
         for item2 in targets:
             if not item==item2:
                 #compute the capacity by bin_search
-                result = bin_search(consmdp, item, item2 ,objective=AS_REACH)
+                result = bin_search(consmdp, item, item2 ,objective=BUCHI)
                 #result=np.random.uniform(0,1)
-                #print(item,item2,result)
+                print(item,item2,result)
                 #add the edge with capacity
                 Agent_graph.add_edge(item, item2, weight=result)
 
@@ -85,9 +85,12 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
     #generate bipartite graph with the set of initial states and initial targets for each agent
     Bottleneckgraph=nx.Graph()
     dict_costs=dict()
+    dict_costs2=dict()
+
     for i in range(len(init_state)):
         for j in range(len(agent_lists)):
             dict_costs[init_state[i],j]=[1e4,-1]
+            dict_costs2[init_state[i],j]=[1e4,-1]
 
     for i in range(len(init_state)):
         Bottleneckgraph.add_node(init_state[i])
@@ -106,18 +109,40 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
                     item2=agent_lists[j][k]
                     #compute the capacity between initial agent states and initial targets
                     result = bin_search(consmdp, item1, item2, objective=AS_REACH)
+                    #result = np.random.uniform(0, 1)
+                    print(item1, item2, result)
                     #update the cost if the capacity is higher
                     if result>cost_lists[j] and result <dict_costs[init_state[i],j][0]:
                         dict_costs[init_state[i], j]=[result,item2]
                     elif result<=cost_lists[j] and cost_lists[j] <dict_costs[init_state[i],j][0]:
                         dict_costs[init_state[i], j]=[cost_lists[j],item2]
+                for k in range(len(agent_lists[j])):
+
+                    item2=init_state[i]
+                    item1=agent_lists[j][k]
+                    #compute the capacity between initial agent states and initial targets
+                    result = bin_search(consmdp, item1, item2, objective=AS_REACH)
+                    #result = np.random.uniform(0, 1)
+                    print(item1, item2, result)
+                    #update the cost if the capacity is higher
+                    if result>cost_lists[j] and result <dict_costs2[init_state[i],j][0]:
+                        dict_costs2[init_state[i], j]=[result,item1]
+                    elif result<=cost_lists[j] and cost_lists[j] <dict_costs2[init_state[i],j][0]:
+                        dict_costs2[init_state[i], j]=[cost_lists[j],item1]
                 #add min of the all edge costs if a transition exist
-                Bottleneckgraph.add_edge(init_state[i], -j-1, weight=dict_costs[init_state[i], j][0])
+                if dict_costs2[init_state[i],j][0]<dict_costs[init_state[i],j][0]:
+                    Bottleneckgraph.add_edge(init_state[i], -j-1, weight=dict_costs[init_state[i], j][0])
+                else:
+                    dict_costs[init_state[i], j][0]=dict_costs2[init_state[i],j][0]
+                    Bottleneckgraph.add_edge(init_state[i], -j-1, weight=dict_costs[init_state[i], j][0])
+
             else:
                 #add -1 if the path is singular
                 Bottleneckgraph.add_edge(init_state[i], -j-1, weight=-1)
 
     return Bottleneckgraph
+
+
 
 
 if __name__ == "__main__":
@@ -165,7 +190,6 @@ if __name__ == "__main__":
     print("Computing bottleneck assignment")
     matching=multi_agent_codes.bottleneckassignment(bottleneck_graph)
     #matching2=multi_agent_codes.tarjan_scc(Graph_cost,num_agent)
-
     final_assignments,final_costs=multi_agent_codes.augment_matching(matching,agent_lists,init_state,bottleneck_graph)
     print("Showing the final ordered allocation for agents with initial states")
     print(final_assignments)
@@ -177,28 +201,40 @@ if __name__ == "__main__":
     print("Tarjan-based part")
     print("----------------------------------------")
     #compute the allocation costs using tarjan
-    agent_lists2,cost_lists2 = multi_agent_codes.tarjan_scc(Graph_cost, num_agent)
+    cost_max=1e4
+    final_tarjan_assignment=[]
+    final_tarjan_cost=[]
+    for num_agent_val in range(1,num_agent+1):
+        agent_lists2,cost_lists2 = multi_agent_codes.tarjan_scc(Graph_cost, num_agent_val)
 
-    print("Showing the allocation for agents")
-    print(agent_lists2)
-    print("Showing the costs of the allocations")
-    print(cost_lists2)
-    #visualize_allocation(e)
-    print("Generating capacities between agents and set of paths with bin search")
+        print("Showing the allocation for agents")
+        print(agent_lists2)
+        print("Showing the costs of the allocations")
+        print(cost_lists2)
+        #visualize_allocation(e)
+        print("Generating capacities between agents and set of paths with bin search")
 
-    bottleneck_graph2=create_costs_for_agents_targets(MDP,agent_lists2,cost_lists2,init_state)
-    #allocates targets to agents
-    print("Computing bottleneck assignment")
-    matching2=multi_agent_codes.bottleneckassignment(bottleneck_graph2)
-    #matching2=multi_agent_codes.tarjan_scc(Graph_cost,num_agent)
+        bottleneck_graph2=create_costs_for_agents_targets(MDP,agent_lists2,cost_lists2,init_state)
+        #allocates targets to agents
+        print("Computing bottleneck assignment")
+        matching2=multi_agent_codes.bottleneckassignment(bottleneck_graph2)
+        #matching2=multi_agent_codes.tarjan_scc(Graph_cost,num_agent)
+        print(matching2)
 
-    final_assignments2,final_costs2=multi_agent_codes.augment_matching(matching2,agent_lists2,init_state,bottleneck_graph2)
-    print("Showing the final ordered allocation for agents with initial states")
-    print(final_assignments2)
-    print("Showing the final ordered costs of the allocations")
-    print(final_costs2)
-
-    env.allocate_target(final_assignments)
+        final_assignments2,final_costs2=multi_agent_codes.augment_matching(matching2,agent_lists2,init_state,bottleneck_graph2)
+        if max(final_costs2)<=cost_max:
+            final_tarjan_assignment=final_assignments2
+            final_tarjan_cost=final_costs2
+            cost_max=max(final_costs2)
+        print("Showing the final ordered allocation for agents with initial states")
+        print(final_assignments2)
+        print("Showing the final ordered costs of the allocations")
+        print(final_costs2)
+    print("Showing the best ordered allocation for agents with initial states")
+    print(final_tarjan_assignment)
+    print("Showing the best ordered costs of the allocations")
+    print(final_tarjan_cost)
+    env.allocate_target(final_tarjan_assignment)
     consmdp1 = env.get_consmdp()
     MDP = consmdp1[0]
     #generate targets
