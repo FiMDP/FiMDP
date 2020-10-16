@@ -1,11 +1,8 @@
-import decimal
 import json
 
 import stormpy
 from .core import ConsMDP
 from .explicit import product_energy
-
-decimal.getcontext().prec=4
 
 
 def get_state_name(model, state):
@@ -56,7 +53,6 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
     if return_targets and "target" not in sparse_mdp.labeling.get_labels():
         raise ValueError("The supplied `sparse_mdp` does not have the "
                          "`target` state-label defined")
-    decimal.getcontext().prec = 4
 
     state_valuations = state_valuations and sparse_mdp.has_state_valuations()
     action_labels = action_labels and sparse_mdp.has_choice_labeling()
@@ -91,8 +87,7 @@ def storm_sparsemdp_to_consmdp(sparse_mdp,
                     a_label = a_id
             else:
                 a_label = a_id
-            distr = {entry.column: decimal.Decimal(entry.value()).normalize()
-                     for entry in action.transitions}
+            distr = {entry.column: entry.value() for entry in action.transitions}
             mdp.add_action(state.id, distr, a_label, int(a_cons))
 
     if return_targets:

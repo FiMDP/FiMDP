@@ -83,11 +83,6 @@ class ConsMDP:
     Functions that change the structure of the consMDP should always call
     `self.structure_change()`.
 
-    Define your probabilities in distributions in some exact representation
-    like `decimal.Decimal(probability_string)` and always avoid floating-point
-    data types. Due to their imprecision some checks could fail or trigger
-    false positives (e.g. `0.06+0.82+0.12 != 1`!).
-
     Implementation details
     ======================
     The action objects are stored in a sparse-matrix fashion using two

@@ -5,8 +5,6 @@ functions.
 A distribution is a mapping from states (integers) to probability values where
 the values sum up to 1.
 """
-import decimal
-from decimal import Decimal
 
 def is_distribution(distribution):
     """
@@ -22,7 +20,7 @@ def is_distribution(distribution):
 
     """
     probabilities = distribution.values()
-    return sum(probabilities) == 1
+    return round(sum(probabilities), 8) == 1
 
 
 def uniform(destinations):
@@ -33,9 +31,8 @@ def uniform(destinations):
     """
     count = len(destinations)
     mod = 100 % count
-    decimal.getcontext().prec = 2
-    prob = Decimal(1)/Decimal(count)
+    prob = 1/count
     dist = {i: prob for i in destinations}
     last = destinations[-1]
-    dist[last] = dist[last] + Decimal("0.01")*mod
+    dist[last] = dist[last] + 0.01*mod
     return dist
