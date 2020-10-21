@@ -37,11 +37,11 @@ def create_multiagent_env():
     #env_multiagent setup function
     setup()
     #generate environment
-    num_agents=3
-    init_state=[350, 178, 65]
+    num_agents=4
+    init_state=[362, 193, 178, 65]
     target = [24, 44, 57, 71, 87, 102, 191, 156, 232, 172]
-    e = SynchronousMultiAgentEnv(num_agents=num_agents, grid_size=[20, 20], capacity=[100, 100, 100], reload=[22, 297],
-                                   target=[24, 44, 57, 71, 87, 102, 191, 156, 232, 172], init_state=init_state,
+    e = SynchronousMultiAgentEnv(num_agents=num_agents, grid_size=[20, 20], capacity=[100, 100, 100,100], reload=[22, 297],
+                                   target=[24, 44, 57, 71, 87, 102, 194, 156, 232, 172], init_state=init_state,
                                  enhanced_actionspace=0)    #generate consumption MDP
     #generate consumption mdp
     e.create_consmdp()
@@ -66,7 +66,7 @@ def create_costs_for_agents(Agent_graph,consmdp,targets):
                 #compute the capacity by bin_search
                 result = bin_search(consmdp, item, item2 ,objective=BUCHI)
                 #result=np.random.uniform(0,1)
-                print(item,item2,result)
+                #print(item,item2,result)
                 #add the edge with capacity
                 Agent_graph.add_edge(item, item2, weight=result)
 
@@ -103,19 +103,22 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
         for j in range(len(agent_lists)):
             #if target exists
             if len(agent_lists[j]) >= 1:
-                for k in range(len(agent_lists[j])):
+                #for k in range(len(agent_lists[j])):
 
-                    item1=init_state[i]
-                    item2=agent_lists[j][k]
-                    #compute the capacity between initial agent states and initial targets
-                    result = bin_search(consmdp, item1, item2, objective=AS_REACH)
-                    #result = np.random.uniform(0, 1)
-                    print(item1, item2, result)
-                    #update the cost if the capacity is higher
-                    if result>cost_lists[j] and result <dict_costs[init_state[i],j][0]:
-                        dict_costs[init_state[i], j]=[result,item2]
-                    elif result<=cost_lists[j] and cost_lists[j] <dict_costs[init_state[i],j][0]:
-                        dict_costs[init_state[i], j]=[cost_lists[j],item2]
+                item1=init_state[i]
+                item2=agent_lists[j]
+                #compute the capacity between initial agent states and initial targets
+                result = bin_search(consmdp, item1, item2, objective=BUCHI)
+                #result = np.random.uniform(0, 1)
+                #print(item1, item2, result)
+                item2=agent_lists[j][0]
+                #update the cost if the capacity is higher
+                if result>cost_lists[j] and result <dict_costs[init_state[i],j][0]:
+                    dict_costs[init_state[i], j]=[result,item2]
+
+                elif result<=cost_lists[j] and cost_lists[j] <dict_costs[init_state[i],j][0]:
+                    dict_costs[init_state[i], j]=[cost_lists[j],item2]
+
                 for k in range(len(agent_lists[j])):
 
                     item2=init_state[i]
@@ -123,7 +126,7 @@ def create_costs_for_agents_targets(consmdp,agent_lists,cost_lists,init_state):
                     #compute the capacity between initial agent states and initial targets
                     result = bin_search(consmdp, item1, item2, objective=AS_REACH)
                     #result = np.random.uniform(0, 1)
-                    print(item1, item2, result)
+                    #print(item1, item2, result)
                     #update the cost if the capacity is higher
                     if result>cost_lists[j] and result <dict_costs2[init_state[i],j][0]:
                         dict_costs2[init_state[i], j]=[result,item1]
@@ -219,7 +222,7 @@ if __name__ == "__main__":
         print("Computing bottleneck assignment")
         matching2=multi_agent_codes.bottleneckassignment(bottleneck_graph2)
         #matching2=multi_agent_codes.tarjan_scc(Graph_cost,num_agent)
-        print(matching2)
+        #print(matching2)
 
         final_assignments2,final_costs2=multi_agent_codes.augment_matching(matching2,agent_lists2,init_state,bottleneck_graph2)
         if max(final_costs2)<=cost_max:
@@ -235,12 +238,12 @@ if __name__ == "__main__":
     print("Showing the best ordered costs of the allocations")
     print(final_tarjan_cost)
     env.allocate_target(final_tarjan_assignment)
-    consmdp1 = env.get_consmdp()
-    MDP = consmdp1[0]
+    # consmdp1 = env.get_consmdp()
+    # MDP = consmdp1[0]
     #generate targets
     #compute strategies, pulled from Pranay
-    for agent_id in range(env.num_agents):
-        solver = GoalLeaningES(MDP, env.capacity[agent_id], env.target_allocation[agent_id], threshold=0.1)
-        strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
-        env.update_strategy(agent_id, strategy)
-    env.animate_strategy(num_steps=50, interval=100)
+    # for agent_id in range(env.num_agents):
+    #     solver = GoalLeaningES(MDP, env.capacity[agent_id], env.target_allocation[agent_id], threshold=0.1)
+    #     strategy = solver.get_strategy(fimdp.energy_solver.BUCHI)
+    #     env.update_strategy(agent_id, strategy)
+    # env.animate_strategy(num_steps=50, interval=100)

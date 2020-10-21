@@ -98,6 +98,8 @@ def bisection_loop(Agent_graph,tour_min,num_agents):
                     # update the cost if the next capacity is higher than previous one
                     if cost_agent < Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']:
                         cost_agent = Agent_graph[tour_min[i]][tour_min[i + 1]]['weight']
+                    if cost_agent < Agent_graph[tour_min[len(tour_min) - 1]][tour_min[0]]['weight']:
+                        cost_agent = Agent_graph[tour_min[len(tour_min) - 1]][tour_min[0]]['weight']
 
 
             # If the cost exceeds 6x of the optimal cost, break the tour of this agent
@@ -257,7 +259,7 @@ def augment_matching(matching,agent_lists,init_state,Bottleneckgraph):
     assignments=[]
     costs=[]
     #go over agents
-    print(matching)
+    #print(matching)
     for i in range(len(init_state)):
         matchingflag=True
         for item in matching.items():
@@ -415,5 +417,3 @@ def tarjan_scc(Graph_cost,num_agent):
                 costsitem.append(0)
     #return elements
     return saveitem,costsitem
-
-
