@@ -1017,7 +1017,7 @@ class Simulator():
 
             self.strategy.update_state(next_state)
             self.state_history.append(next_state)
-            self.action_history.append(action.label)
+            self.action_history.append(action)
                 
     def reset(self, init_state=None, *args, **kwargs):
         """
