@@ -49,17 +49,16 @@ e
 import fimdp
 fimdp.setup()
 
-def showcase_solver(SolverClass, gw=e, steps=100, capacity=40):
+def showcase_solver(SolverClass, gw=e, steps=100, capacity=40, **solver_args):
+    gw.reset(gw.init_states)
     gw.agent_capacity=capacity
-    m, t = gw.get_consmdp()
-    solver = SolverClass(m, capacity, t)
-    strategy = solver.get_selector(fimdp.objectives.BUCHI)
-    return gw.animate_strategy(strategy, num_steps=steps)
+    gw.create_counterstrategy(SolverClass, fimdp.objectives.BUCHI, **solver_args)
+    return gw.animate_simulation(num_steps=steps)
     
-def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40):
+def strategy_at(SolverClass, state, gw=e, steps=100, capacity=40, **solver_args):
     gw.agent_capacity=capacity
     m, t = gw.get_consmdp()
-    solver = SolverClass(m, capacity, t)
+    solver = SolverClass(m, capacity, t, **solver_args)
     strategy = solver.get_selector(fimdp.objectives.BUCHI)
     return strategy[state]
 
@@ -116,11 +115,10 @@ strategy_at(GoalLeaningES, problematic)
 #
 # Ignoring the rare cases can lead to an increase in the minimal energy we need to satisfy the objective. For example, in the problematic case above, `NORTH` will have higher `action_value_T` with the threshold, which means that its previous value is no longer achieved. Therefore, after reaching the fixpoint for the first time (using the threshold-approach), we run another fixpoint that can improve the current values not using the threshold.
 
-threshold_class = lambda mdp, cap, t: GoalLeaningES(mdp, cap, t, threshold=0.1)
-showcase_solver(threshold_class, capacity=35)
+showcase_solver(GoalLeaningES, capacity=35, threshold=0.1)
 
 problematic = 187
-strategy_at(threshold_class, problematic, capacity=35)
+strategy_at(GoalLeaningES, problematic, capacity=35, threshold=0.1)
 
 # This strategy uses the strong actions (`4`—`7`) for energy between 16 and 27. It goes `NORTH=4` only with interval 16—18, and prefers to go to `SOUTH=6` with energy in 19—28, and finally uses weak action to `EAST` with more than 27 units of energy.
 
@@ -154,7 +152,7 @@ print("Passed test 2 for values of goal-leaning strategies in file tut/Solvers.i
 #
 # Now let's create the CMDP using the FiMDP package.
 
-from fimdp.examples.reachability_examples import two_step
+from fimdp.examples.cons_mdp import two_step
 mdp, T = two_step()
 
 basic = BasicES(mdp, cap=40, targets=T)
@@ -182,7 +180,7 @@ print("Passed test 3 for the threshold strategy in file tut/Solvers.ipynb")
 # ### Simple goal-leaning example
 
 # +
-from fimdp.examples.reachability_examples import goal_leaning
+from fimdp.examples.cons_mdp import goal_leaning
 gl, T = goal_leaning()
 
 basic = BasicES(gl, 10, targets=T)
@@ -208,7 +206,7 @@ print("Passed test 4 for goal-leaning solver in file tut/Solvers.ipynb")
 # We slightly modify the previous example by adding a new state (3), which is a copy of state 1. The `top` action, now named `sure`, does not loop back to 0, instead, it goes either to 1 or 2. This results in a situation where picking the `sure` action surely leads to the targets. But when deciding which action to choose, the solvers always consider only 1 successor. The best the action `sure` can achieve in this view is `0.5` reaching a promising successor. Therefore, the goal-leaning solver still prefers the bottom action, now called `cycle`. The `basic` solver still chooses the action that comes first as they both can achieve the same value.
 
 # +
-from fimdp.examples.reachability_examples import goal_leaning_2
+from fimdp.examples.cons_mdp import goal_leaning_2
 gl2, T = goal_leaning_2()
 
 basic2 = BasicES(gl2, 10, targets=T)

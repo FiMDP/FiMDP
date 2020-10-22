@@ -37,6 +37,9 @@ def basic():
     return m, targets
 
 
+basic()[0]
+
+
 def explicit():
     mdp = ConsMDP(layout="dot")
     mdp.new_states(5)
@@ -50,6 +53,9 @@ def explicit():
     mdp.add_action(4, uniform([0]), "i", 2)
     T = [1,2]
     return mdp, T
+
+
+explicit()[0]
 
 
 def goal_leaning():
@@ -112,6 +118,9 @@ def product_example():
     mdp.add_action(3, uniform([0]), "s", 3)
     return mdp, {1, 2}
 
+product_example()[0]
+
+
 def two_step():
     two_step = ConsMDP(layout="neato")
     two_step.new_states(4)
@@ -156,3 +165,5 @@ def ultimate():
     m.add_action(8,{5:1}, "r", 3)
 
     return m, T
+
+

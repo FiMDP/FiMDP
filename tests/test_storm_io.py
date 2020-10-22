@@ -3,7 +3,7 @@ from fimdp.io import prism_to_consmdp, parse_cap_from_prism, \
     encode_to_stormpy
 from fimdp.energy_solvers import BasicES
 from fimdp.objectives import BUCHI, AS_REACH
-from fimdp.examples.reachability_examples import little_alsure
+from fimdp.examples.cons_mdp import little_alsure
 from fimdp.explicit import product_energy
 import stormpy
 

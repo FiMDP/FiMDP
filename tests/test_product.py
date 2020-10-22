@@ -40,7 +40,7 @@ print("Passed test for DBAWrapper in file test_product.py")
 
 # In the following example we want the states `1` and `2` to be visited infinitely often, expressed naturaly as the formula $\mathsf{G}\mathsf{F} s_1 \land \mathsf{G}\mathsf{F}s_2$ where the atomic proposition $s_1$ corresponds to visiting state `1` and the tomic proposition $s_2$ corresponds to visiting state`2`.
 
-from fimdp.examples.reachability_examples import product_example
+from fimdp.examples.cons_mdp import product_example
 mdp, T = product_example()
 mdp
 

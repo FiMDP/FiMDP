@@ -11,7 +11,7 @@ from fimdp.labeled import LabeledConsMDP
 
 # -
 
-from fimdp.examples.reachability_examples import product_example
+from fimdp.examples.cons_mdp import product_example
 mdp, T = product_example()
 lmdp = LabeledConsMDP(AP=["s1", "s2"], mdp=mdp)
 lmdp.state_labels = [set(), {0}, {1}, set()]
