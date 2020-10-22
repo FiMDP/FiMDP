@@ -2,10 +2,10 @@
 Core module defining the functions for converting a consumption Markov Decision 
 Process from consMDP model to dot representation and present it. 
 """
-
+import math
+import re
 import subprocess
 import sys
-import math
 
 from .objectives import *
 from .objectives import _HELPER_AS_REACH, _HELPER_BUCHI
@@ -55,9 +55,10 @@ class consMDP2dot:
                 self.opt_string = options[1:] + _show_default
             else:
                 self.opt_string = options
-
-        max_states = _dot_options["max_states"]
         opt_s = self.opt_string
+
+        # Parse max states from options
+        max_states = _dot_options["max_states"]
         max_i = opt_s.find("<")
         if max_i > -1:
             pos = max_i + 1
@@ -76,21 +77,34 @@ class consMDP2dot:
             "labels" : _dot_options.get("state_labels", True) and \
                        hasattr(self.mdp, "state_labels"),
         }
+        # Print names?
         if "n" in options:
             self._opts["names"] = True
         if "N" in options:
             self._opts["names"] = False
 
+        # Print labels?
         if "a" in options:
             self._opts["labels"] = True
         if "A" in options:
             self._opts["labels"] = False
 
+        # targets given?
+        res = re.search('T{([^}]*)}', opt_s)
+        if res:
+            t_str = res.group(1)
+            self._opts["targets"] = [int(t) for t in t_str.split(",")]
+
         self.act_color = "black"
         self.prob_color = "gray52"
 
         self.solver = solver
-        self.targets = [] if solver is None else solver.targets
+        self.targets = self._opts.get("targets", [])
+        if self.targets and solver is not None:
+            raise ValueError("Targets are specified both by the " \
+                             "solver and in options using T{targets}")
+        if solver is not None:
+            self.targets = solver.targets
 
         # Trim the mdp if needed
         self.incomplete = set()
