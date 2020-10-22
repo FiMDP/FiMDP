@@ -154,7 +154,7 @@ class consMDP2dot:
 
         self.mel_settings = dict()
         self.mel_settings[SAFE] = {
-            "name": "Safe levels",
+            "name": "Survival",
             "enabled": False,
             "color": "red",
         }
@@ -166,7 +166,7 @@ class consMDP2dot:
         }
 
         self.mel_settings[AS_REACH] = {
-            "name": "Almost-sure reachability",
+            "name": "Reachability",
             "enabled": False,
             "color": "dodgerblue4",
         }
