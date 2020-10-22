@@ -26,6 +26,7 @@ targets_style        = f', style="filled,rounded", fillcolor="{_dot_options["fil
 default_table_style         = ' border="0" cellborder="0" cellspacing="0"' +\
                        ' cellpadding="0" align="center" valign="middle"' +\
                        ' style="rounded" bgcolor="#ffffff50"'
+legend_style = "border='0' cellborder='0' color='black' cellspacing='0'"
 
 # For each letter set a list of objectives that should be displayed
 opt_to_objs = {
@@ -230,7 +231,7 @@ class consMDP2dot:
             if s in self.incomplete:
                 self.add_incomplete(s)
         if self._opts["print_legend"]:
-            self.add_key()
+            self.add_legend()
         self.finish()
         return self.res
 
@@ -342,17 +343,26 @@ class consMDP2dot:
                     f'tooltip="hidden successors"]\n  {s} -> u{s} ' \
                     f'[style=dashed, tooltip="hidden successors"]'
 
-    def add_key(self):
+    def add_legend(self):
         if not self._opts["print_MELs"]:
             return
         cols = sum(self._mel_opts["cols"])
-        self.res += "subgraph {\n\ntbl [color = white,\n\nlabel=<\n\n<table border='0' cellborder='1' color='black' cellspacing='0'>\n"
-        self.res += f"<tr><td colspan='{cols}'>Legend</td></tr>\n"
 
+        self.res += f'\nsubgraph key {{\n \tlabel="legend"' \
+                    f'\n\tlegend [shape=box, style="rounded,filled", ' \
+                    f'label=<\n\t\t<table {legend_style}>'
+
+        # Start with a state name
+        rows = sum(self._mel_opts["rows"])
+        self.res += f"<tr><td rowspan='{rows}'>s</td>"
+
+        print_tr = False
         for row, cols in enumerate(self._mel_opts["shape"]):
             if not self._mel_opts["rows"][row]:
                 continue
-            self.res += "<tr>"
+            if print_tr:
+                self.res += f"\n\t\t<tr>"
+
             for col, objective in enumerate(cols):
                 settings = self.mel_settings[objective]
                 if not self._mel_opts["cols"][col]:
@@ -360,14 +370,16 @@ class consMDP2dot:
                 if not settings["enabled"]:
                     self.res += "<td></td>"
                     continue
+
                 color = settings["color"]
                 val = settings["name"]
-                self.res += f"<td{cell_style}>" \
+                self.res += f"\n\t\t\t<td{cell_style}>" \
                              f"<font color='{color}' point-size='10'>" \
                              f"{val}</font></td>"
-            self.res += "</tr>"
+            self.res += "\n\t\t</tr>"
+            print_tr = True
 
-        self.res += "</table>\n>];\n}"
+        self.res += "\n\t\t</table>\n\t>];\n}"
 
     def process_action(self, a):
         act_id = f"\"{a.src}_{a.label}\""
