@@ -35,7 +35,7 @@
  * Solvers can now be visualized. Legend for the semantics of the minimal levels can be 
    requested by calling `solver.show(.l)`
  * Show now takes `<N` option where the integer `N` marks the maximal number of states that
-   should be drawn.
+   should be drawn. It can be also specified by `max_states=N`.
  * `ConsMDP.show` takes `targets` argument which enables to highlight the given
    set of targets. Alternatively, targets can be specified using the option
    string `".T{t₁,t₂,...}"`. This cannot be used for solvers.

@@ -578,9 +578,11 @@ class BasicES:
         from . import dot
         return dot.dot_to_svg(self.get_dot(), mdp=self.mdp)
 
-    def show(self, options="", disable_key=False):
+    def show(self, options="", max_states):
         from IPython.display import SVG
         from . import dot
+        if max_states is not None:
+            options += f".<{max_states}"
         return SVG(dot.dot_to_svg(self.get_dot(options), mdp=self.mdp))
 
 

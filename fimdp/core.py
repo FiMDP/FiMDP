@@ -274,13 +274,15 @@ class ConsMDP:
         dwriter = dot.consMDP2dot(self, solver=None, options=options)
         return dwriter.get_dot()
 
-    def show(self, options="", targets=None):
+    def show(self, options="", targets=None, max_states=None):
         from IPython.display import SVG
         from . import dot
         if targets is not None:
             t_strings = [str(t) for t in targets]
-            t_str = f"T{{{','.join(t_strings)}}}"
+            t_str = f".T{{{','.join(t_strings)}}}"
             options += t_str
+        if max_states is not None:
+            options += f".<{max_states}"
         return SVG(dot.dot_to_svg(self.get_dot(options), mdp=self))
         
     def _repr_dot_(self):
