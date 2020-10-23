@@ -8,7 +8,7 @@
 
 Our related project called **[FiMDPEnv]** is a set of environments that work with FiMDP and can create animations like this one.
 <p align="center">
-<img src="docs/source/images/demoanimation.gif" alt="Multiple agents following energy-aware policy in grid-world." align="center" height="250" width="350" >
+<img src="https://github.com/FiMDP/FiMDP/blob/master/docs/source/images/demoanimation.gif" alt="Multiple agents following energy-aware policy in grid-world." align="center" height="250" width="350" >
 <br>
 <em>Multiple agents following energy-aware policies in UUVEnv from <a href="https://github.com/FiMDP/FiMDPEnv">FiMDPEnv</a>.  </em>
 </p>
