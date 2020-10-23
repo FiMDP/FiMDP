@@ -2,6 +2,8 @@
 
 ## [Unpublished]
 
+## [2.0.0]
+
 ### Added
  * Solvers that use heuristics for strategies usable in control. This is implemented in class
    `GoalLeaningES` of the `energy_solver.py` module. See [tut/Solvers](tut/Solvers.ipynb)
@@ -81,8 +83,9 @@ and split into backward-incompatible and -compatible.
  * Algorithm for explicit representation of energy + MEC decomposition of this explicit MDP
  * example notebooks
 
-[Unpublished]: https://github.com/xblahoud/FiMDP/compare/v1.0.2..HEAD
-[1.0.2]: https://github.com/xblahoud/FiMDP/tree/v1.0.2
+[Unpublished]: https://github.com/FiMDP/FiMDP/compare/v2.0.0..HEAD
+[2.0.0]: https://github.com/FiMDP/FiMDP/compare/v2.0.0..v1.0.2
+[1.0.2]: https://github.com/FiMDP/FiMDP/tree/v1.0.2
 
 [Basics]: tut/Basics.ipynb
 
