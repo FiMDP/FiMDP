@@ -15,14 +15,11 @@ setup(
     long_description=README,
     long_description_content_type="text/markdown",
     keywords='polynomial-time, buchi-objective, agent, cmdp, controller-synthesis, formal-methods',
-    url='https://github.com/xblahoud/FiMDP',
+    url='https://github.com/FiMDP/FiMDP',
     author="Fanda Blahoudek",
     author_email="fandikb+dev@gmail.com",
     license="MIT",
     python_requires=">=3.6.0",
     packages=['fimdp'],
-    install_requires=[
-        'ipython>=7.13.0',
-    ]
 )
 

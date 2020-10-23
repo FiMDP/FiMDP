@@ -1,4 +1,4 @@
-__version__ = "1.99dev"
+__version__ = "2.0"
 
 from . import core
 from . import energy_solvers
