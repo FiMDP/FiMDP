@@ -1,21 +1,56 @@
+dist: focal 
+
 language: python
 python:
-  - "3.7"
+  - "3.8"
+
+virtualenv:
+  system_site_packages: true
 
 addons:
   apt:
     packages:
       - graphviz
+      - ffmpeg
 
 # command to install dependencies
 install:
+  - pip3 install jupyter matplotlib ipympl
+  # Fimdpenv custom version
+  - git clone https://github.com/xblahoud/fimdpenv
+  - cd fimdpenv
+  - git checkout fimdp2
   - pip3 install -e .
+  - cd ..
+  # Install FiMDP
+  - pip3 install -e .
+# Install Spot
+#before_script:
+  - wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | sudo apt-key add -
+  - sudo echo 'deb http://www.lrde.epita.fr/repo/debian/ unstable/' >> /etc/apt/sources.list
+  - sudo apt-get update
+  - sudo apt-get install spot libspot-dev spot-doc python3-spot
+  - sudo ln -s /usr/local/lib/python3.8/site-packages/spot/ /usr/local/lib/python3.8/dist-packages/spot
+  - sudo ln -s /usr/local/lib/python3.8/site-packages/buddy.py /usr/local/lib/python3.8/dist-packages
+  - sudo ln -s /usr/local/lib/python3.8/site-packages/_buddy* /usr/local/lib/python3.8/dist-packages/
 
 # command to run tests
 script:
-  - python ./tests/test_buchi.py
-  - python ./tests/test_mecs.py
-  - python ./tests/test_reachability.py
-  - python ./tests/test_safety.py
-  - python ./tests/test_strategy.py
-  
+  - cd tests
+#  - ./test.sh
+  - python3 test_buchi.py
+# - python3 test_storm_io.py
+  - python3 test_lcmdp.py
+  - python3 test_mecs.py
+  - python3 test_mincap.py
+  - python3 test_product.py
+  - python3 test_product_selector.py
+  - python3 test_reachability.py
+  - python3 test_safety.py
+  - python3 test_strategy.py
+  - python3 test_strategy_old.py
+  - jupyter nbconvert --execute ../tut/Basics.ipynb --to html
+  - jupyter nbconvert --execute ../tut/ExplicitEnergy.ipynb --to html
+  - jupyter nbconvert --execute ../tut/Labeled.ipynb --to html
+  - jupyter nbconvert --execute ../tut/Solvers.ipynb --to html
+# - jupyter nbconvert --execute ../tut/StormAndPrism.ipynb --to html

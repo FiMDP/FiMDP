@@ -1,9 +1,6 @@
-graphviz>=0.9
-numpy>=1.18.1
-ipython>=7.13.0
-folium>=0.10.1
-networkx>=2.4
-matplotlib>=3.2.1
-jupyter>=1.0.0
-jupyterlab>=1.0.0
-sphinx==2.4.4
+fimdpenv~=1.0.0
+setuptools~=45.2.0
+stormpy~=1.6.2
+jupyterlab~=2.2.0
+notebook~=6.0.3
+sphinx~=2.4.4

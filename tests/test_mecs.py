@@ -1,5 +1,5 @@
 from reachability_examples import ultimate
-import fimdp.mec_decomposition as mec
+import fimdp.explicit as mec
 
 mdp = ultimate()[0]
 result = mec.get_MECs(mdp)
