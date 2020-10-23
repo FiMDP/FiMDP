@@ -30,7 +30,7 @@ def create_env(env_name, agent_capacity=200, heading_sd=0.524, reload_input=None
         grid_size = (20,20)
         agent_capacity = agent_capacity 
         init_state = 5*grid_size[0]+2
-        reload_list = [2*grid_size[0]+5, 12*grid_size[0] - 5]
+        reload_list = [9*grid_size[0] - 3]
         target_list = [grid_size[0]*grid_size[1] - 3*grid_size[0] - 8]
         
     elif env_name == '2R-1T-complex':
