@@ -3,64 +3,74 @@
 Documentation
 ==============
 
-This section provides the documentation of all the modules in the package. Some of the
-modules listed are purpose designed for the examples used in our work and do not contribute
-to the core implementation of the algorithm. Such modules are explicitly mentioned in their
-corresponding descriptions. 
+This section provides the documentation of all the modules in the package. 
 
-
-fimdp.fixpoints module
+fimdp.core module
 ------------------------
-.. automodule:: fimdp.fixpoints
+.. automodule:: fimdp.core
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fimdp.distribution module
+-----------------
+.. automodule:: fimdp.distribution
     :members:
     :undoc-members:
     :show-inheritance:
 
 fimdp.dot module
------------------
+----------------------------
 .. automodule:: fimdp.dot
     :members:
     :undoc-members:
     :show-inheritance:
 
 fimdp.energy_solvers module
-----------------------------
-.. automodule:: fimdp.energy_solver
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-fimdp.consMDP module
 ----------------------
-.. automodule:: fimdp.consMDP
+.. automodule:: fimdp.energy_solvers
     :members:
     :undoc-members:
     :show-inheritance:
 
-fimdp.safety_bound_incorrect module
+fimdp.explicit module
 ------------------------------------
-.. automodule:: fimdp.safety_bound_incorrect
+.. automodule:: fimdp.explicit
     :members:
     :undoc-members:
     :show-inheritance:
 
-fimdp.ch_parser module
+fimdp.io module
 -----------------------
-.. automodule:: fimdp.nyc_parser
+.. automodule:: fimdp.io
     :members:
     :undoc-members:
     :show-inheritance:
 
-fimdp.MarsEnv module
+fimdp.labeled module
 -----------------------
-.. automodule:: fimdp.MarsEnv
+.. automodule:: fimdp.labeled
     :members:
     :undoc-members:
     :show-inheritance:
 
-fimdp.NYCtools module
+fimdp.mincap_solvers module
 -----------------------
-.. automodule:: fimdp.NYCtools
+.. automodule:: fimdp.mincap_solvers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fimdp.objectives module
+-----------------------
+.. automodule:: fimdp.objectives
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fimdp.utils module
+-----------------------
+.. automodule:: fimdp.utils
     :members:
     :undoc-members:
     :show-inheritance:
