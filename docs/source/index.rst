@@ -8,7 +8,7 @@ Introduction
 ------------
 
 `FiMDP <https://github.com/FiMDP/FiMDP>`_ is a Python package for analysis and controller synthesis of Markov decision processes with resource constraints, 
-here-in-after referred to as Consumption Markov Decision Processes (ConsMDPs). The model of ConsMDPs and associated algorithms were first introduced in 
+modeled as Consumption Markov Decision Processes (ConsMDPs). The model of ConsMDPs and associated algorithms were first introduced in
 our work titled `Qualitative Controller Synthesis for Consumption Markov Decision Processes` presented at CAV2020  :ref:`Citation Info`. 
 
 This package includes interactive Jupyter notebooks with examples from `FiMDPEnv`_, our related project that provides 
