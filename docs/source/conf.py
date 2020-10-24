@@ -21,15 +21,17 @@ sys.path.insert(0, os.path.abspath('../..'))
 autodoc_mock_imports = [
   'IPython',
   'folium',
-  'networkx'
+  'networkx',
+  'stormpy',
+  'spot'
 ]
 
 
 # -- Project information -----------------------------------------------------
 
 project = u'FiMDP'
-copyright = u'2020, Frantisek Blahoudek, Tomás Brázdil, Petr Novotny, Melkior Ornik, Pranay Thangeda and Ufuk Topcu'
-author = u'Frantisek Blahoudek, Tomás Brázdil, Petr Novotny, Melkior Ornik, Pranay Thangeda and Ufuk Topcu'
+copyright = u'2020, UT Austin and UIUC'
+author = u'Frantisek Blahoudek and Pranay Thangeda'
 
 # The short X.Y version
 version = u''
@@ -51,7 +53,8 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autosectionlabel'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -143,7 +146,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'FiMDP.tex', u'FiMDP Documentation',
-     u'Frantisek Blahoudek, Tomás Brázdil, Petr Novotny, Melkior Ornik, Pranay Thangeda and Ufuk Topcu', 'manual'),
+     u'Frantisek Blahoudek and Pranay Thangeda', 'manual'),
 ]
 
 
@@ -164,7 +167,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'FiMDP', u'FiMDP Documentation',
-     author, 'FiMDP', 'One line description of project.',
+     author, 'FiMDP', 'Fuel in Markov Decision Process.',
      'Miscellaneous'),
 ]
 
