@@ -158,9 +158,10 @@ def min_hamilton(tree):
             step_list.append(item2)
     return(step_list)
 
-def generate_Graph(T):
+def generate_Graph(T,init_state):
     """
     :param T: set of targets: which is a proxy here
+    :param: set of initial states:
     :return:
     Agent_graph: Networkx graph with nodes representing each target, edges representing cost
     """
@@ -172,7 +173,14 @@ def generate_Graph(T):
         count=count+1
         Agent_graph.add_node((item))
 
-    return Agent_graph
+    agent_target_graph=nx.DiGraph()
+    for item in T:
+        count=count+1
+        agent_target_graph.add_node((item))
+    for item in init_state:
+        count=count+1
+        agent_target_graph.add_node((item))
+    return Agent_graph,agent_target_graph
 
 
 #Computes minimum spanning tree, used to generate minimum cost path
@@ -315,7 +323,7 @@ def bottleneckassignment(Bottleneckgraph):
     return matching
 
 
-def tarjan_scc(Graph_cost,num_agent):
+def tarjan_scc(Graph_cost,num_agent,targets):
     """
     :param Graph_cost: networkx graph between initial states of the agent and initial elements of the targets
     :param num_agent: number of agents
@@ -327,93 +335,100 @@ def tarjan_scc(Graph_cost,num_agent):
     costhigh=1e4
     saveitem=[]
     #compute tarjan
-    while costhigh-costlow>1e-6:
-        aux_graph=Graph_cost.copy()
-        cost_bisec=(costhigh+costlow)/2
+    #while costhigh-costlow>1e-6:
+        #aux_graph=Graph_cost.copy()
+        #cost_bisec=(costhigh+costlow)/2
         #remove edges if the cost is larger than the current cost
-        for item in aux_graph.nodes:
-            for item2 in aux_graph.nodes:
+    max_edge=max(dict(Graph_cost.edges).items(), key=lambda x: x[1]['weight'])
+    # print(max_edge)
+    # print(dir(max_edge))
+    # print(max_edge[0][0])
+    Graph_cost.remove_edge(max_edge[0][0],max_edge[0][1])
+
+
+    #computes a set of strongly connected component
+    scc_set=list(sorted(nx.strongly_connected_components(Graph_cost), key=len, reverse=True))
+
+    #convert the set into a list for future computations
+    scc_list=[[] for i in range(len(scc_set))]
+    for i in  range(len(scc_set)):
+
+        if len(scc_set[i])==1:
+            singleitem=next(iter(scc_set[i]))
+            scc_list[i].append(singleitem)
+        else:
+            for item in (scc_set[i]):
+
+                scc_list[i].append(item)
+
+
+
+    #increase threshold if more SCC's then number of agents
+    #print(scc_list,cost_bisec)
+    if len(scc_list)>num_agent:
+        pass
+        saveitem=[]
+        for item in targets:
+
+            saveitem.append(item)
+        while len(saveitem)<num_agent:
+            saveitem.append(list([]))
+        costsitem=[1e10 for _ in range(num_agent)]
+        #costlow=cost_bisec
+    else:
+        #costhigh=cost_bisec
+        saveitem=[]
+        costsitem=[0 for _ in range(num_agent)]
+        items_save = [[] for _ in range(num_agent)]
+        paths_save = [[] for _ in range(num_agent)]
+
+        #iterate over the path
+        for i in range(len(scc_list)):
+            #print(scc_list[i])
+            #if the length is greater or equal to 2
+            if len(scc_list[i])>=2:
+                aux_graph2 = Graph_cost.copy()
+                #remove unused nodes from the graph
+                for node in Graph_cost.nodes:
+                    if not node in scc_list[i]:
+                        aux_graph2.remove_node(node)
+
+                #computes a path in the SCC, needs to be checked
+                dfs_path = list(nx.dfs_edges(aux_graph2))
+                #add elements to the path
+                for j in range(len(dfs_path)):
+                    if not dfs_path[j][0] in items_save[i]:
+                        items_save[i].append(dfs_path[j][0])
+                    if not dfs_path[j][1] in items_save[i]:
+                        items_save[i].append(dfs_path[j][1])
+                    #update cost of the path
+                for j in range(len(items_save[i])-1):
+                    #print(items_save[i][j],items_save[i][j+1])
+                    path=nx.dijkstra_path(aux_graph2,items_save[i][j],items_save[i][j+1])
+                    for k  in range(len(path)-1):
+                        paths_save[i].append(path[k])
+                #print(paths_save[i])
+                for k in range(len(paths_save[i])-1):
+                    if Graph_cost[paths_save[i][k]][paths_save[i][k+1]]['weight']>costsitem[i]:
+                       costsitem[i]=Graph_cost[paths_save[i][k]][paths_save[i][k+1]]['weight']
                 try:
-                    if aux_graph[item][item2]['weight']>cost_bisec:
-                       aux_graph.remove_edge(item,item2)
-                    if aux_graph[item2][item]['weight']>cost_bisec:
-                       aux_graph.remove_edge(item2,item)
+                    if Graph_cost[paths_save[i][len(paths_save[i])-1]][paths_save[i][0]]['weight'] > costsitem[i]:
+                        costsitem[i] = Graph_cost[paths_save[i][len(paths_save[i])-1]][paths_save[i][0]]['weight']
                 except KeyError:
                     pass
-        #computes a set of strongly connected component
-        scc_set=list(sorted(nx.strongly_connected_components(aux_graph), key=len, reverse=True))
+            #add the element if the scc is singular
+            elif len(scc_list[i])==1:
+                paths_save[i].append(scc_list[i][0])
+                items_save[i].append(scc_list[i][0])
 
-        #convert the set into a list for future computations
-        scc_list=[[] for i in range(len(scc_set))]
-        for i in  range(len(scc_set)):
+        #save the best elements
+        for item in items_save:
 
-            if len(scc_set[i])==1:
-                singleitem=next(iter(scc_set[i]))
-                scc_list[i].append(singleitem)
-            else:
-                for item in (scc_set[i]):
-
-                    scc_list[i].append(item)
-
-
-
-        #increase threshold if more SCC's then number of agents
-        #print(scc_list,cost_bisec)
-        if len(scc_list)>num_agent:
-            costlow=cost_bisec
-        else:
-            costhigh=cost_bisec
-            saveitem=[]
-            costsitem=[0 for _ in range(num_agent)]
-            items_save = [[] for _ in range(num_agent)]
-            paths_save = [[] for _ in range(num_agent)]
-
-            #iterate over the path
-            for i in range(len(scc_list)):
-                #print(scc_list[i])
-                #if the length is greater or equal to 2
-                if len(scc_list[i])>=2:
-                    aux_graph2 = aux_graph.copy()
-                    #remove unused nodes from the graph
-                    for node in aux_graph.nodes:
-                        if not node in scc_list[i]:
-                            aux_graph2.remove_node(node)
-
-                    #computes a path in the SCC, needs to be checked
-                    dfs_path = list(nx.dfs_edges(aux_graph2))
-                    #add elements to the path
-                    for j in range(len(dfs_path)):
-                        if not dfs_path[j][0] in items_save[i]:
-                            items_save[i].append(dfs_path[j][0])
-                        if not dfs_path[j][1] in items_save[i]:
-                            items_save[i].append(dfs_path[j][1])
-                        #update cost of the path
-                    for j in range(len(items_save[i])-1):
-                        #print(items_save[i][j],items_save[i][j+1])
-                        path=nx.dijkstra_path(aux_graph2,items_save[i][j],items_save[i][j+1])
-                        for k  in range(len(path)-1):
-                            paths_save[i].append(path[k])
-                    #print(paths_save[i])
-                    for k in range(len(paths_save[i])-1):
-                        if aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']>costsitem[i]:
-                           costsitem[i]=aux_graph[paths_save[i][k]][paths_save[i][k+1]]['weight']
-                    try:
-                        if aux_graph[paths_save[i][len(paths_save[i])-1]][paths_save[i][0]]['weight'] > costsitem[i]:
-                            costsitem[i] = aux_graph[paths_save[i][len(paths_save[i])-1]][paths_save[i][0]]['weight']
-                    except KeyError:
-                        pass
-                #add the element if the scc is singular
-                elif len(scc_list[i])==1:
-                    paths_save[i].append(scc_list[i][0])
-                    items_save[i].append(scc_list[i][0])
-
-            #save the best elements
-            for item in items_save:
-
-                saveitem.append(item)
-            while len(saveitem)<num_agent:
-                saveitem.append(list([]))
-            while len(costsitem)<num_agent:
-                costsitem.append(0)
+            saveitem.append(item)
+        while len(saveitem)<num_agent:
+            saveitem.append(list([]))
+        while len(costsitem)<num_agent:
+            costsitem.append(0)
     #return elements
-    return saveitem,costsitem
+    #print(saveitem,costsitem)
+    return Graph_cost,saveitem,costsitem
