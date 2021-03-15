@@ -2,6 +2,7 @@ __version__ = "2.0dev"
 
 from . import core
 from . import energy_solvers
+from . import examples
 from . import explicit
 from . import objectives
 
