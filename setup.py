@@ -20,6 +20,6 @@ setup(
     author_email="fandikb+dev@gmail.com",
     license="MIT",
     python_requires=">=3.6.0",
-    packages=['fimdp'],
+    packages=['fimdp', 'fimdp.examples'],
 )
 
