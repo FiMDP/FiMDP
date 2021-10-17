@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple
 
 from fimdp import ConsMDP
 from fimdp.distribution import is_distribution
+from fipomdp.pomdp_factories import power_set
 
 
 class ConsPOMDP(ConsMDP):
@@ -35,7 +36,8 @@ class ConsPOMDP(ConsMDP):
     def set_observations(self, num_observations: int, obs_probs: Dict[Tuple[int, int], float],
                          obs_names: List[str] = None) -> None:
         """
-        Set observations to POMDP, and validate their correct format - size, name size, probability distributions
+        Set observations to POMDP, and validate their correct format - size, name size, probability distributions,
+        same reloads in observation
         Parameters
         ----------
         num_observations - number of all observations
@@ -55,18 +57,28 @@ class ConsPOMDP(ConsMDP):
 
         for state, obs in self.obs_probabilities.keys():
             if obs >= num_observations:
+                # check that observation indices in given distribution dict are not higher than allowed index
                 raise AttributeError(
                     f"Observation {obs} does not exist, count of all observation is {self.num_observations}")
             obs_distr = self.state_obs_probs(state)
             if not is_distribution(obs_distr):
+                # check that distributions add up to 1
                 raise AttributeError("Supplied observation dict is not a distribution. The probabilities are:"
                                      f" {list(obs_distr.keys())}, sum: {sum(obs_distr.values())}")
+            states = self.obs_states(obs)
+            if len(states) == 0:
+                # check that all states are in at least one observation
+                raise AttributeError(
+                    f"No observation should be empty. Observation {obs} is empty.")
+            reloads = [self.reloads[i] for i in states]
+            if len(set(reloads)) != 1:
+                # check that reload property for observation states match
+                raise AttributeError(
+                    f"Observations should have the same reload for all belonging states. Observation {obs} doesn't.")
 
-        #TODO check if states in observation match reload property
-
-    def set_name_states(self, names: List[str] = None) -> None:
+    def set_state_names(self, names: List[str] = None) -> None:
         """
-        Set names for states in order of 'names' parameter
+        Set names for states in order of 'names' parameter or give their number as index
         Parameters
         ----------
         names List of names for states, defaults to None
@@ -81,6 +93,27 @@ class ConsPOMDP(ConsMDP):
                     f"Names: {names} aren't the same length as is the number of states: {self.num_states}.")
             else:
                 self.names = names
+
+    def set_obs_names(self, names: List[str] = None) -> None:
+        """
+        Set names for observations
+        Parameters
+        ----------
+        names
+
+        Returns
+        -------
+
+        """
+        self.structure_change()
+        if self.observation_names is None and names is None:
+            self.observation_names = [str(x) for x in range(self.num_observations)]
+        else:
+            if len(names) != self.observation_names:
+                raise AttributeError(
+                    f"Names: {names} aren't the same length as is the number of observations: {self.num_observations}.")
+            else:
+                self.observation_names = names
 
     def state_obs_probs(self, given_state: int) -> Dict[int, float]:
         """
@@ -121,8 +154,19 @@ class ConsPOMDP(ConsMDP):
         return states
 
     def compute_belief_supp_cmdp(self) -> ConsMDP:
-        #TODO doc
+        # TODO doc
         self.structure_change()
-        belief_supp_cmdp = ConsMDP()
+        if self.names is None:
+            self.set_state_names()  # Set indices as state names
 
-        return belief_supp_cmdp
+        belief_supp_cmdp = ConsMDP()
+        new_states_count = 0
+        for obs_i in range(self.num_observations):
+            obs_i_states = self.obs_states(obs_i)
+            names = [self.names[i] for i in obs_i_states]
+            subsets = power_set(obs_i_states)
+            subsets.remove([])  # No need for empty belief support
+
+
+
+        self.belief_supp_cmdp = belief_supp_cmdp
