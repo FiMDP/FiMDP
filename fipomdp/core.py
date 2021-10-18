@@ -7,10 +7,12 @@ implemented algorithms with interfacing between the three (CPOMDP, belief supp C
 to satisfy safety, positive reachability, and buchi objective for CPOMDP).
 #TODO
 """
+from functools import reduce
 from typing import List, Dict, Tuple
 
 from fimdp import ConsMDP
 from fimdp.distribution import is_distribution
+from fipomdp.belief_supp_cmdps import BeliefSuppConsMDP
 from fipomdp.pomdp_factories import power_set
 
 
@@ -27,7 +29,7 @@ class ConsPOMDP(ConsMDP):
     observation_names: List[str] or None
     obs_probabilities: Dict[Tuple[int, int], float]
 
-    belief_supp_cmdp: ConsMDP
+    belief_supp_cmdp: BeliefSuppConsMDP
     belief_supp_guess_cmdp: ConsMDP
 
     def __init__(self):
@@ -153,20 +155,23 @@ class ConsPOMDP(ConsMDP):
                 states.append(state)
         return states
 
-    def compute_belief_supp_cmdp(self) -> ConsMDP:
+    def compute_belief_supp_cmdp(self) -> None:
         # TODO doc
         self.structure_change()
         if self.names is None:
             self.set_state_names()  # Set indices as state names
 
-        belief_supp_cmdp = ConsMDP()
-        new_states_count = 0
+        belief_supp_cmdp = BeliefSuppConsMDP(self)
         for obs_i in range(self.num_observations):
             obs_i_states = self.obs_states(obs_i)
-            names = [self.names[i] for i in obs_i_states]
             subsets = power_set(obs_i_states)
             subsets.remove([])  # No need for empty belief support
+            reload = self.is_reload(obs_i_states[0])
+            for subset in subsets:
+                name = reduce(lambda x, y: "bel_supp" + str(x) + "_" + str(y), subset)
+                belief_supp_cmdp.new_state(obs_i, reload, name, subset)
 
-
+        for belief_supp in belief_supp_cmdp.belief_supports:
+            continue  # TODO
 
         self.belief_supp_cmdp = belief_supp_cmdp
