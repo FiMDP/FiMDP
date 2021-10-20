@@ -8,12 +8,12 @@ to satisfy safety, positive reachability, and buchi objective for CPOMDP).
 #TODO
 """
 from functools import reduce
+from itertools import groupby
 from typing import List, Dict, Tuple
 
 from fimdp import ConsMDP
 from fimdp.distribution import is_distribution
-from fipomdp.belief_supp_cmdps import BeliefSuppConsMDP
-from fipomdp.pomdp_factories import power_set
+from .pomdp_factories import power_set
 
 
 class ConsPOMDP(ConsMDP):
@@ -29,11 +29,11 @@ class ConsPOMDP(ConsMDP):
     observation_names: List[str] or None
     obs_probabilities: Dict[Tuple[int, int], float]
 
-    belief_supp_cmdp: BeliefSuppConsMDP
+    belief_supp_cmdp: ConsMDP
     belief_supp_guess_cmdp: ConsMDP
 
-    def __init__(self):
-        super(ConsPOMDP, self).__init__()
+    def __init__(self, layout=None):
+        super(ConsPOMDP, self).__init__(layout)
 
     def set_observations(self, num_observations: int, obs_probs: Dict[Tuple[int, int], float],
                          obs_names: List[str] = None) -> None:
@@ -57,6 +57,13 @@ class ConsPOMDP(ConsMDP):
         self.observation_names = obs_names
         self.obs_probabilities = obs_probs
 
+        for obs in range(num_observations):
+            states = self.obs_states(obs)
+            if len(states) == 0:
+                # check that all observations are not empty
+                raise AttributeError(
+                    f"No observation should be empty. Observation {obs} is empty.")
+
         for state, obs in self.obs_probabilities.keys():
             if obs >= num_observations:
                 # check that observation indices in given distribution dict are not higher than allowed index
@@ -67,11 +74,6 @@ class ConsPOMDP(ConsMDP):
                 # check that distributions add up to 1
                 raise AttributeError("Supplied observation dict is not a distribution. The probabilities are:"
                                      f" {list(obs_distr.keys())}, sum: {sum(obs_distr.values())}")
-            states = self.obs_states(obs)
-            if len(states) == 0:
-                # check that all states are in at least one observation
-                raise AttributeError(
-                    f"No observation should be empty. Observation {obs} is empty.")
             reloads = [self.reloads[i] for i in states]
             if len(set(reloads)) != 1:
                 # check that reload property for observation states match
@@ -130,7 +132,7 @@ class ConsPOMDP(ConsMDP):
         if given_state >= self.num_states:
             raise AttributeError(f"State {given_state} does not exist, count of all states is {self.num_states}")
         state_obs_probs = {}
-        for (state, obs), prob in self.obs_probabilities:
+        for (state, obs), prob in self.obs_probabilities.items():
             if state == given_state:
                 state_obs_probs[obs] = prob
         return state_obs_probs
@@ -150,7 +152,7 @@ class ConsPOMDP(ConsMDP):
             raise AttributeError(
                 f"Observation {given_obs} does not exist, count of all observation is {self.num_observations}")
         states = []
-        for (state, obs), prob in self.obs_probabilities:
+        for (state, obs), prob in self.obs_probabilities.items():
             if obs == given_obs and prob > 0:
                 states.append(state)
         return states
@@ -168,10 +170,41 @@ class ConsPOMDP(ConsMDP):
             subsets.remove([])  # No need for empty belief support
             reload = self.is_reload(obs_i_states[0])
             for subset in subsets:
-                name = reduce(lambda x, y: "bel_supp" + str(x) + "_" + str(y), subset)
+                print(subset)
+                if len(subset) == 1:
+                    name = "bel_supp_" + str(subset[0])
+                else:
+                    name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", subset)
                 belief_supp_cmdp.new_state(obs_i, reload, name, subset)
 
         for belief_supp in belief_supp_cmdp.belief_supports:
-            continue  # TODO
+            belief_supp_succ_state = []
+            for supp_state in belief_supp:
+                belief_supp_succ_state.extend(self.state_succs(supp_state))
+            for obs_dist, group in groupby(belief_supp_succ_state, lambda x: self.state_obs_probs(x).values()):
+                print(f"{obs_dist}________{list(group)}")
+
 
         self.belief_supp_cmdp = belief_supp_cmdp
+
+
+class BeliefSuppConsMDP(ConsMDP):
+    original_cpomdp: ConsPOMDP
+    belief_supports: List[List[int]]
+    original_observations: List[int]
+
+    def __init__(self, original_cpomdp: ConsPOMDP):
+        super(BeliefSuppConsMDP, self).__init__()
+        self.original_cpomdp = original_cpomdp
+        self.original_observations = []
+        self.belief_supports = []
+
+    def new_state(self, original_obs: int, reload: bool = False, name: str = None, belief_support: List[int] = []):
+        super(BeliefSuppConsMDP, self).new_state(reload, name)
+        self.original_observations.append(original_obs)
+        self.belief_supports.append(belief_support)
+
+    def new_states(self, original_obs: int, count, names=None, belief_supports=None):
+        super(BeliefSuppConsMDP, self).new_states(count, names)
+        self.belief_supports.extend(belief_supports)
+        self.original_observations.extend([original_obs for _ in range(count)])
