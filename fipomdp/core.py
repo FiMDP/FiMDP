@@ -12,6 +12,7 @@ from itertools import groupby
 from typing import List, Dict, Tuple
 
 from fimdp import ConsMDP
+from fimdp.core import ActionData
 from fimdp.distribution import is_distribution
 from .pomdp_factories import power_set
 
@@ -157,6 +158,8 @@ class ConsPOMDP(ConsMDP):
                 states.append(state)
         return states
 
+# TODO bel_supp with initial state
+
     def compute_belief_supp_cmdp(self) -> None:
         # TODO doc
         self.structure_change()
@@ -170,7 +173,7 @@ class ConsPOMDP(ConsMDP):
             subsets.remove([])  # No need for empty belief support
             reload = self.is_reload(obs_i_states[0])
             for subset in subsets:
-                print(subset)
+                # print("SUBSET_________________"+str(subset))
                 if len(subset) == 1:
                     name = "bel_supp_" + str(subset[0])
                 else:
@@ -178,17 +181,56 @@ class ConsPOMDP(ConsMDP):
                 belief_supp_cmdp.new_state(obs_i, reload, name, subset)
 
         for belief_supp in belief_supp_cmdp.belief_supports:
-            belief_supp_succ_state = []
+            print("BEL_SUPP______________", belief_supp)
+            belief_supp_actions = []
             for supp_state in belief_supp:
-                belief_supp_succ_state.extend(self.state_succs(supp_state))
-            for obs_dist, group in groupby(belief_supp_succ_state, lambda x: self.state_obs_probs(x).values()):
-                print(f"{obs_dist}________{list(group)}")
-
+                supp_state_actions = self.actions_for_state(supp_state)
+                for action in supp_state_actions:
+                    belief_supp_actions.append(action)
+                # print(len(belief_supp_actions))
+            for label, grouped_actions in groupby(belief_supp_actions, lambda act: act.label):
+                # print(str(belief_supp) + label)
+                bel_supp_labeled_acts = list(grouped_actions)
+                print("LABELED_ACTIONS____", bel_supp_labeled_acts)
+                self.add_belief_supp_action(belief_supp, label, bel_supp_labeled_acts, belief_supp_cmdp)
 
         self.belief_supp_cmdp = belief_supp_cmdp
 
+    def add_belief_supp_action(self, belief_src: List[int], label: str, bel_supp_actions: List[ActionData],
+                               bel_supp_cmdp: ConsMDP) -> None:
+        # TODO doc
+        cons = bel_supp_actions[0].cons  # IMPORTANT expecting energy observability
+        src_state = bel_supp_cmdp.belief_supports.index(belief_src)
+        dest_distribution = {}
+        dest_states = []
+
+        act_distrs = []
+        for action in bel_supp_actions:
+            act_distrs.extend(list(action.distr.items()))
+        for obs_distr, same_obs_distrs_groups in groupby(act_distrs, lambda distr: self.state_obs_probs(distr[0])):
+            groups_list = list(same_obs_distrs_groups)
+            print("OBS_DISTR", obs_distr)
+            for obs, prob in obs_distr.items():
+                print("GROUPS" + str(groups_list))
+                print(len(groups_list))
+                obs_weight = prob
+                belief_dest = []
+                act_weight = 0
+                number_of_act_weights = 0
+                for group in groups_list:
+                    belief_dest.append(group[0])
+                    act_weight += group[1]
+                    number_of_act_weights += 1
+                    print()
+                belief_dest.sort()
+                dest_states.append(bel_supp_cmdp.belief_supports.index(belief_dest))
+                dest_distribution[bel_supp_cmdp.belief_supports.index(belief_dest)] = (obs_weight * act_weight) / number_of_act_weights
+        dest_distribution = {k: v/len(dest_distribution) for k, v in dest_distribution.items()}
+        bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
+
 
 class BeliefSuppConsMDP(ConsMDP):
+    # TODO doc
     original_cpomdp: ConsPOMDP
     belief_supports: List[List[int]]
     original_observations: List[int]

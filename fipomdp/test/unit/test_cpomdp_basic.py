@@ -27,6 +27,30 @@ def basic():
 
     return m, targets
 
+def basic_explicit():
+    m = ConsPOMDP(layout="neato")
+
+    m.new_states(9)
+    for s in [0, 7]:
+        m.set_reload(s)
+
+    m.add_action(0, {1: 1}, "x", 1)
+    m.add_action(1, {0: 1}, "x", 1)
+    m.add_action(2, {1: 1}, "x", 1)
+    m.add_action(3, {2: .5, 1: .5}, "x", 1)
+    m.add_action(3, {4: .5, 6: .5}, "t", 10)
+    m.add_action(4, {5: 1}, "t", 1)
+    m.add_action(5, {6: 1}, "r", 1)
+    m.add_action(6, {3: .5, 7: .5}, "t", 6)
+    m.add_action(6, {7: 1}, "r", 1)
+    m.add_action(7, {3: 1}, "x", 20)
+    m.add_action(7, {6: 1}, "t", 3)
+    m.add_action(8, {7: .5, 2: .5}, "x", 5)
+
+    targets = set([2, 5])
+
+    return m, targets
+
 
 def test_names_not_oflength_num_obs_fail():
     basic_cmdp, basic_targets = basic()
@@ -163,6 +187,24 @@ def test_set_observations_correct():
     assert basic_cmdp.state_obs_probs(7) == {0: 1}, "Wrong observation : probability dict return for state 7, should have been {0: 1}"
     assert basic_cmdp.state_obs_probs(8) == {5: 1}, "Wrong observation : probability dict return for state 8, should have been {5: 1}"
 
+def test_bel_supp_compute():
+    basic_cmdp, basic_targets = basic_explicit()
+
+    observation_probabilities = {
+        (0, 0): 1,
+        (1, 1): 1,
+        (2, 2): 1,
+        (3, 3): 1,
+        (4, 4): 1,
+        (5, 5): 1,
+        (6, 5): 1,
+        (7, 0): 1,
+        (8, 5): 1
+    }
+
+    basic_cmdp.set_observations(6, observation_probabilities)
+
+    basic_cmdp.compute_belief_supp_cmdp()
 
 
 

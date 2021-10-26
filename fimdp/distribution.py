@@ -23,14 +23,14 @@ def is_distribution(distribution):
     return round(sum(probabilities), 8) == 1
 
 
-def uniform(destinations):
+def uniform(destinations, distr_weight=100):
     """
     Create a uniform distribution for given destinations.
 
     destinations: iterable of states
     """
     count = len(destinations)
-    mod = 100 % count
+    mod = distr_weight % count
     prob = 1/count
     dist = {i: prob for i in destinations}
     last = destinations[-1]
