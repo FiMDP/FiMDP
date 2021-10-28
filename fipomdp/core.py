@@ -7,13 +7,14 @@ implemented algorithms with interfacing between the three (CPOMDP, belief supp C
 to satisfy safety, positive reachability, and buchi objective for CPOMDP).
 #TODO
 """
+from collections import deque
 from functools import reduce
 from itertools import groupby
 from typing import List, Dict, Tuple
 
 from fimdp import ConsMDP
 from fimdp.core import ActionData
-from fimdp.distribution import is_distribution
+from fimdp.distribution import is_distribution, uniform
 from .pomdp_factories import power_set
 
 
@@ -160,7 +161,33 @@ class ConsPOMDP(ConsMDP):
 
 # TODO bel_supp with initial state
 
-    def compute_belief_supp_cmdp(self) -> None:
+    def compute_belief_supp_cmdp_initial_state(self, initial_belief_supp: List[int], initial_obs: int) -> None:
+        self.structure_change()
+        belief_supp_cmdp = BeliefSuppConsMDP(self)
+        reload = self.is_reload(initial_belief_supp[0])
+        if len(initial_belief_supp) == 1:
+            name = "bel_supp_" + str(initial_belief_supp[0])
+        else:
+            name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", initial_belief_supp)
+        belief_supp_cmdp.new_state(initial_obs, name, reload, initial_belief_supp)
+        queue = deque()
+        queue.append(initial_belief_supp)
+        while len(queue) > 0:
+            belief_support = queue.popleft()
+            if belief_support in belief_supp_cmdp.belief_supports:
+                continue
+            state_actions = []
+            for supp_state in belief_support:
+                for action in self.actions_for_state(supp_state):
+                    state_actions.append(action)
+            self._bfs_add_belief_supp_action()
+
+    def _bfs_add_belief_supp_action(self, belief_src: List[int], label: str, bel_supp_actions: List[ActionData],
+                                    bel_supp_cmdp: ConsMDP, queue: deque):
+        pass
+
+
+    def compute_full_belief_supp_cmdp(self) -> None:
         # TODO doc
         self.structure_change()
         if self.names is None:
@@ -181,23 +208,22 @@ class ConsPOMDP(ConsMDP):
                 belief_supp_cmdp.new_state(obs_i, reload, name, subset)
 
         for belief_supp in belief_supp_cmdp.belief_supports:
-            print("BEL_SUPP______________", belief_supp)
-            belief_supp_actions = []
+            state_actions = []
             for supp_state in belief_supp:
                 supp_state_actions = self.actions_for_state(supp_state)
                 for action in supp_state_actions:
-                    belief_supp_actions.append(action)
-                # print(len(belief_supp_actions))
-            for label, grouped_actions in groupby(belief_supp_actions, lambda act: act.label):
+                    state_actions.append(action)
+                # print(len(state_actions))
+            for label, grouped_actions in groupby(state_actions, lambda act: act.label):
                 # print(str(belief_supp) + label)
                 bel_supp_labeled_acts = list(grouped_actions)
                 print("LABELED_ACTIONS____", bel_supp_labeled_acts)
-                self.add_belief_supp_action(belief_supp, label, bel_supp_labeled_acts, belief_supp_cmdp)
+                self._add_belief_supp_action(belief_supp, label, bel_supp_labeled_acts, belief_supp_cmdp)
 
         self.belief_supp_cmdp = belief_supp_cmdp
 
-    def add_belief_supp_action(self, belief_src: List[int], label: str, bel_supp_actions: List[ActionData],
-                               bel_supp_cmdp: ConsMDP) -> None:
+    def _add_belief_supp_action(self, belief_src: List[int], label: str, bel_supp_actions: List[ActionData],
+                                bel_supp_cmdp: ConsMDP) -> None:
         # TODO doc
         cons = bel_supp_actions[0].cons  # IMPORTANT expecting energy observability
         src_state = bel_supp_cmdp.belief_supports.index(belief_src)
@@ -213,19 +239,12 @@ class ConsPOMDP(ConsMDP):
             for obs, prob in obs_distr.items():
                 print("GROUPS" + str(groups_list))
                 print(len(groups_list))
-                obs_weight = prob
                 belief_dest = []
-                act_weight = 0
-                number_of_act_weights = 0
                 for group in groups_list:
                     belief_dest.append(group[0])
-                    act_weight += group[1]
-                    number_of_act_weights += 1
-                    print()
                 belief_dest.sort()
                 dest_states.append(bel_supp_cmdp.belief_supports.index(belief_dest))
-                dest_distribution[bel_supp_cmdp.belief_supports.index(belief_dest)] = (obs_weight * act_weight) / number_of_act_weights
-        dest_distribution = {k: v/len(dest_distribution) for k, v in dest_distribution.items()}
+        dest_distribution = uniform(dest_states)
         bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
 
 

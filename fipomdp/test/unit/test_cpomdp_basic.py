@@ -187,7 +187,8 @@ def test_set_observations_correct():
     assert basic_cmdp.state_obs_probs(7) == {0: 1}, "Wrong observation : probability dict return for state 7, should have been {0: 1}"
     assert basic_cmdp.state_obs_probs(8) == {5: 1}, "Wrong observation : probability dict return for state 8, should have been {5: 1}"
 
-def test_bel_supp_compute():
+
+def test_bel_supp_full_compute():
     basic_cmdp, basic_targets = basic_explicit()
 
     observation_probabilities = {
@@ -204,8 +205,27 @@ def test_bel_supp_compute():
 
     basic_cmdp.set_observations(6, observation_probabilities)
 
-    basic_cmdp.compute_belief_supp_cmdp()
+    basic_cmdp.compute_full_belief_supp_cmdp()
 
+
+def test_bel_supp_compute_with_state():
+    basic_cmdp, basic_targets = basic_explicit()
+
+    observation_probabilities = {
+        (0, 0): 1,
+        (1, 1): 1,
+        (2, 2): 1,
+        (3, 3): 1,
+        (4, 4): 1,
+        (5, 5): 1,
+        (6, 5): 1,
+        (7, 0): 1,
+        (8, 5): 1
+    }
+
+    basic_cmdp.set_observations(6, observation_probabilities)
+
+    basic_cmdp.compute_belief_supp_cmdp_initial_state([0], 0)
 
 
 
