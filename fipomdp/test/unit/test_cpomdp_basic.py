@@ -209,22 +209,22 @@ def test_set_observations_correct():
     assert basic_cmdp.num_observations == 6, "Setting of observation count failed, should have been 6"
     assert basic_cmdp.obs_probabilities == observation_probabilities, "Setting of observation probabilities failed"
 
-    assert basic_cmdp.obs_states(0) == [0, 7], "Wrong states returned for observation 0, should have been [0, 7]"
-    assert basic_cmdp.obs_states(1) == [1], "Wrong states returned for observation 1, should have been [1]"
-    assert basic_cmdp.obs_states(2) == [2], "Wrong states returned for observation 2, should have been [2]"
-    assert basic_cmdp.obs_states(3) == [3], "Wrong states returned for observation 3, should have been [3]"
-    assert basic_cmdp.obs_states(4) == [4, 5], "Wrong states returned for observation 4, should have been [4, 5]"
-    assert basic_cmdp.obs_states(5) == [5, 6, 8], "Wrong states returned for observation 5, should have been [5, 6, 8]"
+    assert basic_cmdp.get_obs_states(0) == [0, 7], "Wrong states returned for observation 0, should have been [0, 7]"
+    assert basic_cmdp.get_obs_states(1) == [1], "Wrong states returned for observation 1, should have been [1]"
+    assert basic_cmdp.get_obs_states(2) == [2], "Wrong states returned for observation 2, should have been [2]"
+    assert basic_cmdp.get_obs_states(3) == [3], "Wrong states returned for observation 3, should have been [3]"
+    assert basic_cmdp.get_obs_states(4) == [4, 5], "Wrong states returned for observation 4, should have been [4, 5]"
+    assert basic_cmdp.get_obs_states(5) == [5, 6, 8], "Wrong states returned for observation 5, should have been [5, 6, 8]"
 
-    assert basic_cmdp.state_obs_probs(0) == {0: 1}, "Wrong observation : probability dict return for state 0, should have been {0: 1}"
-    assert basic_cmdp.state_obs_probs(1) == {1: 1}, "Wrong observation : probability dict return for state 1, should have been {1: 1}"
-    assert basic_cmdp.state_obs_probs(2) == {2: 1}, "Wrong observation : probability dict return for state 2, should have been {2: 1}"
-    assert basic_cmdp.state_obs_probs(3) == {3: 1}, "Wrong observation : probability dict return for state 3, should have been {3: 1}"
-    assert basic_cmdp.state_obs_probs(4) == {4: 1}, "Wrong observation : probability dict return for state 4, should have been {4: 1}"
-    assert basic_cmdp.state_obs_probs(5) == {4: 0.5, 5: 0.5}, "Wrong observation : probability dict return for state 0, should have been {4: 0.5, 5: 0.5}"
-    assert basic_cmdp.state_obs_probs(6) == {5: 1}, "Wrong observation : probability dict return for state 6, should have been {5: 1}"
-    assert basic_cmdp.state_obs_probs(7) == {0: 1}, "Wrong observation : probability dict return for state 7, should have been {0: 1}"
-    assert basic_cmdp.state_obs_probs(8) == {5: 1}, "Wrong observation : probability dict return for state 8, should have been {5: 1}"
+    assert basic_cmdp.get_state_obs_probs(0) == {0: 1}, "Wrong observation : probability dict return for state 0, should have been {0: 1}"
+    assert basic_cmdp.get_state_obs_probs(1) == {1: 1}, "Wrong observation : probability dict return for state 1, should have been {1: 1}"
+    assert basic_cmdp.get_state_obs_probs(2) == {2: 1}, "Wrong observation : probability dict return for state 2, should have been {2: 1}"
+    assert basic_cmdp.get_state_obs_probs(3) == {3: 1}, "Wrong observation : probability dict return for state 3, should have been {3: 1}"
+    assert basic_cmdp.get_state_obs_probs(4) == {4: 1}, "Wrong observation : probability dict return for state 4, should have been {4: 1}"
+    assert basic_cmdp.get_state_obs_probs(5) == {4: 0.5, 5: 0.5}, "Wrong observation : probability dict return for state 0, should have been {4: 0.5, 5: 0.5}"
+    assert basic_cmdp.get_state_obs_probs(6) == {5: 1}, "Wrong observation : probability dict return for state 6, should have been {5: 1}"
+    assert basic_cmdp.get_state_obs_probs(7) == {0: 1}, "Wrong observation : probability dict return for state 7, should have been {0: 1}"
+    assert basic_cmdp.get_state_obs_probs(8) == {5: 1}, "Wrong observation : probability dict return for state 8, should have been {5: 1}"
 
 
 def test_bel_supp_compute_with_state():
@@ -278,6 +278,17 @@ def test_guessing_minimal():
     cpomdp = minimal()
     cpomdp.compute_guessing_cmdp_initial_state([0], 0)
 
+    print("BEL_SUPP")
+    for state in range(cpomdp.belief_supp_cmdp.num_states):
+        print("STATE " + str(state))
+        print("BELIEF_SUPPORT " + str(cpomdp.belief_supp_cmdp.bel_supps[state]))
+        print("RELOAD " + str(cpomdp.belief_supp_cmdp.reloads[state]))
+        print()
+
+    for action in cpomdp.belief_supp_cmdp.actions:
+        print(action)
+
+    print("\nGUESSING:")
     for state in range(cpomdp.guessing_cmdp.num_states):
         print("STATE "+str(state))
         print("BELIEF_SUPPORT " + str(cpomdp.guessing_cmdp.bel_supps[state]))
