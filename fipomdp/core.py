@@ -5,7 +5,7 @@ The core idea is to transform this consumption POMDP into a subset construction 
 subset construction with guessing (belief support consumption MDP with guessing) and then use already
 implemented algorithms with interfacing between the three (CPOMDP, belief supp CMDP, belief supp guess CMDP) constructions
 to satisfy safety, positive reachability, and buchi objective for CPOMDP).
-#TODO
+# TODO
 """
 from collections import deque
 from functools import reduce
@@ -15,7 +15,53 @@ from typing import List, Dict, Tuple
 from fimdp import ConsMDP
 from fimdp.core import ActionData
 from fimdp.distribution import is_distribution, uniform
-from .pomdp_factories import power_set
+
+
+class BeliefSuppConsMDP(ConsMDP):
+    """
+    Representation of Belief Support consumption MDPs, which are derived from consumption POMDPs
+
+    This representation uses subsets of all states in observation (belief supports)
+    to get rid of uncertainties in POMDPs
+
+    This class extends ConsMDP
+
+    This class stores belief supports as Lists in a List indexed by state numbers
+    """
+    bel_supps: List[List[int]]
+
+    def __init__(self):
+        super(BeliefSuppConsMDP, self).__init__()
+        self.bel_supps = []
+
+    def new_state(self, reload: bool = False, name: str = None, belief_support: List[int] = []):
+        super(BeliefSuppConsMDP, self).new_state(reload, name)
+        self.bel_supps.append(belief_support)
+
+    def new_states(self, count, names=None, belief_supports=None):
+        super(BeliefSuppConsMDP, self).new_states(count, names)
+        self.bel_supps.extend(belief_supports)
+
+
+class GuessingConsMDP(BeliefSuppConsMDP):
+    """
+    Representation of Belief Support consumption MDP with guessing, which can be derived from consumption POMDPs
+
+    This class extends BeliefSuppConsMDP
+
+    Guesses for each state are of type int (None) and are kept in list indexed by state numbers
+    """
+    guesses: List[int]
+
+    def __init__(self):
+        super(GuessingConsMDP, self).__init__()
+        self.guesses = []
+
+    def new_state(self, reload: bool = False, name: str = None, belief_support: List[int] = [], guess: int = None):
+        if guess is not None and guess not in belief_support:
+            raise AttributeError(f"Supplied guess {guess} does not match with supplied belief support {belief_support}.")
+        super(GuessingConsMDP, self).new_state(reload, name, belief_support)
+        self.guesses.append(guess)
 
 
 class ConsPOMDP(ConsMDP):
@@ -31,8 +77,8 @@ class ConsPOMDP(ConsMDP):
     observation_names: List[str] or None
     obs_probabilities: Dict[Tuple[int, int], float]
 
-    belief_supp_cmdp: ConsMDP
-    belief_supp_guess_cmdp: ConsMDP
+    belief_supp_cmdp: BeliefSuppConsMDP
+    guessing_cmdp: GuessingConsMDP
 
     def __init__(self, layout=None):
         super(ConsPOMDP, self).__init__(layout)
@@ -159,113 +205,140 @@ class ConsPOMDP(ConsMDP):
                 states.append(state)
         return states
 
-# TODO bel_supp with initial state
-
-    def compute_belief_supp_cmdp_initial_state(self, initial_belief_supp: List[int], initial_obs: int) -> None:
+    def compute_belief_supp_cmdp_initial_state(self, initial_belief_supp: List[int]) -> None:
         self.structure_change()
-        belief_supp_cmdp = BeliefSuppConsMDP(self)
-        reload = self.is_reload(initial_belief_supp[0])
+        belief_supp_cmdp = BeliefSuppConsMDP()
+        queue = deque()
+        queue.append(initial_belief_supp)
         if len(initial_belief_supp) == 1:
             name = "bel_supp_" + str(initial_belief_supp[0])
         else:
             name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", initial_belief_supp)
-        belief_supp_cmdp.new_state(initial_obs, name, reload, initial_belief_supp)
-        queue = deque()
-        queue.append(initial_belief_supp)
+        belief_supp_cmdp.new_state(self.reloads[initial_belief_supp[0]], name, initial_belief_supp)
         while len(queue) > 0:
             belief_support = queue.popleft()
-            if belief_support in belief_supp_cmdp.belief_supports:
-                continue
             state_actions = []
             for supp_state in belief_support:
                 for action in self.actions_for_state(supp_state):
                     state_actions.append(action)
-            self._bfs_add_belief_supp_action()
-
-    def _bfs_add_belief_supp_action(self, belief_src: List[int], label: str, bel_supp_actions: List[ActionData],
-                                    bel_supp_cmdp: ConsMDP, queue: deque):
-        pass
-
-
-    def compute_full_belief_supp_cmdp(self) -> None:
-        # TODO doc
-        self.structure_change()
-        if self.names is None:
-            self.set_state_names()  # Set indices as state names
-
-        belief_supp_cmdp = BeliefSuppConsMDP(self)
-        for obs_i in range(self.num_observations):
-            obs_i_states = self.obs_states(obs_i)
-            subsets = power_set(obs_i_states)
-            subsets.remove([])  # No need for empty belief support
-            reload = self.is_reload(obs_i_states[0])
-            for subset in subsets:
-                # print("SUBSET_________________"+str(subset))
-                if len(subset) == 1:
-                    name = "bel_supp_" + str(subset[0])
-                else:
-                    name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", subset)
-                belief_supp_cmdp.new_state(obs_i, reload, name, subset)
-
-        for belief_supp in belief_supp_cmdp.belief_supports:
-            state_actions = []
-            for supp_state in belief_supp:
-                supp_state_actions = self.actions_for_state(supp_state)
-                for action in supp_state_actions:
-                    state_actions.append(action)
-                # print(len(state_actions))
-            for label, grouped_actions in groupby(state_actions, lambda act: act.label):
-                # print(str(belief_supp) + label)
-                bel_supp_labeled_acts = list(grouped_actions)
-                print("LABELED_ACTIONS____", bel_supp_labeled_acts)
-                self._add_belief_supp_action(belief_supp, label, bel_supp_labeled_acts, belief_supp_cmdp)
-
+            self._bfs_add_belief_supp_action(belief_support, state_actions, belief_supp_cmdp, queue)
         self.belief_supp_cmdp = belief_supp_cmdp
 
-    def _add_belief_supp_action(self, belief_src: List[int], label: str, bel_supp_actions: List[ActionData],
-                                bel_supp_cmdp: ConsMDP) -> None:
-        # TODO doc
-        cons = bel_supp_actions[0].cons  # IMPORTANT expecting energy observability
-        src_state = bel_supp_cmdp.belief_supports.index(belief_src)
-        dest_distribution = {}
+    def _bfs_add_belief_supp_action(self, belief_src: List[int], bel_supp_state_actions: List[ActionData],
+                                    bel_supp_cmdp: BeliefSuppConsMDP, queue: deque):
+        bel_supp_state_actions.sort(key=lambda act: act.label)
+        for label, action_groups in groupby(bel_supp_state_actions, lambda act: act.label):
+            print("\nBELIEF_SUPP" + str(belief_src) + label)
+            bel_supp_labeled_acts = list(action_groups)
+            print("LABELED_ACTIONS____", bel_supp_labeled_acts)
+            self._add_belief_supp_action_with_label(belief_src, label, bel_supp_labeled_acts, bel_supp_cmdp, queue)
+
+    def _add_belief_supp_action_with_label(self, belief_src: List[int], label: str, bel_supp_actions_same_label: List[ActionData],
+                                           bel_supp_cmdp: BeliefSuppConsMDP, queue: deque = None) -> None:
+        """
+
+        Parameters
+        ----------
+        belief_src
+        label
+        bel_supp_actions_same_label
+        bel_supp_cmdp
+
+        Returns
+        -------
+
+        """
+        cons = bel_supp_actions_same_label[0].cons  # IMPORTANT expecting energy observability
+        src_state = bel_supp_cmdp.bel_supps.index(belief_src)
         dest_states = []
 
         act_distrs = []
-        for action in bel_supp_actions:
+        for action in bel_supp_actions_same_label:
             act_distrs.extend(list(action.distr.items()))
         for obs_distr, same_obs_distrs_groups in groupby(act_distrs, lambda distr: self.state_obs_probs(distr[0])):
             groups_list = list(same_obs_distrs_groups)
             print("OBS_DISTR", obs_distr)
             for obs, prob in obs_distr.items():
                 print("GROUPS" + str(groups_list))
-                print(len(groups_list))
                 belief_dest = []
                 for group in groups_list:
                     belief_dest.append(group[0])
                 belief_dest.sort()
-                dest_states.append(bel_supp_cmdp.belief_supports.index(belief_dest))
-        dest_distribution = uniform(dest_states)
+                if queue is not None and belief_dest not in bel_supp_cmdp.bel_supps:
+                    if len(belief_dest) == 1:
+                        name = "bel_supp_" + str(belief_dest[0]) + "__obs" + str(obs)
+                    else:
+                        name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", belief_dest) + "__obs" + str(obs)
+                    bel_supp_cmdp.new_state(self.reloads[belief_dest[0]], name, belief_dest)
+                    queue.append(belief_dest)
+                dest_states.append(bel_supp_cmdp.bel_supps.index(belief_dest))
+        dest_distribution = uniform(list(set(dest_states)))
         bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
 
+    def compute_guessing_cmdp_initial_state(self, initial_belief: List[int], initial_guess: int) -> None:
+        self.structure_change()
+        self.compute_belief_supp_cmdp_initial_state(initial_belief)
+        guessing_cmpd = GuessingConsMDP()
+        if len(initial_belief) == 1:
+            name = "bel_supp_" + str(initial_belief[0]) + "__guess" + str(initial_guess)
+        else:
+            name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", initial_belief) + "__guess" + str(initial_guess)
+        guessing_cmpd.new_state(self.reloads[initial_belief[0]], name, initial_belief, initial_guess)
+        queue = deque()
+        queue.append((initial_belief, initial_guess))
+        while len(queue) > 0:
+            belief, guess = queue.popleft()
+            self._bfs_add_guess_cmdp_actions(belief, guess, guessing_cmpd, queue)
+        self.guessing_cmdp = guessing_cmpd
 
-class BeliefSuppConsMDP(ConsMDP):
-    # TODO doc
-    original_cpomdp: ConsPOMDP
-    belief_supports: List[List[int]]
-    original_observations: List[int]
+    def _bfs_add_guess_cmdp_actions(self, src_belief_supp: List[int], src_guess: int, guessing_cmdp: GuessingConsMDP, queue: deque):
+        bel_supp_index = self.belief_supp_cmdp.bel_supps.index(src_belief_supp)
+        src_state = list(zip(guessing_cmdp.bel_supps, guessing_cmdp.guesses)).index((src_belief_supp, src_guess))
+        for bel_supp_action in self.belief_supp_cmdp.actions_for_state(bel_supp_index):
 
-    def __init__(self, original_cpomdp: ConsPOMDP):
-        super(BeliefSuppConsMDP, self).__init__()
-        self.original_cpomdp = original_cpomdp
-        self.original_observations = []
-        self.belief_supports = []
+            dest_states = []
 
-    def new_state(self, original_obs: int, reload: bool = False, name: str = None, belief_support: List[int] = []):
-        super(BeliefSuppConsMDP, self).new_state(reload, name)
-        self.original_observations.append(original_obs)
-        self.belief_supports.append(belief_support)
+            if src_guess is None:
+                succ_bel_supps = list(
+                    map(lambda succ: self.belief_supp_cmdp.bel_supps[succ], bel_supp_action.get_succs()))
+                for succ_bel_supp in succ_bel_supps:
+                    if (succ_bel_supp, None) not in list(zip(guessing_cmdp.bel_supps, guessing_cmdp.guesses)):
+                        reload = self.belief_supp_cmdp.reloads[self.belief_supp_cmdp.bel_supps.index(succ_bel_supp)]
+                        if len(succ_bel_supp) == 1:
+                            name = "bel_supp_" + str(succ_bel_supp[0]) + "__guess" + str(None)
+                        else:
+                            name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", succ_bel_supp) + "__guess" + str(None)
+                        guessing_cmdp.new_state(reload, name, succ_bel_supp, None)
+                        queue.append((succ_bel_supp, None))
+                    guessing_states = list(zip(guessing_cmdp.bel_supps, guessing_cmdp.guesses))
+                    dest_states.append(guessing_states.index((succ_bel_supp, None)))
+                guessing_cmdp.add_action(src_state, uniform(dest_states), bel_supp_action.label, bel_supp_action.cons)
+                continue
 
-    def new_states(self, original_obs: int, count, names=None, belief_supports=None):
-        super(BeliefSuppConsMDP, self).new_states(count, names)
-        self.belief_supports.extend(belief_supports)
-        self.original_observations.extend([original_obs for _ in range(count)])
+            match_label_actions = []
+            for state_action in self.actions_for_state(src_guess):
+                if state_action.label == bel_supp_action.label:
+                    match_label_actions.append(state_action)
+            succ_bel_supps = list(map(lambda succ: self.belief_supp_cmdp.bel_supps[succ], bel_supp_action.get_succs()))
+            for label_action in match_label_actions:
+                for bel_supp in succ_bel_supps:
+                    guesses = []
+                    for bel_supp_state in bel_supp:
+                        if bel_supp_state in label_action.get_succs():
+                            guesses.append(bel_supp_state)
+                    if len(guesses) == 0:
+                        guesses.append(None)
+                    for guess in guesses:
+                        if (bel_supp, guess) not in list(zip(guessing_cmdp.bel_supps, guessing_cmdp.guesses)):
+                            reload = self.belief_supp_cmdp.reloads[self.belief_supp_cmdp.bel_supps.index(bel_supp)]
+                            if len(bel_supp) == 1:
+                                name = "bel_supp_" + str(bel_supp[0]) + "__guess" + str(guess)
+                            else:
+                                name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", bel_supp) + "__guess" + str(guess)
+                            guessing_cmdp.new_state(reload, name, bel_supp, guess)
+                            queue.append((bel_supp, guess))
+                        guessing_states = list(zip(guessing_cmdp.bel_supps, guessing_cmdp.guesses))
+                        dest_states.append(guessing_states.index((bel_supp, guess)))
+            guessing_cmdp.add_action(src_state, uniform(dest_states), bel_supp_action.label, bel_supp_action.cons)
+
+

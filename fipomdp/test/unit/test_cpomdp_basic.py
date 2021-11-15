@@ -52,6 +52,45 @@ def basic_explicit():
     return m, targets
 
 
+def minimal():
+    m = ConsPOMDP(layout="neato")
+
+    m.new_state(name='s')
+    m.new_state(name='u')
+    m.new_state(name='v')
+    m.new_state(name='x')
+    m.new_state(name='y')
+
+    m.add_action(0, {1: 0.5, 2: 0.5}, "a", 1)
+    m.add_action(1, {3: 1}, "a", 1)
+    m.add_action(1, {4: 1}, "b", 1)
+    m.add_action(2, {4: 1}, "a", 1)
+    m.add_action(2, {3: 1}, "b", 1)
+
+    m.set_observations(4, {(0, 0): 1, (1, 1): 1, (2, 1): 1, (3, 2): 1, (4, 3): 1})
+
+    return m
+
+
+def multiple_obs_state():
+    m = ConsPOMDP(layout="neato")
+
+    m.new_state(name='x')
+    m.new_state(name='y')
+    m.new_state(name='z')
+
+    m.add_action(0, {1: 1}, "a", 1)
+    m.add_action(0, {1: 1}, "b", 1)
+    m.add_action(1, {0: 1}, "a", 1)
+    m.add_action(1, {2: 1}, "b", 1)
+    m.add_action(2, {1: 1}, "a", 1)
+    m.add_action(2, {1: 1}, "b", 1)
+
+    m.set_observations(2, {(0, 0): 1, (1, 0): 0.5, (1, 1): 0.5, (2, 1): 1})
+
+    return m
+
+
 def test_names_not_oflength_num_obs_fail():
     basic_cmdp, basic_targets = basic()
 
@@ -188,28 +227,8 @@ def test_set_observations_correct():
     assert basic_cmdp.state_obs_probs(8) == {5: 1}, "Wrong observation : probability dict return for state 8, should have been {5: 1}"
 
 
-def test_bel_supp_full_compute():
-    basic_cmdp, basic_targets = basic_explicit()
-
-    observation_probabilities = {
-        (0, 0): 1,
-        (1, 1): 1,
-        (2, 2): 1,
-        (3, 3): 1,
-        (4, 4): 1,
-        (5, 5): 1,
-        (6, 5): 1,
-        (7, 0): 1,
-        (8, 5): 1
-    }
-
-    basic_cmdp.set_observations(6, observation_probabilities)
-
-    basic_cmdp.compute_full_belief_supp_cmdp()
-
-
 def test_bel_supp_compute_with_state():
-    basic_cmdp, basic_targets = basic_explicit()
+    basic_cpomdp, basic_targets = basic_explicit()
 
     observation_probabilities = {
         (0, 0): 1,
@@ -217,23 +236,59 @@ def test_bel_supp_compute_with_state():
         (2, 2): 1,
         (3, 3): 1,
         (4, 4): 1,
-        (5, 5): 1,
+        (5, 4): 0.5,
+        (5, 5): 0.5,
         (6, 5): 1,
         (7, 0): 1,
         (8, 5): 1
     }
 
-    basic_cmdp.set_observations(6, observation_probabilities)
+    basic_cpomdp.set_observations(6, observation_probabilities)
 
-    basic_cmdp.compute_belief_supp_cmdp_initial_state([0], 0)
+    for i in range(9):
+        basic_cpomdp.compute_belief_supp_cmdp_initial_state([i])
+
+    for state in range(basic_cpomdp.belief_supp_cmdp.num_states):
+        print("STATE "+str(state))
+        print("BELIEF_SUPPORT " + str(basic_cpomdp.belief_supp_cmdp.bel_supps[state]))
+        print("RELOAD "+str(basic_cpomdp.belief_supp_cmdp.reloads[state]))
+        print()
+
+        # TODO add assertions, for now check manually
+
+    for action in basic_cpomdp.belief_supp_cmdp.actions:
+        print(action)
 
 
+def test_multiple_obs_state():
+    cpomdp = multiple_obs_state()
+    cpomdp.compute_belief_supp_cmdp_initial_state([0])
 
 
+# TODO ! grid from FiMDPEnv testing
 
+def test_minimal_correct_belief_supp_cmdp():
+    cpomdp = minimal()
+    cpomdp.compute_belief_supp_cmdp_initial_state([0])
 
+    for action in cpomdp.belief_supp_cmdp.actions:
+        print(action)
 
+def test_guessing_minimal():
+    cpomdp = minimal()
+    cpomdp.compute_guessing_cmdp_initial_state([0], 0)
 
+    for state in range(cpomdp.guessing_cmdp.num_states):
+        print("STATE "+str(state))
+        print("BELIEF_SUPPORT " + str(cpomdp.guessing_cmdp.bel_supps[state]))
+        print("RELOAD "+str(cpomdp.guessing_cmdp.reloads[state]))
+        print("GUESS "+str(cpomdp.guessing_cmdp.guesses[state]))
+        print()
+
+    for action in cpomdp.guessing_cmdp.actions:
+        print(action)
+
+    print(cpomdp.names)
 
 
 
