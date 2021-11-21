@@ -276,7 +276,7 @@ def test_minimal_correct_belief_supp_cmdp():
 
 def test_guessing_minimal():
     cpomdp = minimal()
-    cpomdp.compute_guessing_cmdp_initial_state([0], 0)
+    cpomdp.compute_guessing_cmdp_initial_state([0])
 
     print("BEL_SUPP")
     for state in range(cpomdp.belief_supp_cmdp.num_states):

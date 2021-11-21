@@ -5,8 +5,9 @@ The core idea is to transform this consumption POMDP into a subset construction 
 subset construction with guessing (belief support consumption MDP with guessing) and then use already
 implemented algorithms with interfacing between the three (CPOMDP, belief supp CMDP, belief supp guess CMDP) constructions
 to satisfy safety, positive reachability, and buchi objective for CPOMDP).
+The representation in this module assumes energy observability - action consumption depends on observation.
 
-Classes in this module - ConsPOMDP
+Classes in this module - BeliefSuppConsMDP, GuessingConsMDP, ConsPOMDP
 """
 from collections import deque
 from itertools import groupby
@@ -373,9 +374,9 @@ class ConsPOMDP(ConsMDP):
         bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
 
     def compute_guessing_cmdp_initial_state(
-        self, initial_belief: List[int], initial_guess: int
+        self, initial_belief: List[int]
     ) -> None:
-        """For given initial belief support and guess, compute corresponding belief support cmdp with guessing
+        """For given initial belief support and all its guesses, compute corresponding belief support cmdp with guessing
         from this cpomdp instance.
         This computation traverses the graph in BFS like way.
 
@@ -392,8 +393,6 @@ class ConsPOMDP(ConsMDP):
         ----------
         initial_belief : List[int]
             Initial belief support
-        initial_guess : Optional[int]
-            Initial guess
         """
 
         self.structure_change()
@@ -402,12 +401,13 @@ class ConsPOMDP(ConsMDP):
         guessing_cmpd = GuessingConsMDP()
 
         name = bel_supp_state_name(initial_belief)
-        guessing_cmpd.new_state(
-            initial_belief, self.reloads[initial_belief[0]], name, initial_guess
-        )
-
         queue = deque()
-        queue.append((initial_belief, initial_guess))
+
+        for initial_guess in initial_belief:
+            guessing_cmpd.new_state(
+                initial_belief, self.reloads[initial_belief[0]], name, initial_guess
+            )
+            queue.append((initial_belief, initial_guess))
 
         while len(queue) > 0:
             belief, guess = queue.popleft()
