@@ -82,6 +82,13 @@ class GuessingConsMDP(BeliefSuppConsMDP):
         super(GuessingConsMDP, self).new_state(belief_support, reload, name)
         self.guesses.append(guess)
 
+    def belief_supp_states(self, belief_supp: List[int]) -> List[int]:
+        state_list = []
+        for i in range(self.num_states):
+            if self.bel_supps[i] == belief_supp:
+                state_list.append(i)
+        return state_list
+
 
 class ConsPOMDP(ConsMDP):
     """Representation of partially observable Markov Decision Processes with consumption on actions.
@@ -373,9 +380,7 @@ class ConsPOMDP(ConsMDP):
         dest_distribution = uniform(list(set(dest_states)))
         bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
 
-    def compute_guessing_cmdp_initial_state(
-        self, initial_belief: List[int]
-    ) -> None:
+    def compute_guessing_cmdp_initial_state(self, initial_belief: List[int]) -> None:
         """For given initial belief support and all its guesses, compute corresponding belief support cmdp with guessing
         from this cpomdp instance.
         This computation traverses the graph in BFS like way.
