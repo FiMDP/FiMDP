@@ -279,6 +279,36 @@ class ConsPOMDP(ConsMDP):
 
         return states
 
+    def get_states_obss_possible(self, states: List[int]) -> List[int]:
+        """Get all observations that are possible for a list of states.
+        Parameters
+        ----------
+        states : List[int]
+            List of states.
+
+        Returns
+        -------
+        List[int]
+            List of all observations possible for given states.
+        """
+
+        obss = set({})
+        for state in states:
+            for obs in self.get_state_obs_probs(state).keys():
+                obss.add(obs)
+
+        return list(obss)
+
+    def get_bel_supps_for_states(self, states: List[int]) -> List[List[int]]:
+        belief_supps = []
+
+        for obs in self.get_states_obss_possible(states):
+            intersect = sorted(set(self.get_obs_states(obs)).intersection(states))
+            if len(intersect) != 0:
+                belief_supps.append(intersect)
+
+        return belief_supps
+
     def compute_belief_supp_cmdp_initial_state(
         self, initial_belief_supp: List[int]
     ) -> None:
@@ -352,32 +382,23 @@ class ConsPOMDP(ConsMDP):
             0
         ].cons  # IMPORTANT expecting energy observability
         src_state = bel_supp_cmdp.bel_supps.index(belief_src)
-        dest_states = []
-        act_distrs = []
+        bs_cmdp_dest_states = []
+        act_destinations = []
 
         for action in bel_supp_actions_same_label:
-            act_distrs.extend(list(action.distr.items()))
+            act_destinations.extend(list(action.distr.keys()))
 
-        for obs_distr, same_obs_distrs_groups in groupby(
-            act_distrs, lambda distr: self.get_state_obs_probs(distr[0])
-        ):
-            groups_list = list(same_obs_distrs_groups)
-            for obs, prob in obs_distr.items():
-                belief_dest = []
-                for group in groups_list:
-                    belief_dest.append(group[0])
+        for belief_dest in self.get_bel_supps_for_states(act_destinations):
+            belief_dest.sort()
+            if queue is not None and belief_dest not in bel_supp_cmdp.bel_supps:
+                name = bel_supp_state_name(belief_dest)
+                bel_supp_cmdp.new_state(
+                    belief_dest, self.reloads[belief_dest[0]], name
+                )
+                queue.append(belief_dest)
 
-                belief_dest.sort()
-                if queue is not None and belief_dest not in bel_supp_cmdp.bel_supps:
-                    name = bel_supp_state_name(belief_dest)
-                    bel_supp_cmdp.new_state(
-                        belief_dest, self.reloads[belief_dest[0]], name
-                    )
-                    queue.append(belief_dest)
-
-                dest_states.append(bel_supp_cmdp.bel_supps.index(belief_dest))
-
-        dest_distribution = uniform(list(set(dest_states)))
+            bs_cmdp_dest_states.append(bel_supp_cmdp.bel_supps.index(belief_dest))
+        dest_distribution = uniform(list(set(bs_cmdp_dest_states)))
         bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
 
     def compute_guessing_cmdp_initial_state(self, initial_belief: List[int]) -> None:

@@ -5,6 +5,8 @@ functions.
 A distribution is a mapping from states (integers) to probability values where
 the values sum up to 1.
 """
+from math import floor
+
 
 def is_distribution(distribution):
     """
@@ -30,9 +32,9 @@ def uniform(destinations, distr_weight=100):
     destinations: iterable of states
     """
     count = len(destinations)
-    mod = distr_weight % count
-    prob = 1/count
+    prob = floor(10000/count) / 10000
+    rest = 1.0 - count*prob
     dist = {i: prob for i in destinations}
     last = destinations[-1]
-    dist[last] = dist[last] + 0.01*mod
+    dist[last] = prob+rest
     return dist
