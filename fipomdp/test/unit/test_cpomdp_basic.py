@@ -1,6 +1,8 @@
 import pytest
 
+from fimdpenv.UUVEnv import SingleAgentEnv
 from fipomdp.core import ConsPOMDP
+from fipomdp.environment_utils import set_cross_observations_to_grid, get_guessing_stats
 
 
 def basic():
@@ -265,14 +267,13 @@ def test_multiple_obs_state():
     cpomdp.compute_belief_supp_cmdp_initial_state([0])
 
 
-# TODO ! grid from FiMDPEnv testing
-
 def test_minimal_correct_belief_supp_cmdp():
     cpomdp = minimal()
     cpomdp.compute_belief_supp_cmdp_initial_state([0])
 
     for action in cpomdp.belief_supp_cmdp.actions:
         print(action)
+
 
 def test_guessing_minimal():
     cpomdp = minimal()
@@ -291,9 +292,9 @@ def test_guessing_minimal():
     print("\nGUESSING:")
     for state in range(cpomdp.guessing_cmdp.num_states):
         print("STATE "+str(state))
-        print("BELIEF_SUPPORT " + str(cpomdp.guessing_cmdp.bel_supps[state]))
+        print("BELIEF_SUPPORT " + str(cpomdp.guessing_cmdp.belief_supp_guess_pairs[state][0]))
         print("RELOAD "+str(cpomdp.guessing_cmdp.reloads[state]))
-        print("GUESS "+str(cpomdp.guessing_cmdp.guesses[state]))
+        print("GUESS "+str(cpomdp.guessing_cmdp.belief_supp_guess_pairs[state][1]))
         print()
 
     for action in cpomdp.guessing_cmdp.actions:
@@ -302,4 +303,16 @@ def test_guessing_minimal():
     print(cpomdp.names)
 
 
+def test_guess_with_profiler():
+    env = SingleAgentEnv(grid_size=[7, 7], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
+    mdp, targets = env.get_consmdp()
+    mdp.__class__ = ConsPOMDP
+    set_cross_observations_to_grid(mdp, (7, 7))
+    get_guessing_stats(mdp, [0])
+    print("BEL_SUPP")
+    for i in range(mdp.belief_supp_cmdp.num_states):
+        print(f"BEL_SUPP: {mdp.belief_supp_cmdp.bel_supps[i]}")
+    print("GUESS")
+    for i in range(mdp.guessing_cmdp.num_states):
+        print(f"BEL_SUPP: {mdp.guessing_cmdp.belief_supp_guess_pairs[i][0]}, GUESS: {mdp.guessing_cmdp.belief_supp_guess_pairs[i][1]}")
 
