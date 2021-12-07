@@ -33,39 +33,49 @@ class BeliefSuppConsMDP(ConsMDP):
     ----------
     bel_supps : List[List[int]]
         List of belief supports
+    bel_supp_indexer : Dict[Tuple[int, ...], int]
+        Dict with belief supports as keys and their state number as value, for faster finding of state index.
     """
 
     bel_supps: List[List[int]]
+    bel_supp_indexer: Dict[Tuple[int, ...], int]
 
     def __init__(self):
         super(BeliefSuppConsMDP, self).__init__()
         self.bel_supps = []
+        self.bel_supp_indexer = {}
 
     def new_state(
         self, belief_support: List[int], reload: bool = False, name: str = None
     ) -> None:
         super(BeliefSuppConsMDP, self).new_state(reload, name)
         self.bel_supps.append(belief_support)
+        self.bel_supp_indexer[tuple(belief_support)] = self.num_states - 1
 
 
 class GuessingConsMDP(ConsMDP):
     """Representation of Belief Support consumption MDP with guessing, which can be derived from consumption POMDPs.
 
-    This class extends BeliefSuppConsMDP.
+    This class extends ConsMDP.
 
     Guesses for each state are of type int (None) and are kept in list indexed by state numbers.
 
     Attributes
     ----------
-    guesses : List[Optional[int]]
+    belief_supp_guess_pairs : List[Tuple[List[int], Optional[int]]]
         List of guesses, which can be None, None representing empty guess (epsilon)
+    bel_supp_guess_indexer : Dict[Tuple[Tuple[int, ...], Optional[int]], int]
+        Dict with belief support and guess tuples as keys, and state numbers as values,
+        for faster finding of state index.
     """
 
     belief_supp_guess_pairs: List[Tuple[List[int], Optional[int]]]
+    bel_supp_guess_indexer: Dict[Tuple[Tuple[int, ...], Optional[int]], int]
 
     def __init__(self):
         super(GuessingConsMDP, self).__init__()
         self.belief_supp_guess_pairs = []
+        self.bel_supp_guess_indexer = {}
 
     def new_state(
         self,
@@ -81,10 +91,16 @@ class GuessingConsMDP(ConsMDP):
 
         super(GuessingConsMDP, self).new_state(reload, name)
         self.belief_supp_guess_pairs.append((belief_support, guess))
+        self.bel_supp_guess_indexer[(tuple(belief_support), guess)] = (
+            self.num_states - 1
+        )
 
     def belief_supp_states(self, belief_supp: List[int]) -> List[int]:
         return list(
-            filter(lambda state: self.belief_supp_guess_pairs[state][0] == belief_supp)
+            filter(
+                lambda state: self.belief_supp_guess_pairs[state][0] == belief_supp,
+                range(self.num_states),
+            )
         )
 
 
@@ -269,12 +285,11 @@ class ConsPOMDP(ConsMDP):
                 f"Observation {given_obs} does not exist, count of all observation is {self.num_observations}"
             )
 
-        states = []
-        for (state, obs), prob in self.obs_probabilities.items():
-            if obs == given_obs and prob > 0:
-                states.append(state)
-
-        return states
+        return list(
+            ks
+            for ((ks, ko), prob) in self.obs_probabilities.items()
+            if ko == given_obs and prob > 0
+        )
 
     def get_states_obss_possible(self, states: List[int]) -> List[int]:
         """Get all observations that are possible for a list of states.
@@ -378,21 +393,26 @@ class ConsPOMDP(ConsMDP):
         cons = bel_supp_actions_same_label[
             0
         ].cons  # IMPORTANT expecting energy observability
-        src_state = bel_supp_cmdp.bel_supps.index(belief_src)
+        src_state = bel_supp_cmdp.bel_supp_indexer[tuple(belief_src)]
         bs_cmdp_dest_states = []
         act_destinations = []
 
         for action in bel_supp_actions_same_label:
-            act_destinations.extend(list(action.distr.keys()))
+            act_destinations.extend(action.distr.keys())
 
         for belief_dest in self.get_bel_supps_for_states(act_destinations):
             belief_dest.sort()
-            if queue is not None and belief_dest not in bel_supp_cmdp.bel_supps:
+            if (
+                queue is not None
+                and tuple(belief_dest) not in bel_supp_cmdp.bel_supp_indexer.keys()
+            ):
                 name = bel_supp_state_name(belief_dest)
                 bel_supp_cmdp.new_state(belief_dest, self.reloads[belief_dest[0]], name)
                 queue.append(belief_dest)
 
-            bs_cmdp_dest_states.append(bel_supp_cmdp.bel_supps.index(belief_dest))
+            bs_cmdp_dest_states.append(
+                bel_supp_cmdp.bel_supp_indexer[tuple(belief_dest)]
+            )
         dest_distribution = uniform(list(set(bs_cmdp_dest_states)))
         bel_supp_cmdp.add_action(src_state, dest_distribution, label, cons)
 
@@ -443,10 +463,13 @@ class ConsPOMDP(ConsMDP):
         guessing_cmdp: GuessingConsMDP,
         queue: deque,
     ):
-        bel_supp_index = self.belief_supp_cmdp.bel_supps.index(src_belief_supp)
-        src_state = guessing_cmdp.belief_supp_guess_pairs.index(
-            (src_belief_supp, src_guess)
-        )
+        bel_supp_index = self.belief_supp_cmdp.bel_supp_indexer[
+            (tuple(src_belief_supp))
+        ]
+        src_state = guessing_cmdp.bel_supp_guess_indexer[
+            (tuple(src_belief_supp), src_guess)
+        ]
+
         for bel_supp_action in self.belief_supp_cmdp.actions_for_state(bel_supp_index):
             dest_states = []
 
@@ -457,7 +480,7 @@ class ConsPOMDP(ConsMDP):
 
             if src_guess is None:
                 dest_states = [
-                    self._process_destination_state(
+                    self._process_guess_destination_state(
                         succ_bel_supp, None, guessing_cmdp, queue
                     )
                     for succ_bel_supp in succ_bel_supps
@@ -489,14 +512,14 @@ class ConsPOMDP(ConsMDP):
                     for guess in guesses:
                         empty_guesses = False
                         dest_states.append(
-                            self._process_destination_state(
+                            self._process_guess_destination_state(
                                 bel_supp, guess, guessing_cmdp, queue
                             )
                         )
 
                     if empty_guesses:
                         dest_states.append(
-                            self._process_destination_state(
+                            self._process_guess_destination_state(
                                 bel_supp, None, guessing_cmdp, queue
                             )
                         )
@@ -508,18 +531,18 @@ class ConsPOMDP(ConsMDP):
                 bel_supp_action.cons,
             )
 
-    def _process_destination_state(
+    def _process_guess_destination_state(
         self,
         bel_supp: List[int],
         guess: Optional[int],
         guessing_cmdp: GuessingConsMDP,
         queue: deque,
     ) -> int:
-        if (bel_supp, guess) not in guessing_cmdp.belief_supp_guess_pairs:
+        if (tuple(bel_supp), guess) not in guessing_cmdp.bel_supp_guess_indexer.keys():
             reload = self.reloads[bel_supp[0]]
             name = bel_supp_guess_state_name(bel_supp, guess)
             guessing_cmdp.new_state(bel_supp, reload, name, guess)
             queue.append((bel_supp, guess))
             return guessing_cmdp.num_states - 1
         else:
-            return guessing_cmdp.belief_supp_guess_pairs.index((bel_supp, guess))
+            return guessing_cmdp.bel_supp_guess_indexer[(tuple(bel_supp), guess)]

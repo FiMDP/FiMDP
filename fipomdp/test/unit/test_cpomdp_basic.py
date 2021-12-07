@@ -1,7 +1,9 @@
 import pytest
 
+from fimdp.objectives import BUCHI
 from fimdpenv.UUVEnv import SingleAgentEnv
 from fipomdp.core import ConsPOMDP
+from fipomdp.energy_solvers import ConsPOMDPBasicES
 from fipomdp.environment_utils import set_cross_observations_to_grid, get_guessing_stats
 
 
@@ -316,3 +318,13 @@ def test_guess_with_profiler():
     for i in range(mdp.guessing_cmdp.num_states):
         print(f"BEL_SUPP: {mdp.guessing_cmdp.belief_supp_guess_pairs[i][0]}, GUESS: {mdp.guessing_cmdp.belief_supp_guess_pairs[i][1]}")
 
+
+def test_strategy():
+    env = SingleAgentEnv(grid_size=[2, 2], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
+    mdp, targets = env.get_consmdp()
+    mdp.__class__ = ConsPOMDP
+    set_cross_observations_to_grid(mdp, (env.grid_size[0], env.grid_size[1]))
+
+    solver = ConsPOMDPBasicES(mdp, [0], env.capacities[0], targets)
+    solver.compute_buchi()
+    print(solver.guessing_ES.get_selector(BUCHI))
