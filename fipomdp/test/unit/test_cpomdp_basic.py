@@ -306,6 +306,7 @@ def test_guessing_minimal():
 
 
 def test_guess_with_profiler():
+    #Profiling
     env = SingleAgentEnv(grid_size=[7, 7], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
     mdp, targets = env.get_consmdp()
     mdp.__class__ = ConsPOMDP
@@ -319,6 +320,23 @@ def test_guess_with_profiler():
         print(f"BEL_SUPP: {mdp.guessing_cmdp.belief_supp_guess_pairs[i][0]}, GUESS: {mdp.guessing_cmdp.belief_supp_guess_pairs[i][1]}")
 
 
+def test_guesses_same_buchi_safe_values():
+    env = SingleAgentEnv(grid_size=[4, 4], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
+    mdp, targets = env.get_consmdp()
+    mdp.__class__ = ConsPOMDP
+    set_cross_observations_to_grid(mdp, (4, 4))
+
+    solver = ConsPOMDPBasicES(mdp, [0], env.capacities[0], targets)
+    solver.compute_buchi()
+
+    for i in range(solver.cpomdp.belief_supp_cmdp.num_states):
+        belief_supp = solver.cpomdp.belief_supp_cmdp.bel_supps[i]
+        min_l_set = set({})
+        for guess_state in [solver.cpomdp.guessing_cmdp.bel_supp_guess_indexer[(tuple(belief_supp), guess)] for guess in belief_supp]:
+            min_l_set.add(solver.min_levels[BUCHI][guess_state])
+        assert len(min_l_set) == 1, f"Guesses in belief supp {belief_supp} should have had same min values."
+
+
 def test_strategy():
     env = SingleAgentEnv(grid_size=[2, 2], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
     mdp, targets = env.get_consmdp()
@@ -327,4 +345,3 @@ def test_strategy():
 
     solver = ConsPOMDPBasicES(mdp, [0], env.capacities[0], targets)
     solver.compute_buchi()
-    print(solver.guessing_ES.get_selector(BUCHI))
