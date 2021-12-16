@@ -56,21 +56,18 @@ def get_guessing_stats(cpomdp: ConsPOMDP, initial_belief_support: List[int]) -> 
     """Method for tracking time of guessing construction CMDP computation.
 
     Parameters
-    ----------
+    ---------
     cpomdp: ConsPOMDP
         ConsPOMDP to be computed on
     initial_belief_support: List[int]
         Belief support for which to compute
     Returns
     -------
-    float
-        Duration of computation
-    int
-        Number of cpomdp states
-    int
-        Number of belief support cmdp states
-    int
-        Number of guessing cmdp states
+    Tuple[float, int, int, int]
+        Duration of computation,
+        Number of cpomdp states,
+        Number of belief support cmdp states,
+        Number of guessing cmdp states.
     """
     start = time.time()
     cpomdp.compute_guessing_cmdp_initial_state(initial_belief_support)

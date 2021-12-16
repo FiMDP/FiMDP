@@ -16,7 +16,7 @@ def power_set_names(original_names: List[str], lists_of_indices: List[List[int]]
 
 def bel_supp_state_name(belief_supp: List[int]) -> str:
     if len(belief_supp) == 1:
-        name = "bel_supp_" + str(belief_supp[0])
+        name = f"bel_supp_{belief_supp[0]}"
     else:
         name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", belief_supp)
     return name
@@ -24,7 +24,7 @@ def bel_supp_state_name(belief_supp: List[int]) -> str:
 
 def bel_supp_guess_state_name(belief_supp: List[int], guess: Optional[int]):
     if len(belief_supp) == 1:
-        name = "bel_supp_" + str(belief_supp[0]) + "__guess" + str(guess)
+        name = f"bel_supp_{belief_supp[0]}__guess{guess}"
     else:
         name = "bel_supp_" + reduce(lambda x, y: f"{x}_{y}", belief_supp) + "__guess" + str(guess)
     return name

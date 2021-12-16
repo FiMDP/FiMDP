@@ -5,10 +5,9 @@ Supported objectives:
  * positive reachability(target)
  * büchi(target)
 """
-import math
 from typing import List, Dict, Optional, Tuple
 
-from fimdp.core import Strategy, ConsMDP, ActionData
+from fimdp.core import Strategy, ActionData
 from fimdp.energy_solvers import BasicES
 from fimdp.objectives import SAFE, POS_REACH, BUCHI
 from fipomdp import ConsPOMDP
