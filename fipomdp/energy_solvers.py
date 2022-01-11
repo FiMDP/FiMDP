@@ -5,9 +5,10 @@ Supported objectives:
  * positive reachability(target)
  * büchi(target)
 """
-from typing import List, Dict, Optional, Tuple
+import logging
+from typing import List, Dict, Tuple
 
-from fimdp.core import Strategy, ActionData
+from fimdp.core import ActionData
 from fimdp.energy_solvers import BasicES
 from fimdp.objectives import SAFE, POS_REACH, BUCHI
 from fipomdp import ConsPOMDP
@@ -29,10 +30,17 @@ class ConsPOMDPBasicES:
             belief_supp: List[int],
             cap: int,
             cpomdp_targets: List[int],
+            recompute: bool = False,
     ):
+        logging.info(f"Creating solver")
+
         self.cpomdp = cpomdp
         self.cap = cap
-        cpomdp.compute_guessing_cmdp_initial_state(belief_supp)
+
+        if recompute:
+            cpomdp.compute_guessing_cmdp_initial_state(belief_supp)
+        else:
+            logging.info(f"Reusing precomputed belief support cmdp and guessing cmdp of cpomdp.")
 
         self.bel_supp_ES = BasicES(self.cpomdp.belief_supp_cmdp, cap, [])
 
@@ -52,6 +60,8 @@ class ConsPOMDPBasicES:
         self.bs_min_levels = {}
         self.guess_min_levels = {}
 
+        logging.info(f"Solver created")
+
     def _guessing_min_safe_levels(self, bel_supp_min_levels: List[int]) -> List[int]:
         min_levels = []
         for i in range(self.cpomdp.guessing_cmdp.num_states):
@@ -66,15 +76,24 @@ class ConsPOMDPBasicES:
 
     def compute_safe(self) -> None:
         self.bel_supp_ES.compute(SAFE)
-        self.bs_min_levels[SAFE] = self._guessing_min_safe_levels(
+        self.bs_min_levels[SAFE] = self.bel_supp_ES.min_levels[SAFE]
+        self.guess_min_levels[SAFE] = self._guessing_min_safe_levels(
             self.bel_supp_ES.min_levels[SAFE]
         )
 
     def compute_posreach(self) -> None:
+
+        logging.info("Solving POS_REACH values")
+
         self.guessing_ES.compute(POS_REACH)
         self.guess_min_levels[POS_REACH] = self.guessing_ES.min_levels[POS_REACH]
 
+        logging.info("POS_REACH values solved")
+
     def compute_buchi(self) -> None:
+
+        logging.info("Solving BUCHI values")
+
         original_reloads = list(self.cpomdp.guessing_cmdp.reloads)
         fixpoint = False
         while not fixpoint:
@@ -83,6 +102,7 @@ class ConsPOMDPBasicES:
             for i in range(self.cpomdp.guessing_cmdp.num_states):
                 if (
                         self.cpomdp.guessing_cmdp.is_reload(i)
+                        and self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i][1] is not None
                         and self.guess_min_levels[POS_REACH][i] > self.cap
                 ):
                     fixpoint = False
@@ -96,22 +116,32 @@ class ConsPOMDPBasicES:
         bs_min_levels = [-1 for _ in range(self.cpomdp.belief_supp_cmdp.num_states)]
 
         for i in range(self.cpomdp.guessing_cmdp.num_states):
-            belief_support = self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i][0]
-            bs_min_levels[self.cpomdp.belief_supp_cmdp.bel_supp_indexer[tuple(belief_support)]] = self.guess_min_levels[i]
+            belief_support, guess = self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i]
+            bs_index = self.cpomdp.belief_supp_cmdp.bel_supp_indexer[tuple(belief_support)]
+            if bs_min_levels[bs_index] < self.guess_min_levels[BUCHI][i] and guess is not None:
+                bs_min_levels[bs_index] = self.guess_min_levels[BUCHI][i]
+            print(bs_min_levels)
 
         self.bs_min_levels[BUCHI] = bs_min_levels
         self.cpomdp.guessing_cmdp.reloads = original_reloads
         self.compute_posreach()
 
+        logging.info("BUCHI values solved")
+
     def get_buchi_safe_actions_bscmdp(self) -> List[Tuple[int, ActionData]]:
+
+        logging.info("Creating action shield")
+
         bsafe_actions = []
         for i in range(self.cpomdp.belief_supp_cmdp.num_states):
             for action in self.cpomdp.belief_supp_cmdp.actions_for_state(i):
                 safe_level = action.cons
                 for succ in action.get_succs():
                     if not self.cpomdp.belief_supp_cmdp.reloads[succ]:
-                        safe_level = max(safe_level, action.cons + self.bs_min_levels[succ])
+                        safe_level = max(safe_level, action.cons + self.bs_min_levels[BUCHI][succ])
                 bsafe_actions.append((safe_level, action))
+
+        logging.info(f"Action shield with length {len(bsafe_actions)} created")
 
         return bsafe_actions
             

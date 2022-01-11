@@ -4,7 +4,8 @@ from fimdp.objectives import BUCHI
 from fimdpenv.UUVEnv import SingleAgentEnv
 from fipomdp.core import ConsPOMDP
 from fipomdp.energy_solvers import ConsPOMDPBasicES
-from fipomdp.environment_utils import set_cross_observations_to_grid, get_guessing_stats
+from fipomdp.environment_utils import set_cross_observations_to_UUV_grid, get_guessing_stats
+from fipomdp.pomcp import OnlineStrategy
 
 
 def basic():
@@ -310,7 +311,7 @@ def test_guess_with_profiler():
     env = SingleAgentEnv(grid_size=[7, 7], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
     mdp, targets = env.get_consmdp()
     mdp.__class__ = ConsPOMDP
-    set_cross_observations_to_grid(mdp, (7, 7))
+    set_cross_observations_to_UUV_grid(mdp, (7, 7))
     get_guessing_stats(mdp, [0])
     print("BEL_SUPP")
     for i in range(mdp.belief_supp_cmdp.num_states):
@@ -324,7 +325,7 @@ def test_guesses_same_buchi_safe_values():
     env = SingleAgentEnv(grid_size=[4, 4], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
     mdp, targets = env.get_consmdp()
     mdp.__class__ = ConsPOMDP
-    set_cross_observations_to_grid(mdp, (4, 4))
+    set_cross_observations_to_UUV_grid(mdp, (4, 4))
 
     solver = ConsPOMDPBasicES(mdp, [0], env.capacities[0], targets)
     solver.compute_buchi()
@@ -338,10 +339,31 @@ def test_guesses_same_buchi_safe_values():
 
 
 def test_strategy():
-    env = SingleAgentEnv(grid_size=[2, 2], capacity=20, reloads=[0], targets=[0], init_state=0, enhanced_actionspace=0)
+    import math
+
+    env = SingleAgentEnv(grid_size=[2, 2], capacity=1000000000000, reloads=[0], targets=[2], init_state=0,
+                         enhanced_actionspace=0)
+
     mdp, targets = env.get_consmdp()
     mdp.__class__ = ConsPOMDP
-    set_cross_observations_to_grid(mdp, (env.grid_size[0], env.grid_size[1]))
+    set_cross_observations_to_UUV_grid(mdp, (env.grid_size[0], env.grid_size[1]))
 
-    solver = ConsPOMDPBasicES(mdp, [0], env.capacities[0], targets)
-    solver.compute_buchi()
+    cpomdp = mdp
+    capacity = env.capacities[0]
+    init_energy = capacity
+    init_obs = 0
+    init_bel_supp = tuple([0])
+    exploration = 0.9
+    random_seed = 1
+
+    strategy = OnlineStrategy(cpomdp, capacity, init_energy, init_obs, init_bel_supp, targets, exploration, random_seed,
+                              True)
+    print(strategy.tree.action_shield)
+    print(env.capacities[0])
+    print(init_energy)
+
+    print(strategy.solver.bs_min_levels[BUCHI])
+    print(cpomdp.belief_supp_cmdp.bel_supps)
+    print()
+    print(strategy.solver.guess_min_levels[BUCHI])
+    print([bs for bs, _ in cpomdp.guessing_cmdp.belief_supp_guess_pairs])

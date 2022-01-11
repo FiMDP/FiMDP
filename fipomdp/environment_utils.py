@@ -4,7 +4,7 @@ from typing import List, Tuple
 from fipomdp import ConsPOMDP
 
 
-def set_cross_observations_to_grid(cpomdp: ConsPOMDP, grid_size: [int, int]) -> None:
+def set_cross_observations_to_UUV_grid(cpomdp: ConsPOMDP, grid_size: [int, int]) -> None:
     """Method for setting cross sized observations to each state in the grid (one field up,left,right,down).
 
     3x3 grid, state at index [1][1]:

@@ -9,6 +9,7 @@ The representation in this module assumes energy observability - action consumpt
 
 Classes in this module - BeliefSuppConsMDP, GuessingConsMDP, ConsPOMDP
 """
+import logging
 from collections import deque
 from itertools import groupby
 from typing import Dict, List, Optional, Tuple
@@ -158,6 +159,9 @@ class ConsPOMDP(ConsMDP):
             Names of observations, optional.
         -------
         """
+
+        logging.info(f"Setting observations to CMDP")
+
         if obs_names is not None and len(obs_names) != num_observations:
             raise AttributeError(
                 f"Length ({len(obs_names)}) of observation names is not same "
@@ -198,6 +202,8 @@ class ConsPOMDP(ConsMDP):
                     "Supplied observation dict is not a distribution. The probabilities are:"
                     f" {list(obs_distr.keys())}, sum: {sum(obs_distr.values())}"
                 )
+
+        logging.info(f"Observation setting finished")
 
     def set_state_names(self, names: Optional[List[str]] = None) -> None:
         """
@@ -337,6 +343,8 @@ class ConsPOMDP(ConsMDP):
             Initial belief support, should not be empty
         """
 
+        logging.info(f"Computing belief support CMDP")
+
         if len(initial_belief_supp) == 0:
             raise AttributeError(
                 f"Initial belief support {initial_belief_supp} should not be empty!"
@@ -364,6 +372,8 @@ class ConsPOMDP(ConsMDP):
             )
 
         self.belief_supp_cmdp = belief_supp_cmdp
+
+        logging.info(f"Belief support CMDP computing finished, resulting cmdp has {belief_supp_cmdp.num_states} states")
 
     def _bfs_add_belief_supp_action(
         self,
@@ -436,6 +446,8 @@ class ConsPOMDP(ConsMDP):
             Initial belief support
         """
 
+        logging.info(f"Computing guessing CMDP")
+
         self.structure_change()
         self.compute_belief_supp_cmdp_initial_state(initial_belief)
 
@@ -455,6 +467,8 @@ class ConsPOMDP(ConsMDP):
             self._bfs_add_guess_cmdp_actions(belief, guess, guessing_cmpd, queue)
 
         self.guessing_cmdp = guessing_cmpd
+
+        logging.info(f"Guessing CMDP computing finished, resulting cmdp has {guessing_cmpd.num_states} states")
 
     def _bfs_add_guess_cmdp_actions(
         self,
