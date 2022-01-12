@@ -47,30 +47,32 @@ class POMCPTree:
     random_seed: int
 
     def __init__(
-            self,
-            cpomdp: ConsPOMDP,
-            targets: List[int],
-            root_obs: int,
-            root_bel_supp: Tuple[int, ...],
-            capacity: int,
-            energy: int,
-            action_shield: List[Tuple[int, ActionData]],
-            exploration: float,
-            random_seed: int,
-            rollout_horizon: int = 20,
-            root_belief: Optional[Dict[int, float]] = None
+        self,
+        cpomdp: ConsPOMDP,
+        targets: List[int],
+        root_obs: int,
+        root_bel_supp: Tuple[int, ...],
+        capacity: int,
+        energy: int,
+        action_shield: List[Tuple[int, ActionData]],
+        exploration: float,
+        random_seed: int,
+        rollout_horizon: int = 100,
+        root_belief: Optional[Dict[int, float]] = None,
     ):
 
-        logging.info(f"Constructing tree, parameters: \n"
-                     f"targets: {targets},\n"
-                     f"root observation: {root_obs},\n"
-                     f"root belief support: {root_bel_supp},\n"
-                     f"capacity: {capacity},\n"
-                     f"energy: {energy},\n"
-                     f"exploration: {exploration},\n"
-                     f"random seed: {random_seed},\n"
-                     f"rollout horizon: {rollout_horizon},\n"
-                     f"root belief: {root_belief}")
+        logging.info(
+            f"Constructing tree, parameters: \n"
+            f"targets: {targets},\n"
+            f"root observation: {root_obs},\n"
+            f"root belief support: {root_bel_supp},\n"
+            f"capacity: {capacity},\n"
+            f"energy: {energy},\n"
+            f"exploration: {exploration},\n"
+            f"random seed: {random_seed},\n"
+            f"rollout horizon: {rollout_horizon},\n"
+            f"root belief: {root_belief}"
+        )
 
         self.cpomdp = cpomdp
         self.targets = targets
@@ -81,10 +83,22 @@ class POMCPTree:
         self.rollout_horizon = rollout_horizon
 
         if root_belief is None:
-            root_belief = {k: v for k, v in uniform(self.cpomdp.get_obs_states(root_obs)).items() if k in root_bel_supp}
+            root_belief = {
+                k: v
+                for k, v in uniform(self.cpomdp.get_obs_states(root_obs)).items()
+                if k in root_bel_supp
+            }
 
         self.root = POMCPHistoryNode(
-            cpomdp, root_obs, root_bel_supp, energy, exploration, [], action_shield, root_belief
+            cpomdp,
+            self.capacity,
+            root_obs,
+            root_bel_supp,
+            energy,
+            exploration,
+            [],
+            action_shield,
+            root_belief,
         )
 
         self.random_seed = random_seed
@@ -108,18 +122,23 @@ class POMCPTree:
         """
         current_history_node = self.root
         belief_particles = []
+        tmp_sample = sampled_state
         while current_history_node.visits != 0:
-            node, belief = current_history_node.simulate_action(sampled_state)
+            node, belief = current_history_node.simulate_action(tmp_sample)
             current_history_node = node
             belief_particles.append(belief)
+            tmp_sample = belief
 
+        self.iterations += 1
+
+        print()
+        print(f"ITERATION: {self.iterations}")
+        print(f"BELIEF_PARTICLES: {belief_particles}")
+        print()
         return current_history_node, belief_particles
 
     def update_tree(
-            self,
-            history_node: POMCPHistoryNode,
-            result: float,
-            belief_particles: List[int]
+        self, history_node: POMCPHistoryNode, result: float, belief_particles: List[int]
     ) -> None:
         """Method for simulating one tree update for given leaf node, by visiting each node of its history,
         and updating it with given result of rollout evaluation, and for history nodes also with particles accumulated.
@@ -156,6 +175,7 @@ class POMCPTree:
             history_node.bel_particle_filter[belief_particles[-1]] += 1
 
     def tree_run(self, max_iterations: int) -> None:
+
         """Method for simulating one full tree run, with all iterations, rollouts and updates.
 
         Parameters
@@ -170,9 +190,13 @@ class POMCPTree:
 
             sampled_state = sample_from_distr(self.root.belief)
 
-            logging.info(f"Launching tree iteration and rollout with sampled state {sampled_state}.")
+            logging.info(
+                f"Launching tree iteration and rollout with sampled state {sampled_state}."
+            )
 
             iter_hist_node, iter_beliefs = self.iteration(sampled_state)
+
+            print()
 
             if len(iter_beliefs) == 0:
                 result = self.rollout(
@@ -185,20 +209,21 @@ class POMCPTree:
 
             self.update_tree(iter_hist_node, result, iter_beliefs)
 
-            logging.info(f"Tree iteration finished, new history node has observation {iter_hist_node.obs} and belief support {iter_hist_node.bel_supp}")
+            logging.info(
+                f"Tree iteration finished, new history node has observation {iter_hist_node.obs} and belief support {iter_hist_node.bel_supp}"
+            )
             logging.info(f"Rollout of this node has been evaluated as {result}")
 
         logging.info(f"Tree run finished")
 
     def tree_reset(
-            self,
-            energy: int,
-            obs: int,
-            bel_supp: Tuple[int, ...],
-            belief: Dict[int, float],
-            exploration: float,
-            random_seed: int,
-
+        self,
+        energy: int,
+        obs: int,
+        bel_supp: Tuple[int, ...],
+        belief: Dict[int, float],
+        exploration: float,
+        random_seed: int,
     ) -> None:
         """Method for resetting the tree with new initial conditions.
 
@@ -212,16 +237,26 @@ class POMCPTree:
         belief : Dict[int, float]
         """
 
-        logging.info(f"Resetting the tree with new root node, parameters:"
-                     f"observation: {obs},\n"
-                     f"belief support: {bel_supp},\n"
-                     f"energy: {energy},\n"
-                     f"exploration: {exploration},\n"
-                     f"random seed: {random_seed},\n"
-                     f"root belief: {belief}")
+        logging.info(
+            f"Resetting the tree with new root node, parameters:"
+            f"observation: {obs},\n"
+            f"belief support: {bel_supp},\n"
+            f"energy: {energy},\n"
+            f"exploration: {exploration},\n"
+            f"random seed: {random_seed},\n"
+            f"root belief: {belief}"
+        )
 
         self.root = POMCPHistoryNode(
-            self.cpomdp, obs, bel_supp, energy, exploration, [], self.action_shield, belief
+            self.cpomdp,
+            self.capacity,
+            obs,
+            bel_supp,
+            energy,
+            exploration,
+            [],
+            self.action_shield,
+            belief,
         )
 
         self.iterations = 0
@@ -256,12 +291,14 @@ class POMCPTree:
         action_node = self.root.children[random.sample(best_action_indices, 1)[0]]
         action = action_node.bel_supp_action
 
-        logging.info(f"{action} action was evaluated highest with value of {action_node.val}")
+        logging.info(
+            f"{action} action was evaluated highest with value of {action_node.val}"
+        )
 
         return action
 
     def rollout(
-            self, history_node: POMCPHistoryNode, state: int, horizon: int
+        self, history_node: POMCPHistoryNode, state: int, horizon: int
     ) -> float:
         """Rollout method for given history node, state and rollout horizon.
         Simulates uniform safe action continuation and returns number of steps needed to reach a target,
@@ -278,13 +315,11 @@ class POMCPTree:
         float
             Rollout evaluation of the node.
         """
-        print("ROLLOUT")
         target_found = False
         result = 0
         energy = history_node.energy
         bel_supp_state = history_node.bel_supp_state
         safe_actions = filter_safe_actions(self.action_shield, energy, bel_supp_state)
-        print(safe_actions)
         src_state = state
 
         for i in range(horizon):
@@ -316,8 +351,6 @@ class POMCPTree:
             safe_actions = filter_safe_actions(
                 self.action_shield, energy, bel_supp_state
             )
-            print(f"ENERGY: {energy}")
-            print(safe_actions)
 
         return result * (1 if target_found else 2)  # TODO discuss weight
 
@@ -345,10 +378,18 @@ class POMCPTree:
                 break
 
         if new_history_node is None:
-            raise ValueError(f"Error, new history node not found according to observation.")
+            raise ValueError(
+                f"Error, new history node not found according to observation."
+            )
 
-        self.tree_reset(new_history_node.energy, outcome, new_history_node.bel_supp,
-                        new_history_node.bel_particle_filter, self.exploration, self.random_seed)
+        self.tree_reset(
+            new_history_node.energy,
+            outcome,
+            new_history_node.bel_supp,
+            new_history_node.bel_particle_filter,
+            self.exploration,
+            self.random_seed,
+        )
 
         logging.info(f"New sampled node to fit observation was created")
 
@@ -404,10 +445,10 @@ class POMCPActionNode(POMCPNode):
     children: List[POMCPHistoryNode]
 
     def __init__(
-            self,
-            cpomdp: ConsPOMDP,
-            parent_node: POMCPHistoryNode,
-            bel_supp_action: ActionData,
+        self,
+        cpomdp: ConsPOMDP,
+        parent_node: POMCPHistoryNode,
+        bel_supp_action: ActionData,
     ):
 
         super(POMCPActionNode, self).__init__(cpomdp)
@@ -435,48 +476,78 @@ class POMCPActionNode(POMCPNode):
         cpomdp_state_action = matching_state_action(
             self.cpomdp, self.bel_supp_action, state
         )
-        dest_state = sample_from_distr(cpomdp_state_action.distr)
+
+        cpomdp_state_action_distr = copy(cpomdp_state_action.distr)
+
         bel_supp_dest_states = self.bel_supp_action.get_succs()
-        obs_distr = self.cpomdp.get_state_obs_probs(dest_state)
         belief_supps = [
             tuple(self.cpomdp.belief_supp_cmdp.bel_supps[bel_supp_state])
             for bel_supp_state in bel_supp_dest_states
         ]
 
-        print(belief_supps)
-
-        belief_supp = ()
+        print()
+        print(f"ALL BELIEF SUPPS: {belief_supps}")
+        print(
+            f"BELIEF SUPP ACITON: {self.bel_supp_action}, SRC BELIEF: {self.cpomdp.belief_supp_cmdp.bel_supps[self.bel_supp_action.src]}"
+        )
 
         timeout = 0
+        belief_supp = ()
 
-        while belief_supp == () and timeout < 1000 and len(obs_distr) != 0:
-            dest_obs = sample_from_distr(obs_distr)
-            dest_obs_states = self.cpomdp.get_obs_states(dest_obs)
+        while (
+            belief_supp == () and timeout < 1000 and len(cpomdp_state_action_distr) > 0
+        ):
+            dest_state = sample_from_distr(cpomdp_state_action_distr)
+            obs_distr = self.cpomdp.get_state_obs_probs(dest_state)
 
-            for b_s in belief_supps:
-                if dest_state in b_s and len(belief_supp) < len(b_s) == len(
-                        [state for state in b_s if state in dest_obs_states]):
-                    belief_supp = b_s
-
-            obs_distr.pop(dest_obs)
             print(f"OBS_DISTR: {obs_distr}")
+            print(f"MATCHING STATE ACITON: {cpomdp_state_action}")
+
+            while len(obs_distr) > 0 and belief_supp == ():
+                dest_obs = sample_from_distr(obs_distr)
+                dest_obs_states = self.cpomdp.get_obs_states(dest_obs)
+
+                for b_s in belief_supps:
+                    if dest_state in b_s and len(belief_supp) < len(b_s) == len(
+                        [state for state in b_s if state in dest_obs_states]
+                    ):
+                        belief_supp = b_s
+
+                obs_distr.pop(dest_obs)
+
+            if dest_state not in belief_supp:
+                belief_supp = ()
+                cpomdp_state_action_distr.pop(dest_state)
 
         if belief_supp == ():
             print("FATAL ERROR coming up")
-            print(f"STATE: {dest_state}, OBS: {dest_obs}, BELIEF_SUPP: {belief_supps}")
-            raise ValueError(f"Couldn't match observation, for belief_supps: {belief_supps} and state: {dest_state}")
+            print(
+                f"SRC_STATE: {state}, DEST STATE: {dest_state}, OBS: {dest_obs}, DEST BELIEF_SUPP: {belief_supps}"
+            )
+            raise ValueError(
+                f"Couldn't match observation, for belief_supps: {belief_supps} and state: {dest_state}"
+            )
+
+        print(f"PICKED BELIEF SUPP: {belief_supp}")
 
         for hist_node in self.children:
-            if hist_node.obs == dest_obs:
+            if hist_node.obs == dest_obs and hist_node.bel_supp == belief_supp:
                 return hist_node, dest_state
+
+        new_energy = (
+            self.parent_node.capacity
+            if dest_state in self.cpomdp.reloads
+            else self.parent_node.energy - self.bel_supp_action.cons
+        )
 
         new_hist = copy(self.parent_node.history)
         new_hist.append((self.parent_node, self))
         new_child = POMCPHistoryNode(
             self.cpomdp,
+            self.parent_node.capacity,
             dest_obs,
             belief_supp,
-            self.parent_node.energy - self.bel_supp_action.cons,
+            new_energy,
             self.parent_node.exploration,
             new_hist,
             self.parent_node.action_shield,
@@ -508,6 +579,7 @@ class POMCPHistoryNode(POMCPNode):
     """
 
     cpomdp: ConsPOMDP
+    capacity: int
     children: List[POMCPActionNode]
     obs: int
     bel_supp: Tuple[int, ...]
@@ -519,19 +591,21 @@ class POMCPHistoryNode(POMCPNode):
     action_shield: List[Tuple[int, ActionData]]
 
     def __init__(
-            self,
-            cpomdp: ConsPOMDP,
-            obs: int,
-            bel_supp: Tuple[int, ...],
-            energy: int,
-            exploration: float,
-            history: List[Tuple[POMCPHistoryNode, POMCPActionNode]],
-            action_shield: List[Tuple[int, ActionData]],
-            belief: Optional[Dict[int, float]] = None
+        self,
+        cpomdp: ConsPOMDP,
+        capacity: int,
+        obs: int,
+        bel_supp: Tuple[int, ...],
+        energy: int,
+        exploration: float,
+        history: List[Tuple[POMCPHistoryNode, POMCPActionNode]],
+        action_shield: List[Tuple[int, ActionData]],
+        belief: Optional[Dict[int, float]] = None,
     ) -> None:
         super(POMCPHistoryNode, self).__init__(cpomdp)
         if belief is None:
             belief = {}
+        self.capacity = capacity
         self.children = []
         self.obs = obs
         self.bel_supp = bel_supp
@@ -544,7 +618,7 @@ class POMCPHistoryNode(POMCPNode):
         self.belief = belief
 
         for action in filter_safe_actions(
-                self.action_shield, self.energy, self.bel_supp_state
+            self.action_shield, self.energy, self.bel_supp_state
         ):
             action_node = POMCPActionNode(cpomdp, self, action)
             self.children.append(action_node)
@@ -563,19 +637,28 @@ class POMCPHistoryNode(POMCPNode):
             A pair of new history node and particle (newly sampled state from next sampled history node's belief
              support).
         """
+
         unvisited_children = [
             action_node for action_node in self.children if action_node.visits == 0
         ]
+
+        print(
+            f"{len(self.children)} CHILDREN, OF THEM {len(unvisited_children)} ARE UNVISITED, ENERGY LEVEL: {self.energy}"
+        )
+
         if len(unvisited_children) != 0:
-            return random.sample(unvisited_children, 1)[0].sample_hist_node(sampled_state)
+            return random.sample(unvisited_children, 1)[0].sample_hist_node(
+                sampled_state
+            )
 
         uct_values = self.calculate_uct()
+        print(f"BEST UCT: {min(uct_values)}, ALL UCT: {uct_values}")
         best_action_indices = [
             uct_values.index(i) for i in uct_values if i == min(uct_values)
         ]  # minimal depth
-        return self.children[
-            random.sample(best_action_indices, 1)[0]
-        ].sample_hist_node(sampled_state)
+        return self.children[random.sample(best_action_indices, 1)[0]].sample_hist_node(
+            sampled_state
+        )
 
     def calculate_uct(self) -> List[float]:
         """Method for calculating UCT values for child action nodes.
@@ -591,11 +674,16 @@ class POMCPHistoryNode(POMCPNode):
             float(val) / max(map(abs, children_vals)) for val in children_vals
         ]
 
+        exploration_bonus = [
+            2 * self.exploration * math.sqrt(math.log(self.visits) / children_visits[i])
+            for i in range(len(children_visits))
+        ]
+
+        print(f"NORMALIZED VALUES: {normalized_vals}")
+        print(f"EXPLORATION BONUSES: {exploration_bonus}")
+
         return [
-            normalized_vals[i]
-            + 2
-            * self.exploration
-            * math.sqrt(math.log(self.visits) / children_visits[i])
+            normalized_vals[i] + exploration_bonus[i]
             for i in range(len(children_visits))
         ]
 
@@ -626,19 +714,22 @@ class OnlineStrategy:
     action_picked: bool
 
     def __init__(
-            self,
-            cpomdp: ConsPOMDP,
-            capacity: int,
-            init_energy: int,
-            init_obs: int,
-            init_bel_supp: Tuple[int, ...],
-            targets: List[int],
-            exploration: float,
-            random_seed: int = 42,
-            recompute: bool = False  # In the case that belief and guess constructions are not computed, set to True
+        self,
+        cpomdp: ConsPOMDP,
+        capacity: int,
+        init_energy: int,
+        init_obs: int,
+        init_bel_supp: Tuple[int, ...],
+        targets: List[int],
+        exploration: float,
+        rollout_horizon: int = 100,
+        random_seed: int = 42,
+        recompute: bool = False,  # In the case that belief and guess constructions are not computed, set to True
     ):
 
-        self.solver = ConsPOMDPBasicES(cpomdp, list(init_bel_supp), capacity, targets, recompute)
+        self.solver = ConsPOMDPBasicES(
+            cpomdp, list(init_bel_supp), capacity, targets, recompute
+        )
         self.solver.compute_buchi()
         action_shield = self.solver.get_buchi_safe_actions_bscmdp()
 
@@ -653,6 +744,7 @@ class OnlineStrategy:
             init_energy,
             action_shield,
             exploration,
+            rollout_horizon,
             random_seed,
         )
 
@@ -665,7 +757,9 @@ class OnlineStrategy:
             Given observation outcome
         """
         if not self.action_picked:
-            raise AttributeError(f"Can't update observation if you haven't found best next action yet.")
+            raise AttributeError(
+                f"Can't update observation if you haven't found best next action yet."
+            )
         self.action_picked = False
         self.tree.use_outcome(self.best_action, outcome)
 
@@ -683,19 +777,21 @@ class OnlineStrategy:
             Action picked by POMCP simulation.
         """
         if self.action_picked:
-            raise AttributeError(f"Can't pick action if you haven't updated observation from previously picked action.")
+            raise AttributeError(
+                f"Can't pick action if you haven't updated observation from previously picked action."
+            )
         self.best_action = self.tree.best_action(iterations_count)
         self.action_picked = True
         return self.best_action
 
     def reset(
-            self,
-            init_energy: int,
-            init_obs: int,
-            init_bel_supp: Tuple[int, ...],
-            exploration: float,
-            init_belief: Dict[int, float],
-            random_seed: int = 42,
+        self,
+        init_energy: int,
+        init_obs: int,
+        init_bel_supp: Tuple[int, ...],
+        exploration: float,
+        init_belief: Dict[int, float],
+        random_seed: int = 42,
     ) -> None:
         """Method for resetting the strategy with new initial conditions.
 
@@ -720,7 +816,7 @@ class OnlineStrategy:
 
 
 def filter_safe_actions(
-        action_shield: List[Tuple[int, ActionData]], energy: int, bel_supp_state: int
+    action_shield: List[Tuple[int, ActionData]], energy: int, bel_supp_state: int
 ) -> List[ActionData]:
     """Utility function to filter actions according to required energy for them with given action shield.
 
@@ -742,7 +838,7 @@ def filter_safe_actions(
     return [
         action
         for min_energy, action in action_shield
-        if min_energy < energy and action.src == bel_supp_state
+        if min_energy <= energy and action.src == bel_supp_state
     ]
 
 
@@ -765,7 +861,7 @@ def sample_from_distr(distribution: Dict[int, float]) -> int:
 
 
 def matching_state_action(
-        cpomdp: ConsPOMDP, bs_action: ActionData, state: int
+    cpomdp: ConsPOMDP, bs_action: ActionData, state: int
 ) -> ActionData:
     """Utility function for finding matching cpomdp action from its belief support cmdp action, with given state.
 

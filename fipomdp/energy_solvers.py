@@ -25,12 +25,12 @@ class ConsPOMDPBasicES:
     guess_min_levels: Dict[int, List[int]]
 
     def __init__(
-            self,
-            cpomdp: ConsPOMDP,
-            belief_supp: List[int],
-            cap: int,
-            cpomdp_targets: List[int],
-            recompute: bool = False,
+        self,
+        cpomdp: ConsPOMDP,
+        belief_supp: List[int],
+        cap: int,
+        cpomdp_targets: List[int],
+        recompute: bool = False,
     ):
         logging.info(f"Creating solver")
 
@@ -40,17 +40,19 @@ class ConsPOMDPBasicES:
         if recompute:
             cpomdp.compute_guessing_cmdp_initial_state(belief_supp)
         else:
-            logging.info(f"Reusing precomputed belief support cmdp and guessing cmdp of cpomdp.")
+            logging.info(
+                f"Reusing precomputed belief support cmdp and guessing cmdp of cpomdp."
+            )
 
         self.bel_supp_ES = BasicES(self.cpomdp.belief_supp_cmdp, cap, [])
 
         guessing_cmdp_targets = []
         for i in range(
-                self.cpomdp.guessing_cmdp.num_states
+            self.cpomdp.guessing_cmdp.num_states
         ):  # convert pomdp targets into guess targets
             if (
-                    self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i][1]
-                    in cpomdp_targets
+                self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i][1]
+                in cpomdp_targets
             ):
                 guessing_cmdp_targets.append(i)
         self.guessing_ES = BasicES(
@@ -101,9 +103,10 @@ class ConsPOMDPBasicES:
             self.compute_posreach()
             for i in range(self.cpomdp.guessing_cmdp.num_states):
                 if (
-                        self.cpomdp.guessing_cmdp.is_reload(i)
-                        and self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i][1] is not None
-                        and self.guess_min_levels[POS_REACH][i] > self.cap
+                    self.cpomdp.guessing_cmdp.is_reload(i)
+                    and self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i][1]
+                    is not None
+                    and self.guess_min_levels[POS_REACH][i] > self.cap
                 ):
                     fixpoint = False
                     unusable_reloads = self.cpomdp.guessing_cmdp.belief_supp_states(
@@ -117,8 +120,13 @@ class ConsPOMDPBasicES:
 
         for i in range(self.cpomdp.guessing_cmdp.num_states):
             belief_support, guess = self.cpomdp.guessing_cmdp.belief_supp_guess_pairs[i]
-            bs_index = self.cpomdp.belief_supp_cmdp.bel_supp_indexer[tuple(belief_support)]
-            if bs_min_levels[bs_index] < self.guess_min_levels[BUCHI][i] and guess is not None:
+            bs_index = self.cpomdp.belief_supp_cmdp.bel_supp_indexer[
+                tuple(belief_support)
+            ]
+            if (
+                bs_min_levels[bs_index] < self.guess_min_levels[BUCHI][i]
+                and guess is not None
+            ):
                 bs_min_levels[bs_index] = self.guess_min_levels[BUCHI][i]
             print(bs_min_levels)
 
@@ -138,10 +146,11 @@ class ConsPOMDPBasicES:
                 safe_level = action.cons
                 for succ in action.get_succs():
                     if not self.cpomdp.belief_supp_cmdp.reloads[succ]:
-                        safe_level = max(safe_level, action.cons + self.bs_min_levels[BUCHI][succ])
+                        safe_level = max(
+                            safe_level, action.cons + self.bs_min_levels[BUCHI][succ]
+                        )
                 bsafe_actions.append((safe_level, action))
 
         logging.info(f"Action shield with length {len(bsafe_actions)} created")
 
         return bsafe_actions
-            

@@ -373,7 +373,9 @@ class ConsPOMDP(ConsMDP):
 
         self.belief_supp_cmdp = belief_supp_cmdp
 
-        logging.info(f"Belief support CMDP computing finished, resulting cmdp has {belief_supp_cmdp.num_states} states")
+        logging.info(
+            f"Belief support CMDP computing finished, resulting cmdp has {belief_supp_cmdp.num_states} states"
+        )
 
     def _bfs_add_belief_supp_action(
         self,
@@ -468,7 +470,9 @@ class ConsPOMDP(ConsMDP):
 
         self.guessing_cmdp = guessing_cmpd
 
-        logging.info(f"Guessing CMDP computing finished, resulting cmdp has {guessing_cmpd.num_states} states")
+        logging.info(
+            f"Guessing CMDP computing finished, resulting cmdp has {guessing_cmpd.num_states} states"
+        )
 
     def _bfs_add_guess_cmdp_actions(
         self,
