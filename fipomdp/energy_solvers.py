@@ -128,7 +128,7 @@ class ConsPOMDPBasicES:
                 and guess is not None
             ):
                 bs_min_levels[bs_index] = self.guess_min_levels[BUCHI][i]
-            print(bs_min_levels)
+            logging.debug(f"BELIEF SUPPORT MIN LEVELS: {bs_min_levels}")
 
         self.bs_min_levels[BUCHI] = bs_min_levels
         self.cpomdp.guessing_cmdp.reloads = original_reloads
