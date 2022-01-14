@@ -6,7 +6,7 @@ from fipomdp import ConsPOMDP
 
 
 def filter_safe_actions(
-    action_shield: List[Tuple[int, ActionData]], energy: int, bel_supp_state: int
+    action_shield: Dict[int, Dict[ActionData, int]], energy: int, bel_supp_state: int
 ) -> List[ActionData]:
     """Utility function to filter actions according to required energy for them with given action shield.
 
@@ -27,8 +27,8 @@ def filter_safe_actions(
     """
     return [
         action
-        for min_energy, action in action_shield
-        if min_energy <= energy and action.src == bel_supp_state
+        for action, min_energy in action_shield[bel_supp_state].items()
+        if min_energy <= energy
     ]
 
 

@@ -128,7 +128,7 @@ class ConsPOMDPBasicES:
                 and guess is not None
             ):
                 bs_min_levels[bs_index] = self.guess_min_levels[BUCHI][i]
-            logging.debug(f"BELIEF SUPPORT MIN LEVELS: {bs_min_levels}")
+            logging.log(5, f"BELIEF SUPPORT MIN LEVELS: {bs_min_levels}")
 
         self.bs_min_levels[BUCHI] = bs_min_levels
         self.cpomdp.guessing_cmdp.reloads = original_reloads
@@ -136,12 +136,13 @@ class ConsPOMDPBasicES:
 
         logging.info("BUCHI values solved")
 
-    def get_buchi_safe_actions_bscmdp(self) -> List[Tuple[int, ActionData]]:
+    def get_buchi_safe_actions_bscmdp(self) -> Dict[int, Dict[ActionData, int]]:
 
         logging.info("Creating action shield")
 
-        bsafe_actions = []
+        bsafe_actions = dict()
         for i in range(self.cpomdp.belief_supp_cmdp.num_states):
+            bsafe_bel_supp_state_actions = dict()
             for action in self.cpomdp.belief_supp_cmdp.actions_for_state(i):
                 safe_level = action.cons
                 for succ in action.get_succs():
@@ -149,8 +150,9 @@ class ConsPOMDPBasicES:
                         safe_level = max(
                             safe_level, action.cons + self.bs_min_levels[BUCHI][succ]
                         )
-                bsafe_actions.append((safe_level, action))
+                bsafe_bel_supp_state_actions[action] = safe_level
+            bsafe_actions[i] = bsafe_bel_supp_state_actions
 
-        logging.info(f"Action shield with length {len(bsafe_actions)} created")
+        logging.info(f"Action shield created.")
 
         return bsafe_actions
