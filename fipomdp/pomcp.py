@@ -2,7 +2,8 @@
 
 Classes used for POMCP:
  * POMCPTree - represents the tree with root, parameters needed to reset it,
-                and methods for monte carlo iterations, rollouts, node updates, and picking the best action.
+                and methods for monte carlo iterations, rollouts and rollout evalutation functions,
+                 node updates, and picking the best action.
  * POMCPNode - abstract node representation with common functionality of action and history nodes,
                 as in a visiting method.
  * POMCPActionNode - tree node representing action with history nodes as children and functionality for sampling of nodes.
@@ -20,7 +21,7 @@ from __future__ import annotations
 import math
 import random
 from copy import copy
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict, Optional, Callable
 
 from fimdp.core import ActionData
 from fimdp.distribution import uniform
@@ -46,6 +47,7 @@ class POMCPTree:
     action_shield: Dict[int, Dict[ActionData, int]]
     exploration: float
     rollout_horizon: int
+    rollout_function: Callable[[int, int, int, int, int, bool], float]
     random_seed: int
 
     def __init__(
@@ -59,6 +61,7 @@ class POMCPTree:
         action_shield: Dict[int, Dict[ActionData, int]],
         exploration: float,
         random_seed: int,
+        rollout_function: Callable[[int, int, int, int, int, bool], float],
         rollout_horizon: int = 100,
         root_belief: Optional[Dict[int, float]] = None,
         logger=None
@@ -76,6 +79,7 @@ class POMCPTree:
             f"exploration: {exploration},\n"
             f"random seed: {random_seed},\n"
             f"rollout horizon: {rollout_horizon},\n"
+            f"rollout function: {rollout_function},\n"
             f"root belief: {root_belief}"
         )
 
@@ -86,6 +90,7 @@ class POMCPTree:
         self.action_shield = action_shield
         self.exploration = exploration
         self.rollout_horizon = rollout_horizon
+        self.rollout_function = rollout_function
 
         if root_belief is None:
             root_belief = {
@@ -173,11 +178,8 @@ class POMCPTree:
                 continue
             history[i][0].bel_particle_filter[belief_particles[i - 1]] += 1
 
-        for (hist_node, act_node) in history:
-            hist_node.visit(result)
-            act_node.visit(result)
-
         history_node.visit(result)
+
         if len(belief_particles) != 0:  # if not root rollout update
             history_node.bel_particle_filter[belief_particles[-1]] += 1
 
@@ -205,11 +207,11 @@ class POMCPTree:
 
             if len(iter_beliefs) == 0:
                 result = self.rollout(
-                    iter_hist_node, sampled_state, self.rollout_horizon
+                    iter_hist_node, sampled_state, self.rollout_horizon - len(iter_hist_node.history)
                 )
             else:
                 result = self.rollout(
-                    iter_hist_node, iter_beliefs[-1], self.rollout_horizon
+                    iter_hist_node, iter_beliefs[-1], self.rollout_horizon - len(iter_hist_node.history)
                 )
 
             self.update_tree(iter_hist_node, result, iter_beliefs)
@@ -290,7 +292,7 @@ class POMCPTree:
         self.logger.info(f"Picking best action from tree")
 
         self.tree_run(max_iterations)
-        uct_values = self.root.calculate_uct()
+        uct_values = [act_node.avg_val for act_node in self.root.children]
         best_action_indices = [
             uct_values.index(i) for i in uct_values if i == max(uct_values)
         ]
@@ -298,8 +300,11 @@ class POMCPTree:
         action_node = self.root.children[random.sample(best_action_indices, 1)[0]]
         action = action_node.bel_supp_action
 
+        for act_node in self.root.children:
+            f"{act_node.bel_supp_action} action was evaluated with value of {act_node.avg_val}"
+
         self.logger.info(
-            f"{action} action was evaluated highest with value of {action_node.val/action_node.visits}"
+            f"{action} action was evaluated highest with value of {action_node.avg_val}"
         )
 
         return action
@@ -323,7 +328,7 @@ class POMCPTree:
             Rollout evaluation of the node.
         """
         target_found = False
-        result = 0
+        steps = 0
         energy = history_node.energy
         bel_supp_state = history_node.bel_supp_state
 
@@ -331,39 +336,62 @@ class POMCPTree:
             return 0
 
         safe_actions = filter_safe_actions(self.action_shield, energy, bel_supp_state)
-        src_state = state
+        sampled_state = state
+
+        consumed_energy = 0
+        reload_count = 0
 
         for i in range(horizon):
             if len(safe_actions) == 0:
-                return 100 * horizon * (-1)
+                return 1000 * horizon * (-1)
             bs_action = random.sample(safe_actions, 1)[0]
-            state_action = matching_state_action(self.cpomdp, bs_action, src_state)
+            state_action = matching_state_action(self.cpomdp, bs_action, sampled_state)
             energy -= state_action.cons
-            result -= 1
+            consumed_energy += state_action.cons
+            steps += 1
             new_state = sample_from_distr(state_action.distr)
 
             if self.cpomdp.is_reload(new_state):
                 energy = self.capacity
+                reload_count += 1
 
             if new_state in self.targets:
                 target_found = True
                 break
 
-            src_state = new_state
+            sampled_state = new_state
             new_bel_supps = [
                 self.cpomdp.belief_supp_cmdp.bel_supps[i] for i in bs_action.distr
             ]
-            for tmp_bel_supp in new_bel_supps:
-                if new_state in tmp_bel_supp:
-                    bel_supp_state = self.cpomdp.belief_supp_cmdp.bel_supp_indexer[
-                        tuple(tmp_bel_supp)
-                    ]
+
+            obs_distr = self.cpomdp.get_state_obs_probs(sampled_state)
+            bel_supp = ()
+
+            while len(obs_distr) > 0 and bel_supp == ():
+                dest_obs = sample_from_distr(obs_distr)
+                dest_obs_states = self.cpomdp.get_obs_states(dest_obs)
+
+                possible_bel_supps = []
+
+                for b_s in new_bel_supps:
+                    if sampled_state in b_s and all(elem in dest_obs_states for elem in b_s):
+                        possible_bel_supps.append(b_s)
+
+                if len(possible_bel_supps) > 0:
+                    bel_supp = max(possible_bel_supps, key=lambda x: len(x))
+                    break
+
+                obs_distr.pop(dest_obs)
+
+            bel_supp_state = self.cpomdp.belief_supp_cmdp.bel_supp_indexer[
+                tuple(bel_supp)
+            ]
 
             safe_actions = filter_safe_actions(
                 self.action_shield, energy, bel_supp_state
             )
 
-        return result * (1 if target_found else 1.2)  # TODO discuss penalty
+        return self.rollout_function(sampled_state, steps, consumed_energy, reload_count, energy, target_found)
 
     def use_outcome(self, action: ActionData, outcome: int):
         """Method for using new observation from previously selected (best) action
@@ -374,7 +402,7 @@ class POMCPTree:
         action : ActionData
             Previously selected action
         outcome : int
-            New observation recieved
+            New observation received
         """
 
         self.logger.info(f"Updating the tree with observation {outcome}")
@@ -433,18 +461,18 @@ class POMCPNode:
     ---------
     visits : int
         Number of visits in this node.
-    val : float
+    avg_val : float
         Current value of this node.
     """
 
     cpomdp: ConsPOMDP
     visits: int
-    val: float
+    avg_val: float
 
     def __init__(self, cpomdp: ConsPOMDP):
         self.cpomdp = cpomdp
         self.visits = 0
-        self.val = 0
+        self.avg_val = 0
 
     def visit(self, value: float) -> None:
         """Method for visiting this node and update its value average.
@@ -454,7 +482,7 @@ class POMCPNode:
         value : float
             New value for update.
         """
-        self.val = (self.val * self.visits + value) / (self.visits + 1)
+        self.avg_val = (self.avg_val * self.visits + value) / (self.visits + 1)
         self.visits += 1
 
 
@@ -548,7 +576,7 @@ class POMCPActionNode(POMCPNode):
                         possible_bel_supps.append(b_s)
 
                 if len(possible_bel_supps) > 0:
-                    belief_supp = max(possible_bel_supps, key= lambda x: len(x))
+                    belief_supp = max(possible_bel_supps, key=lambda x: len(x))
                     break
 
                 obs_distr.pop(dest_obs)
@@ -715,7 +743,7 @@ class POMCPHistoryNode(POMCPNode):
         List[float]
             Evaluations of child action nodes in order.
         """
-        children_vals = [child.val for child in self.children]
+        children_vals = [child.avg_val for child in self.children]
         children_visits = [child.visits for child in self.children]
 
         normalized_vals = [
@@ -760,6 +788,7 @@ class OnlineStrategy:
     best_action: ActionData
     solver: ConsPOMDPBasicES
     action_picked: bool
+    rollout_function: Callable[[int, int, int, int, int, bool], float]
 
     def __init__(
         self,
@@ -770,6 +799,7 @@ class OnlineStrategy:
         init_bel_supp: Tuple[int, ...],
         targets: List[int],
         exploration: float,
+        rollout_function: Callable[[int, int, int, int, int, bool], float],
         rollout_horizon: int = 100,
         random_seed: int = 42,
         recompute: bool = False,  # In the case that belief and guess constructions are not computed, set to True
@@ -802,6 +832,7 @@ class OnlineStrategy:
             action_shield,
             exploration,
             random_seed,
+            rollout_function,
             rollout_horizon,
             logger=logger
         )

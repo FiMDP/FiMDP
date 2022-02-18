@@ -13,6 +13,8 @@ from fipomdp.experiments.NYC_environment import NYCPOMDPEnvironment
 from fipomdp.experiments.UUV_experiment import simulate_observation
 from fipomdp.pomcp import OnlineStrategy
 
+from fipomdp.rollout_functions import basic, grid_manhattan_distance
+
 
 def nyc_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES, capacity: int, targets: List[int], random_seed: int, logger) -> \
 Tuple[Dict[int, int], List[int]]:
@@ -22,10 +24,19 @@ Tuple[Dict[int, int], List[int]]:
         raise AttributeError(f"Given CPOMDP or its solver is not pre computed!")
 
     init_energy = capacity
-    init_obs = 399
-    init_bel_supp = tuple([399])
+    init_obs = computed_cpomdp.state_with_name('42459137')
+    init_bel_supp = tuple([computed_cpomdp.state_with_name('42459137')])
     exploration = 1
     rollout_horizon = 100
+
+# SPECIFY ROLLOUT FUNCTION
+
+    rollout_function = basic
+
+    # grid_adjusted = partial(grid_manhattan_distance, grid_size=[..., ...], targets=[...])
+    # rollout_function = grid_adjusted
+
+# -----
 
     strategy = OnlineStrategy(
         computed_cpomdp,
@@ -35,6 +46,7 @@ Tuple[Dict[int, int], List[int]]:
         init_bel_supp,
         targets,
         exploration,
+        rollout_function,
         rollout_horizon=rollout_horizon,
         random_seed=random_seed,
         recompute=False,
@@ -87,7 +99,7 @@ def log_experiment_with_seed(cpomdp, env, i, log_file_name, solver, targets):
     logger.info(f"Machine: {uname.machine}")
     logger.info(f"Processor: {uname.processor}")
     logger.info(f"RAM: {str(round(psutil.virtual_memory().total / (1024.0 ** 3)))} GB")
-    return nyc_experiment(cpomdp, solver, env.capacities[0], targets, i, logger)
+    return nyc_experiment(cpomdp, solver, env.cmdp_env.capacity, targets, i, logger)
 
 
 def main():
@@ -107,9 +119,9 @@ def main():
     env = NYCPOMDPEnvironment()
     cpomdp, targets = env.get_cpomdp()
 
-    cpomdp.compute_guessing_cmdp_initial_state([cpomdp.state_with_name('42434894')])
+    cpomdp.compute_guessing_cmdp_initial_state([cpomdp.state_with_name('42459137')])
 
-    solver = ConsPOMDPBasicES(cpomdp, [cpomdp.state_with_name('42434894')], env.cmdp_env.capacity, targets)
+    solver = ConsPOMDPBasicES(cpomdp, [cpomdp.state_with_name('42459137')], env.cmdp_env.capacity, targets)
     solver.compute_buchi()
 
     results = Parallel(n_jobs=10)(

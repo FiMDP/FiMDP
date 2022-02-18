@@ -15,6 +15,8 @@ from fipomdp.pomcp import OnlineStrategy
 from fipomdp.environment_utils import set_cross_observations_to_UUV_grid
 from fipomdp.pomcp_utils import matching_state_action, sample_from_distr
 
+from fipomdp.rollout_functions import basic, grid_manhattan_distance
+
 
 def uuv_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES, capacity: int, targets: List[int], random_seed: int, logger) -> \
 Tuple[Dict[int, int], List[int]]:
@@ -30,6 +32,16 @@ Tuple[Dict[int, int], List[int]]:
     exploration = 1
     rollout_horizon = 100
 
+# SPECIFY ROLLOUT FUNCTION from rollout_functions.py
+
+    rollout_function = basic
+
+    # grid_adjusted = partial(grid_manhattan_distance, grid_size=[..., ...], targets=[...])
+    # rollout_function = grid_adjusted
+
+# -----
+
+
     strategy = OnlineStrategy(
         computed_cpomdp,
         capacity,
@@ -38,6 +50,7 @@ Tuple[Dict[int, int], List[int]]:
         init_bel_supp,
         targets,
         exploration,
+        rollout_function,
         rollout_horizon=rollout_horizon,
         random_seed=random_seed,
         recompute=False,

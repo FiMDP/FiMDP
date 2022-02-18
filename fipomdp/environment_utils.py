@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from typing import List, Tuple
 
 from fipomdp import ConsPOMDP
@@ -91,3 +92,8 @@ def get_guessing_stats(
         cpomdp.belief_supp_cmdp.num_states,
         cpomdp.guessing_cmdp.num_states,
     )
+
+
+def softmax(scores: List[float]):
+    e_scores = np.exp(scores - np.max(scores))
+    return e_scores / e_scores.sum()
