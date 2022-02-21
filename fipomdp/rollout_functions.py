@@ -26,6 +26,7 @@ def grid_manhattan_distance(state: int, steps: int, consumed_energy: int, reload
 
         return -steps - min(x_dists[i] + y_dists[i] for i in range(len(x_dists)))
 
+
 def product(state: int, steps: int, consumed_energy: int, reload_count: int, remaining_energy: int, target_found:bool,
             a: int, b: int) -> float:
     return a * b

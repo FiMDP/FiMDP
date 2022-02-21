@@ -30,6 +30,7 @@ from fipomdp.energy_solvers import ConsPOMDPBasicES
 
 import logging
 
+from fipomdp.environment_utils import softmax
 from fipomdp.pomcp_utils import sample_from_distr, filter_safe_actions, matching_state_action
 
 
@@ -49,6 +50,7 @@ class POMCPTree:
     rollout_horizon: int
     rollout_function: Callable[[int, int, int, int, int, bool], float]
     random_seed: int
+    max_function: Callable[[List[float]], float]
 
     def __init__(
         self,
@@ -64,7 +66,8 @@ class POMCPTree:
         rollout_function: Callable[[int, int, int, int, int, bool], float],
         rollout_horizon: int = 100,
         root_belief: Optional[Dict[int, float]] = None,
-        logger=None
+        logger=None,
+        softmax_on: bool = False
     ):
         if logger is None:
             logger = log_utils.get_logger_for_seed(random_seed)
@@ -101,6 +104,11 @@ class POMCPTree:
 
         self.logger = logger
 
+        if softmax_on:
+            self.max_function = softmax
+        else:
+            self.max_function = max
+
         self.root = POMCPHistoryNode(
             cpomdp,
             self.capacity,
@@ -110,6 +118,7 @@ class POMCPTree:
             exploration,
             [],
             action_shield,
+            self.max_function,
             root_belief,
             logger
         )
@@ -263,6 +272,7 @@ class POMCPTree:
             exploration,
             [],
             self.action_shield,
+            self.max_function,
             belief,
             logger=self.logger
         )
@@ -617,6 +627,7 @@ class POMCPActionNode(POMCPNode):
             self.parent_node.exploration,
             new_hist,
             self.parent_node.action_shield,
+            self.parent_node.max_function,
             logger=self.parent_node.logger
         )
         self.children.append(new_child)
@@ -656,6 +667,7 @@ class POMCPHistoryNode(POMCPNode):
     exploration: float
     history: List[Tuple[POMCPHistoryNode, POMCPActionNode]]
     action_shield: Dict[int, Dict[ActionData, int]]
+    max_function: Callable[[List[float]], float]
 
     def __init__(
         self,
@@ -667,8 +679,9 @@ class POMCPHistoryNode(POMCPNode):
         exploration: float,
         history: List[Tuple[POMCPHistoryNode, POMCPActionNode]],
         action_shield: Dict[int, Dict[ActionData, int]],
+        max_function: Callable[[List[float]], float],
         belief: Optional[Dict[int, float]] = None,
-        logger = None
+        logger = None,
     ) -> None:
         super(POMCPHistoryNode, self).__init__(cpomdp)
         if belief is None:
@@ -687,6 +700,7 @@ class POMCPHistoryNode(POMCPNode):
         self.exploration = exploration
         self.history = history
         self.action_shield = action_shield
+        self.max_function = max_function
         self.belief = belief
         self.logger = logger
 
@@ -804,7 +818,8 @@ class OnlineStrategy:
         random_seed: int = 42,
         recompute: bool = False,  # In the case that belief and guess constructions are not computed, set to True
         solver: Optional[ConsPOMDPBasicES] = None,
-        logger=None
+        logger=None,
+        softmax_on: bool = False
     ):
         if logger is None:
             logger = logging.getLogger(f"{random_seed}")
@@ -834,7 +849,8 @@ class OnlineStrategy:
             random_seed,
             rollout_function,
             rollout_horizon,
-            logger=logger
+            logger=logger,
+            softmax_on=softmax_on
         )
 
     def update_obs(self, outcome: int) -> None:

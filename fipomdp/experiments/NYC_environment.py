@@ -34,8 +34,6 @@ class NYCPOMDPEnvironment:
         for state in range(original_num_states):
             mdp.new_state(mdp.reloads[state], mdp.names[state]+"_high")
 
-        print([mdp.names[state] for state in range(mdp.num_states)])
-
         for state in range(original_num_states):
             actions = mdp.actions_for_state(state)
             for action in actions:
@@ -46,12 +44,6 @@ class NYCPOMDPEnvironment:
                     src = action.src+index_shift
                     shifted_distr = {k+index_shift: v for k, v in orig_distr.items()}
                     mdp.add_action(src, shifted_distr, action.label, action.cons)
-
-        for i in range(10):
-            for action in mdp.actions_for_state(i):
-                print(action)
-            for action in mdp.actions_for_state(i+original_num_states):
-                print(action)
 
         for state in range(original_num_states):
             if re.search("^\d+$", mdp.names[state]):  # regex matching exactly number names
@@ -87,8 +79,6 @@ class NYCPOMDPEnvironment:
         orig_distr = mid_action.distr
 
         if len(orig_distr.keys()) != 1:
-            print(mdp.names[mid_action.src])
-            print([(mdp.names[dest_state], val) for dest_state, val in mid_action.distr.items()])
             raise AttributeError("Given action is not one to one.")
 
         dest = list(orig_distr.keys())[0]
@@ -136,9 +126,6 @@ class NYCPOMDPEnvironment:
 
         ps1_state = dest_states[ps1_state_index]
         ps3_state = dest_states[ps3_state_index]
-
-        print(ps3_state_index)
-        print(ps1_state_index)
 
         low_dist = copy(low_action.distr)
         low_dist[ps3_state + shift] += low_dist[ps1_state + shift]

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import logging
 import platform
-from typing import List, Tuple, Dict
+import time
+from functools import partial
+from statistics import stdev
+from typing import List, Tuple, Dict, Union, Any
 
 import psutil
 from joblib import Parallel, delayed
@@ -13,29 +16,39 @@ from fipomdp.experiments.NYC_environment import NYCPOMDPEnvironment
 from fipomdp.experiments.UUV_experiment import simulate_observation
 from fipomdp.pomcp import OnlineStrategy
 
-from fipomdp.rollout_functions import basic, grid_manhattan_distance
+from fipomdp.rollout_functions import basic, grid_manhattan_distance, product, consumption_based
 
 
 def nyc_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES, capacity: int, targets: List[int], random_seed: int, logger) -> \
-Tuple[Dict[int, int], List[int]]:
+        Tuple[int, bool, List[int], List[int], bool, int]:
     logger = logger
 
     if computed_cpomdp.belief_supp_cmdp is None or computed_solver.bs_min_levels[BUCHI] is None:
         raise AttributeError(f"Given CPOMDP or its solver is not pre computed!")
 
+# SPECIFY ROLLOUT FUNCTION
+
+    # rollout_function = basic
+
+    # grid_adjusted = partial(grid_manhattan_distance, grid_size=(20, 20), targets=[3, 12, 15])
+    rollout_function = consumption_based
+    #
+    # rollout_product = partial(product, a=10, b=20)
+    # rollout_function = rollout_product
+
+# -----
+
+#   HYPER PARAMETERS
+
     init_energy = capacity
     init_obs = computed_cpomdp.state_with_name('42459137')
     init_bel_supp = tuple([computed_cpomdp.state_with_name('42459137')])
     exploration = 1
-    rollout_horizon = 100
-
-# SPECIFY ROLLOUT FUNCTION
-
-    rollout_function = basic
-
-    # grid_adjusted = partial(grid_manhattan_distance, grid_size=[..., ...], targets=[...])
-    # rollout_function = grid_adjusted
-
+    rollout_horizon = 3
+    max_iterations = 100
+    actual_horizon = 10  # number of action to take
+    softmax_on = False
+    
 # -----
 
     strategy = OnlineStrategy(
@@ -51,34 +64,42 @@ Tuple[Dict[int, int], List[int]]:
         random_seed=random_seed,
         recompute=False,
         solver=computed_solver,
-        logger=logger
+        logger=logger,
+        softmax_on=softmax_on
     )
 
     simulated_state = init_bel_supp[0]
 
     path = [simulated_state]
 
-    max_iteration_target_reached_count = {1000: 0}
+    logger.info(f"\nLAUNCHING with max iterations: {max_iterations}\n")
+    reward = 0
+    target_hit = False
+    decision_times = []
 
-    for max_iterations in max_iteration_target_reached_count.keys():  # max iterations
+    for j in range(actual_horizon):
+        pre_decision_time = time.time()
+        action = strategy.next_action(max_iterations)
+        simulated_state, new_obs = simulate_observation(computed_cpomdp, action, simulated_state)
+        path.append(simulated_state)
+        reward -= action.cons
+        if simulated_state in targets:
+            reward += 1000
+            target_hit = True
+            break
 
-        logger.info(f"\nLAUNCHING with max iterations: {max_iterations}\n")
-
-        for j in range(100):  # 100 actions
-            action = strategy.next_action(max_iterations)
-            simulated_state, new_obs = simulate_observation(computed_cpomdp, action, simulated_state)
-            path.append(simulated_state)
-            if simulated_state in targets:
-                max_iteration_target_reached_count[max_iterations] += 1
-            strategy.update_obs(new_obs)
+        strategy.update_obs(new_obs)
+        decision_times.append(round(time.time() - pre_decision_time))
 
     logger.info(f"\n--------EXPERIMENT FINISHED---------")
     logger.info(f"--------RESULTS--------")
-    for k, v in max_iteration_target_reached_count.items():
-        logger.info(f"For max iterations: {k}, target has been reached {v} times.")
-        logger.info(f"Path of the agent was: {path}")
 
-    return max_iteration_target_reached_count, path
+    logger.info(f"For max iterations: {max_iterations}, target has been reached {target_hit} times.")
+    logger.info(f"Path of the agent was: {path}")
+    logger.info(f"Decision times: {decision_times}, stdev: {stdev(decision_times)}")
+    logger.info(f"Target hit: {target_hit}, reward: {reward}")
+
+    return max_iterations, target_hit, path, decision_times, target_hit, reward
 
 
 def log_experiment_with_seed(cpomdp, env, i, log_file_name, solver, targets):
@@ -119,16 +140,21 @@ def main():
     env = NYCPOMDPEnvironment()
     cpomdp, targets = env.get_cpomdp()
 
+    preprocessing_start = time.time()
+
     cpomdp.compute_guessing_cmdp_initial_state([cpomdp.state_with_name('42459137')])
 
     solver = ConsPOMDPBasicES(cpomdp, [cpomdp.state_with_name('42459137')], env.cmdp_env.capacity, targets)
     solver.compute_buchi()
 
+    preprocessing_time = round(time.time() - preprocessing_start)
+
     results = Parallel(n_jobs=10)(
         delayed(log_experiment_with_seed)(cpomdp, env, i, log_file_name, solver, targets) for i in range(10))
 
     logging.info(f"RESULTS (): {results}")
-
+    results
+    print(preprocessing_time)
 
 if __name__ == "__main__":
     main()

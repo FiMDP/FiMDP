@@ -3,6 +3,9 @@
 import logging
 import multiprocessing
 import platform, psutil
+from datetime import time
+from functools import partial
+from statistics import stdev
 from typing import List, Tuple, Dict
 from joblib import Parallel, delayed
 
@@ -19,28 +22,34 @@ from fipomdp.rollout_functions import basic, grid_manhattan_distance
 
 
 def uuv_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES, capacity: int, targets: List[int], random_seed: int, logger) -> \
-Tuple[Dict[int, int], List[int]]:
+        Tuple[int, bool, List[int], List[int], bool, int]:
 
     logger = logger
 
     if computed_cpomdp.belief_supp_cmdp is None or computed_solver.bs_min_levels[BUCHI] is None:
         raise AttributeError(f"Given CPOMDP or its solver is not pre computed!")
 
+# SPECIFY ROLLOUT FUNCTION from rollout_functions.py
+
+    # rollout_function = basic
+    #
+    grid_adjusted = partial(grid_manhattan_distance, grid_size=[20, 20], targets=[15, 200, 378])
+    rollout_function = grid_adjusted
+
+# -----
+
+#   HYPER PARAMETERS
+
     init_energy = capacity
     init_obs = 399
     init_bel_supp = tuple([399])
     exploration = 1
     rollout_horizon = 100
-
-# SPECIFY ROLLOUT FUNCTION from rollout_functions.py
-
-    rollout_function = basic
-
-    # grid_adjusted = partial(grid_manhattan_distance, grid_size=[..., ...], targets=[...])
-    # rollout_function = grid_adjusted
+    max_iterations = 100
+    actual_horizon = 100
+    softmax_on = False
 
 # -----
-
 
     strategy = OnlineStrategy(
         computed_cpomdp,
@@ -60,29 +69,35 @@ Tuple[Dict[int, int], List[int]]:
 
     simulated_state = init_bel_supp[0]
 
+    reward = 0
+    target_hit = False
+    decision_times = []
+
     path = [simulated_state]
 
-    max_iteration_target_reached_count = {1000: 0}
+    for j in range(actual_horizon):
+        pre_decision_time = time.time()
+        action = strategy.next_action(max_iterations)
+        simulated_state, new_obs = simulate_observation(computed_cpomdp, action, simulated_state)
+        path.append(simulated_state)
+        reward -= 1
+        if simulated_state in targets:
+            reward += 1000
+            target_hit = True
+            break
 
-    for max_iterations in max_iteration_target_reached_count.keys():  # max iterations
-
-        logger.info(f"\nLAUNCHING with max iterations: {max_iterations}\n")
-
-        for j in range(100):  # 100 actions
-            action = strategy.next_action(max_iterations)
-            simulated_state, new_obs = simulate_observation(computed_cpomdp, action, simulated_state)
-            path.append(simulated_state)
-            if simulated_state in targets:
-                max_iteration_target_reached_count[max_iterations] += 1
-            strategy.update_obs(new_obs)
+        strategy.update_obs(new_obs)
+        decision_times.append(round(time.time() - pre_decision_time))
 
     logger.info(f"\n--------EXPERIMENT FINISHED---------")
     logger.info(f"--------RESULTS--------")
-    for k, v in max_iteration_target_reached_count.items():
-        logger.info(f"For max iterations: {k}, target has been reached {v} times.")
-        logger.info(f"Path of the agent was: {path}")
 
-    return max_iteration_target_reached_count, path
+    logger.info(f"For max iterations: {max_iterations}, target has been reached {target_hit} times.")
+    logger.info(f"Path of the agent was: {path}")
+    logger.info(f"Decision times: {decision_times}, stdev: {stdev(decision_times)}")
+    logger.info(f"Target hit: {target_hit}, reward: {reward}")
+
+    return max_iterations, target_hit, path, decision_times, target_hit, reward
 
 
 def simulate_observation(cpomdp: ConsPOMDP, bs_action: ActionData, src_state: int) -> Tuple[int, int]:
