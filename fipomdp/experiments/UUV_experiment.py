@@ -94,7 +94,8 @@ def uuv_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES
 
     logger.info(f"For max iterations: {max_iterations}, target has been reached {target_hit} times.")
     logger.info(f"Path of the agent was: {path}")
-    logger.info(f"Decision times: {decision_times}, stdev: {stdev(decision_times)}")
+    logger.info(f"Decision times: {decision_times}")
+    logger.info(f"Decision time average: {sum(decision_times) / len(decision_times)}, standard deviation: {stdev(decision_times)}")
     logger.info(f"Target hit: {target_hit}, reward: {reward}")
 
     return max_iterations, target_hit, path, decision_times, target_hit, reward
