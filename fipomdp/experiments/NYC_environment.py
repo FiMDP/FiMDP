@@ -73,6 +73,13 @@ class NYCPOMDPEnvironment:
 
         mdp.set_observations(original_num_states, observations)
 
+        low_high_targets = []
+        for target in targets:
+            low_high_targets.append(target + original_num_states)
+            low_high_targets.append(target + 2 * original_num_states)
+
+        targets.extend(low_high_targets)
+
         return mdp, targets
 
     def _modify_dummy_action(self, mdp: ConsMDP, mid_action: ActionData, shift: int):

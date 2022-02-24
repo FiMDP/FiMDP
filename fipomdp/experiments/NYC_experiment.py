@@ -44,9 +44,9 @@ def nyc_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES
     init_obs = computed_cpomdp.state_with_name('42459137')
     init_bel_supp = tuple([computed_cpomdp.state_with_name('42459137')])
     exploration = 1
-    rollout_horizon = 3
+    rollout_horizon = 100
     max_iterations = 100
-    actual_horizon = 10  # number of action to take
+    actual_horizon = 1000  # number of action to take
     softmax_on = False
     
 # -----

@@ -760,8 +760,11 @@ class POMCPHistoryNode(POMCPNode):
         children_vals = [child.avg_val for child in self.children]
         children_visits = [child.visits for child in self.children]
 
+        abs_max_val = max(map(abs, children_vals))
+        divisor = abs_max_val if abs_max_val != 0 else 1
+
         normalized_vals = [
-            float(val) / max(map(abs, children_vals)) for val in children_vals
+            float(val) / divisor for val in children_vals
         ]
 
         exploration_bonus = [

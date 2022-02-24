@@ -13,7 +13,7 @@ def step_based(state: int, steps: int, consumed_energy: int, reload_count: int, 
 
 def consumption_based(state: int, steps: int, consumed_energy: int, reload_count: int, remaining_energy: int,
                       target_found: bool) -> float:
-    return -consumed_energy + remaining_energy
+    return 1000 - consumed_energy + remaining_energy + 0.5 if target_found else - consumed_energy + remaining_energy
 
 
 def grid_manhattan_distance(state: int, steps: int, consumed_energy: int, reload_count: int, remaining_energy: int,
