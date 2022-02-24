@@ -145,7 +145,7 @@ class POMCPTree:
         current_history_node = self.root
         belief_particles = []
         tmp_sample = sampled_state
-        while current_history_node.visits != 0:
+        while current_history_node.visits != 0 and tmp_sample not in self.targets:
             node, belief = current_history_node.simulate_action(tmp_sample)
             current_history_node = node
             belief_particles.append(belief)
