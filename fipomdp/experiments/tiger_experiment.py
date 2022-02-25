@@ -13,7 +13,7 @@ from fipomdp.energy_solvers import ConsPOMDPBasicES
 from fipomdp.experiments.UUV_experiment import simulate_observation
 from fipomdp.experiments.tiger_environent import TigerEnvironment
 from fipomdp.pomcp import OnlineStrategy
-from fipomdp.rollout_functions import consumption_based
+from fipomdp.rollout_functions import consumption_based, tiger_step_based
 
 
 def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasicES, capacity: int, targets: List[int],
@@ -29,7 +29,7 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
     # rollout_function = basic
 
     # grid_adjusted = partial(grid_manhattan_distance, grid_size=(20, 20), targets=[3, 12, 15])
-    rollout_function = consumption_based
+    rollout_function = tiger_step_based
     #
     # rollout_product = partial(product, a=10, b=20)
     # rollout_function = rollout_product
@@ -39,12 +39,12 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
     #   HYPER PARAMETERS
 
     init_energy = capacity
-    init_obs = 0
-    init_bel_supp = tuple([0, 1])
+    init_obs = 0  # init
+    init_bel_supp = tuple([0, 1])  # init_left or init_right
     exploration = 1
-    rollout_horizon = 3
+    rollout_horizon = 100
     max_iterations = 100
-    actual_horizon = 10  # number of action to take
+    actual_horizon = 100  # number of action to take
     softmax_on = False
 
     # -----
@@ -66,7 +66,7 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
         softmax_on=softmax_on
     )
 
-    simulated_state = init_bel_supp[0]
+    simulated_state = init_bel_supp[0] # init_left
 
     path = [simulated_state]
 
@@ -80,9 +80,12 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
         action = strategy.next_action(max_iterations)
         simulated_state, new_obs = simulate_observation(computed_cpomdp, action, simulated_state)
         path.append(simulated_state)
-        reward -= action.cons
+        reward -= 1
         if simulated_state in targets:
-            reward += 1000
+            if simulated_state == 4:
+                reward -= actual_horizon
+            else:
+                reward += 100
             target_hit = True
             break
 
@@ -140,9 +143,9 @@ def main():
 
     preprocessing_start = time.time()
 
-    cpomdp.compute_guessing_cmdp_initial_state([0])
+    cpomdp.compute_guessing_cmdp_initial_state([0, 1])
 
-    solver = ConsPOMDPBasicES(cpomdp, [0], env.capacity, targets)
+    solver = ConsPOMDPBasicES(cpomdp, [0, 1], env.capacity, targets)
     solver.compute_buchi()
 
     preprocessing_time = round(time.time() - preprocessing_start)

@@ -27,6 +27,16 @@ def grid_manhattan_distance(state: int, steps: int, consumed_energy: int, reload
         return -steps - min(x_dists[i] + y_dists[i] for i in range(len(x_dists)))
 
 
+def tiger_step_based(state: int, steps: int, consumed_energy: int, reload_count: int, remaining_energy: int, target_found: bool) -> float:
+    if not target_found:
+        return -steps
+    if state == 4:
+        behind_the_door = -100
+    else:
+        behind_the_door = 100
+    return -steps + behind_the_door
+
+
 def product(state: int, steps: int, consumed_energy: int, reload_count: int, remaining_energy: int, target_found:bool,
             a: int, b: int) -> float:
     return a * b
