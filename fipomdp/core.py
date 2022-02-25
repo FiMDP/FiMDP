@@ -89,7 +89,6 @@ class GuessingConsMDP(ConsMDP):
             raise AttributeError(
                 f"Supplied guess {guess} does not match with supplied belief support {belief_support}."
             )
-        print(name)
         super(GuessingConsMDP, self).new_state(reload, name)
         self.belief_supp_guess_pairs.append((belief_support, guess))
         self.bel_supp_guess_indexer[(tuple(belief_support), guess)] = (
