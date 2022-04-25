@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 import psutil
 from joblib import Parallel, delayed
+from mypy.plugins.default import partial
 
 from fimdp.objectives import BUCHI
 from fipomdp import ConsPOMDP
@@ -29,8 +30,10 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
     # rollout_function = basic
 
     # grid_adjusted = partial(grid_manhattan_distance, grid_size=(20, 20), targets=[3, 12, 15])
-    rollout_function = tiger_step_based
-    #
+
+    tiger_bite_weight = 10
+    rollout_function = partial(tiger_step_based, tiger_bite_weight=tiger_bite_weight)
+
     # rollout_product = partial(product, a=10, b=20)
     # rollout_function = rollout_product
 
@@ -44,7 +47,7 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
     exploration = 1
     rollout_horizon = 100
     max_iterations = 100
-    actual_horizon = 100  # number of action to take
+    actual_horizon = 500  # number of action to take
     softmax_on = False
 
     # -----
@@ -78,19 +81,20 @@ def tiger_experiment(computed_cpomdp: ConsPOMDP, computed_solver: ConsPOMDPBasic
     for j in range(actual_horizon):
         pre_decision_time = time.time()
         action = strategy.next_action(max_iterations)
+        decision_times.append((time.time() - pre_decision_time))
         simulated_state, new_obs = simulate_observation(computed_cpomdp, action, simulated_state)
         path.append(simulated_state)
         reward -= 1
         if simulated_state in targets:
-            if simulated_state == 4:
-                reward -= actual_horizon
+            if simulated_state == 6:
+                reward -= actual_horizon * tiger_bite_weight
             else:
-                reward += 100
+                reward += actual_horizon
+            print(simulated_state)
             target_hit = True
             break
 
         strategy.update_obs(new_obs)
-        decision_times.append(round(time.time() - pre_decision_time))
 
     logger.info(f"\n--------EXPERIMENT FINISHED---------")
     logger.info(f"--------RESULTS--------")
@@ -138,7 +142,13 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    env = TigerEnvironment(10)
+    # global environment hyper parameters
+
+    listen_uncertainty = 0.4
+    swap_probability = 0.2
+    cap = 10
+
+    env = TigerEnvironment(listen_uncertainty, swap_probability, cap)
     cpomdp, targets = env.get_cpomdp()
 
     preprocessing_start = time.time()
@@ -150,8 +160,8 @@ def main():
 
     preprocessing_time = round(time.time() - preprocessing_start)
 
-    results = Parallel(n_jobs=10)(
-        delayed(log_experiment_with_seed)(cpomdp, env, i, log_file_name, solver, targets) for i in range(10))
+    results = Parallel(n_jobs=-1)(
+        delayed(log_experiment_with_seed)(cpomdp, env, i, log_file_name, solver, targets) for i in range(1000))
 
     logging.info(f"RESULTS (): {results}")
     print(preprocessing_time)

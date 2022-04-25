@@ -311,7 +311,7 @@ class POMCPTree:
         action = action_node.bel_supp_action
 
         for act_node in self.root.children:
-            f"{act_node.bel_supp_action} action was evaluated with value of {act_node.avg_val}"
+            self.logger.info(f"{act_node.bel_supp_action} action was evaluated with value of {act_node.avg_val}")
 
         self.logger.info(
             f"{action} action was evaluated highest with value of {action_node.avg_val}"
@@ -337,13 +337,14 @@ class POMCPTree:
         float
             Rollout evaluation of the node.
         """
-        target_found = False
         steps = 0
         energy = history_node.energy
-        bel_supp_state = history_node.bel_supp_state
 
         if state in self.targets:
-            return 0
+            return self.rollout_function(state, steps, 0, 0, energy, True)
+
+        target_found = False
+        bel_supp_state = history_node.bel_supp_state
 
         safe_actions = filter_safe_actions(self.action_shield, energy, bel_supp_state)
         sampled_state = state
@@ -739,6 +740,9 @@ class POMCPHistoryNode(POMCPNode):
             )
 
         uct_values = self.calculate_uct()
+
+        if len(uct_values) == 0:
+            print(f"Sampled: {sampled_state}")
 
         self.logger.debug(f"BEST UCT: {max(uct_values)}, ALL UCT: {uct_values}")
 

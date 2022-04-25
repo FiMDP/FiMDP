@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
+import time
 import multiprocessing
 import platform, psutil
-from datetime import time
 from functools import partial
 from statistics import stdev
 from typing import List, Tuple, Dict
@@ -156,11 +156,15 @@ def main():
     mdp.__class__ = ConsPOMDP
     set_cross_observations_to_UUV_grid(mdp, (env.grid_size[0], env.grid_size[1]))
 
+    preprocessing_start = time.time()
+
     cpomdp = mdp
     cpomdp.compute_guessing_cmdp_initial_state([399])
 
     solver = ConsPOMDPBasicES(cpomdp, [399], env.capacities[0], targets)
     solver.compute_buchi()
+
+    print(time.time() - preprocessing_start)
 
     results = Parallel(n_jobs=10)(delayed(log_experiment_with_seed)(cpomdp, env, i, log_file_name, solver, targets) for i in range(10))
 
