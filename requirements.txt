@@ -1,0 +1,3 @@
+psutil~=5.9.1
+joblib~=1.1.0
+fimdpenv~=1.0.4
