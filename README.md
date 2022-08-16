@@ -1,54 +1,31 @@
+# FiPOMDP - Fuel in Partially Observable Markov Decision Processes
 
-# FiMDP - Fuel in Markov Decision Processes
-**Python Package with Algorithms for Controller Synthesis in Resource-constrained Markov Decision Processes**
+##### Python package for synthesizing resource-safe strategies on Resource-constrained POMDPs
+This project extends [FiMDP] representation of Consumption MDP by adding partial observability, thus creating the Consumption POMDP model.
+On this model, strategies are estimated step-by-step firstly by computing a Büchi-safe shield and recommended actions are subsequently produced by the POMCP algorithm
+(limiting actions of the agent based on the shield) tuned for the consumption model.
 
-[![Documentation Status](https://readthedocs.org/projects/fimdp/badge/?version=latest)](https://fimdp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xblahoud/FiMDP/master?urlpath=lab) [![Build Status](https://travis-ci.org/xblahoud/FiMDP.svg?branch=master)](https://travis-ci.org/xblahoud/FiMDP)
+The shielding itself is done by reducing the qualitative analysis of a Resource-constrained POMDP to a problem of analysing an extension of known belief support construction (more details in the submission for AAAI 2023).
+FiPOMDP implements algorithms for producing these constructions, computes minimal energy levels (implemented in [FiMDP]), and from those levels produces a shield - a minimal energy value per action for each belief (belief support).
 
-**FiMDP** is a Python package for analysis and controller synthesis of Consumption Markov Decision Processes (ConsMDPs) — MDPs with resource constraints. The model of ConsMDPs and the basic algorithms implemented in FiMDP are described in our paper presented at CAV2020 [[1]](#1).
+The package includes a POMCP processor for POMDP (and experimental variations for different environments)
 
-Our related project called **[FiMDPEnv]** is a set of environments that work with FiMDP and can create animations like this one.
-<p align="center">
-<img src="https://github.com/FiMDP/FiMDP/blob/master/docs/source/images/demoanimation.gif" alt="Multiple agents following energy-aware policy in grid-world." align="center" height="250" width="350" >
-<br>
-<em>Multiple agents following energy-aware policies in UUVEnv from <a href="https://github.com/FiMDP/FiMDPEnv">FiMDPEnv</a>.  </em>
-</p>
-
-## Installation
-
-FiMDP can be installed using pip from PyPI
+## Installation (regarding experiments)
+You can install all required dependencies for running experiments with
 ```
-pip install -U fimdp
+pip install -r requirements.txt
 ```
-While the baseline package has minimal dependencies, FiMDP depends on several other tools for extended functionality. Some of the recommended dependencies are:
 
-* [Graphviz]: for visualizations in Jupyter notebooks,
-* [Storm] and [Stormpy]: for reading PRSIM, JANI, and Storm models,
-* [Spot](https://spot.lrde.epita.fr/): for support of labeled ConsMDPs and specifications given as deterministic Büchi automata or the recurrence fragment of Linear-time Temporal Logic (LTL).
+## Demo (Work in progress)
+In directory fipomdp/demo is also included a demo notebook showing how to create a simple CPOMDP, and create a shield via qualitative analysis.
+For more information about FiMDP, computing minimal levels and creating Consumption MDPs without partial observability, look at [FiMDP README] file.
 
-## Usage and documentation (work in progress)
+## Experiments for AAAI 2023
+The experiments we performed use environments from [FiMDPEnv] modified for partial observability.
+Since there are many slight variations to configurations in experiments, a small tutorial how to launch them and collect results from them is included.
+The experiments are reproducible, specified more exactly in the [Experiment reproducibility guide].
 
-The directory [tut](tut/README.md) contains several notebooks that explain how to use FiMDP. The notebook [Basics.ipynb](tut/Basics.ipynb) is a good starting point.
-
-For a complete overview of the tool, installation options, source code documentation, and interactive examples refer to [FiMDP readthedocs].
-
-
-## Evaluations
-Notebooks evaluationg performance of FiMDP are stored in a separate repository 
-[FiMDP-Evaluation].
-
-
-## Contact
-If you have any trouble with the installation, or have any questions, raise an issue or email [František (Fanda) Blahoudek](fandikb+dev@gmail.com) or [Pranay Thangeda](contact@prny.me).
-
-## References
-<a id="1">[1]</a> 
-Blahoudek F., Brázdil T., Novotný P., Ornik M., Thangeda P., Topcu U. (2020) **Qualitative Controller Synthesis for Consumption Markov Decision Processes.** In proceeding of CAV 2020. Lecture Notes in Computer Science, vol 12225. Springer. https://doi.org/10.1007/978-3-030-53291-8_22
-
-
-[FiMDP-Evaluation]: https://github.com/FiMDP/FiMDP-Evaluation
-[FiMDP readthedocs]: https://fimdp.readthedocs.io/
 [FiMDPEnv]: https://github.com/FiMDP/FiMDPEnv
-[Graphviz]: https://graphviz.org/
-[Storm]: https://www.stormchecker.org/index.html
-[Stormpy]: https://moves-rwth.github.io/stormpy/
-[Spot]: https://spot.lrde.epita.fr/
+[FiMDP]: https://github.com/FiMDP/FiMDP
+[FiMDP README]: https://github.com/xbrlej/FiPOMDP/blob/master/FiMDP-README.md
+[Experiment reproducibility guide]: https://github.com/xbrlej/FiPOMDP/blob/master/REPROD-GUIDE.md
